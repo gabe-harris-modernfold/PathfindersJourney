@@ -1,0 +1,571 @@
+// Import all partials
+@import 'variables';
+@import 'typography';
+@import 'animations';
+
+// Base Styles
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: $light-color;
+  color: $dark-color;
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+// Game Container
+.game-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: $spacing-lg;
+  
+  @media (max-width: $breakpoint-md) {
+    padding: $spacing-md;
+  }
+}
+
+// Game Header
+.game-header {
+  text-align: center;
+  margin-bottom: $spacing-xl;
+  padding: $spacing-md;
+  border-bottom: 2px solid $accent-color;
+}
+
+// Game Card
+.game-card {
+  background-color: white;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-md;
+  overflow: hidden;
+  transition: transform $transition-normal, box-shadow $transition-normal;
+  margin-bottom: $spacing-md;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: $shadow-lg;
+  }
+  
+  &__header {
+    padding: $spacing-md;
+    background-color: $primary-color;
+    color: white;
+  }
+  
+  &__body {
+    padding: $spacing-md;
+  }
+  
+  &__footer {
+    padding: $spacing-md;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+  
+  // Card Types
+  &--landscape {
+    border-left: 5px solid $landscape-color;
+  }
+  
+  &--animal-companion {
+    border-left: 5px solid $animal-companion-color;
+  }
+  
+  &--resource {
+    border-left: 5px solid $resource-color;
+  }
+  
+  &--crafted-item {
+    border-left: 5px solid $crafted-item-color;
+  }
+  
+  &--character {
+    border-left: 5px solid $character-color;
+  }
+  
+  &--season {
+    &.samhain {
+      border-left: 5px solid $samhain-color;
+    }
+    
+    &.winter {
+      border-left: 5px solid $winter-color;
+    }
+    
+    &.imbolc {
+      border-left: 5px solid $imbolc-color;
+    }
+    
+    &.beltane {
+      border-left: 5px solid $beltane-color;
+    }
+    
+    &.lughnasadh {
+      border-left: 5px solid $lughnasadh-color;
+    }
+  }
+}
+
+// Button Styles
+.btn {
+  display: inline-block;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  user-select: none;
+  border: 1px solid transparent;
+  padding: $spacing-sm $spacing-md;
+  font-size: $font-size-base;
+  line-height: 1.5;
+  border-radius: $border-radius-md;
+  transition: all $transition-fast;
+  cursor: pointer;
+  
+  &:focus, &:hover {
+    text-decoration: none;
+    outline: 0;
+  }
+  
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+  
+  &--primary {
+    background-color: $primary-color;
+    color: white;
+    
+    &:hover, &:focus {
+      background-color: darken($primary-color, 10%);
+    }
+  }
+  
+  &--secondary {
+    background-color: $secondary-color;
+    color: white;
+    
+    &:hover, &:focus {
+      background-color: darken($secondary-color, 10%);
+    }
+  }
+  
+  &--accent {
+    background-color: $accent-color;
+    color: white;
+    
+    &:hover, &:focus {
+      background-color: darken($accent-color, 10%);
+    }
+  }
+  
+  &--success {
+    background-color: $success-color;
+    color: white;
+    
+    &:hover, &:focus {
+      background-color: darken($success-color, 10%);
+    }
+  }
+  
+  &--danger {
+    background-color: $danger-color;
+    color: white;
+    
+    &:hover, &:focus {
+      background-color: darken($danger-color, 10%);
+    }
+  }
+  
+  &--outline {
+    background-color: transparent;
+    
+    &.btn--primary {
+      border-color: $primary-color;
+      color: $primary-color;
+      
+      &:hover, &:focus {
+        background-color: $primary-color;
+        color: white;
+      }
+    }
+    
+    &.btn--secondary {
+      border-color: $secondary-color;
+      color: $secondary-color;
+      
+      &:hover, &:focus {
+        background-color: $secondary-color;
+        color: white;
+      }
+    }
+    
+    &.btn--accent {
+      border-color: $accent-color;
+      color: $accent-color;
+      
+      &:hover, &:focus {
+        background-color: $accent-color;
+        color: white;
+      }
+    }
+  }
+  
+  &--lg {
+    padding: $spacing-md $spacing-lg;
+    font-size: $font-size-lg;
+  }
+  
+  &--sm {
+    padding: $spacing-xs $spacing-sm;
+    font-size: $font-size-sm;
+  }
+}
+
+// Game Board
+.game-board {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  grid-gap: $spacing-lg;
+  
+  @media (max-width: $breakpoint-lg) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Player Dashboard
+.player-dashboard {
+  background-color: white;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-md;
+  padding: $spacing-md;
+  
+  &__header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    margin-bottom: $spacing-md;
+    padding-bottom: $spacing-md;
+  }
+  
+  &__stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: $spacing-sm;
+    margin-bottom: $spacing-md;
+  }
+  
+  &__inventory {
+    margin-top: $spacing-lg;
+  }
+}
+
+// Game Play Area
+.game-play-area {
+  background-color: white;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-md;
+  padding: $spacing-md;
+  
+  &__landscape {
+    margin-bottom: $spacing-lg;
+  }
+  
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-sm;
+    margin-bottom: $spacing-lg;
+  }
+  
+  &__log {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: $border-radius-sm;
+    padding: $spacing-sm;
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+}
+
+// Character Selection
+.character-selection {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-gap: $spacing-lg;
+  margin-bottom: $spacing-xl;
+  
+  &__option {
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: $border-radius-md;
+    padding: $spacing-md;
+    transition: all $transition-normal;
+    
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: $shadow-md;
+    }
+    
+    &.selected {
+      border-color: $accent-color;
+      background-color: rgba($accent-color, 0.1);
+    }
+  }
+}
+
+// Resource List
+.resource-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+  
+  &__item {
+    background-color: rgba($resource-color, 0.1);
+    border: 1px solid rgba($resource-color, 0.3);
+    border-radius: $border-radius-sm;
+    padding: $spacing-sm;
+    text-align: center;
+    font-size: $font-size-sm;
+  }
+}
+
+// Companion List
+.companion-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+  
+  &__item {
+    background-color: rgba($animal-companion-color, 0.1);
+    border: 1px solid rgba($animal-companion-color, 0.3);
+    border-radius: $border-radius-sm;
+    padding: $spacing-sm;
+    
+    &.wary {
+      opacity: 0.6;
+    }
+  }
+}
+
+// Crafted Items List
+.crafted-items-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+  
+  &__item {
+    background-color: rgba($crafted-item-color, 0.1);
+    border: 1px solid rgba($crafted-item-color, 0.3);
+    border-radius: $border-radius-sm;
+    padding: $spacing-sm;
+  }
+}
+
+// Journey Progress
+.journey-progress {
+  margin: $spacing-lg 0;
+  
+  &__track {
+    height: 10px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: $border-radius-circle;
+    overflow: hidden;
+  }
+  
+  &__fill {
+    height: 100%;
+    background-color: $primary-color;
+    border-radius: $border-radius-circle;
+    transition: width $transition-normal;
+  }
+  
+  &__markers {
+    display: flex;
+    justify-content: space-between;
+    margin-top: $spacing-xs;
+  }
+  
+  &__marker {
+    width: 15px;
+    height: 15px;
+    border-radius: $border-radius-circle;
+    background-color: rgba(0, 0, 0, 0.1);
+    
+    &.visited {
+      background-color: $primary-color;
+    }
+    
+    &.current {
+      background-color: $accent-color;
+      transform: scale(1.2);
+    }
+  }
+}
+
+// Seasonal Wheel
+.seasonal-wheel {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: $spacing-lg auto;
+  
+  &__circle {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: conic-gradient(
+      $samhain-color 0% 20%,
+      $winter-color 20% 40%,
+      $imbolc-color 40% 60%,
+      $beltane-color 60% 80%,
+      $lughnasadh-color 80% 100%
+    );
+    transform: rotate(0deg);
+    transition: transform $transition-slow;
+  }
+  
+  &__marker {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 15px solid $accent-color;
+  }
+  
+  &__labels {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    
+    span {
+      position: absolute;
+      font-size: $font-size-sm;
+      font-weight: 600;
+      color: white;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      
+      &:nth-child(1) {
+        top: 15%;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      
+      &:nth-child(2) {
+        top: 50%;
+        left: 15%;
+        transform: translateY(-50%);
+      }
+      
+      &:nth-child(3) {
+        bottom: 15%;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      
+      &:nth-child(4) {
+        top: 50%;
+        right: 15%;
+        transform: translateY(-50%);
+      }
+      
+      &:nth-child(5) {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+    }
+  }
+}
+
+// Game Over Screen
+.game-over {
+  text-align: center;
+  padding: $spacing-xl;
+  
+  &--victory {
+    color: $success-color;
+  }
+  
+  &--defeat {
+    color: $danger-color;
+  }
+  
+  &__title {
+    font-size: $font-size-xxl;
+    margin-bottom: $spacing-lg;
+  }
+  
+  &__stats {
+    display: inline-block;
+    margin: $spacing-lg auto;
+    text-align: left;
+  }
+  
+  &__actions {
+    margin-top: $spacing-xl;
+  }
+}
+
+// Utility Classes
+.mt-1 { margin-top: $spacing-xs; }
+.mt-2 { margin-top: $spacing-sm; }
+.mt-3 { margin-top: $spacing-md; }
+.mt-4 { margin-top: $spacing-lg; }
+.mt-5 { margin-top: $spacing-xl; }
+
+.mb-1 { margin-bottom: $spacing-xs; }
+.mb-2 { margin-bottom: $spacing-sm; }
+.mb-3 { margin-bottom: $spacing-md; }
+.mb-4 { margin-bottom: $spacing-lg; }
+.mb-5 { margin-bottom: $spacing-xl; }
+
+.ml-1 { margin-left: $spacing-xs; }
+.ml-2 { margin-left: $spacing-sm; }
+.ml-3 { margin-left: $spacing-md; }
+.ml-4 { margin-left: $spacing-lg; }
+.ml-5 { margin-left: $spacing-xl; }
+
+.mr-1 { margin-right: $spacing-xs; }
+.mr-2 { margin-right: $spacing-sm; }
+.mr-3 { margin-right: $spacing-md; }
+.mr-4 { margin-right: $spacing-lg; }
+.mr-5 { margin-right: $spacing-xl; }
+
+.p-1 { padding: $spacing-xs; }
+.p-2 { padding: $spacing-sm; }
+.p-3 { padding: $spacing-md; }
+.p-4 { padding: $spacing-lg; }
+.p-5 { padding: $spacing-xl; }
+
+.d-flex { display: flex; }
+.flex-column { flex-direction: column; }
+.justify-content-center { justify-content: center; }
+.align-items-center { align-items: center; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-grow-1 { flex-grow: 1; }
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+
+.w-100 { width: 100%; }
+.h-100 { height: 100%; }
+
+.rounded { border-radius: $border-radius-md; }
+.shadow { box-shadow: $shadow-md; }
+.shadow-lg { box-shadow: $shadow-lg; }

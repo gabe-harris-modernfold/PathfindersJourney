@@ -1,0 +1,90 @@
+// Color Palette
+$primary-color: #2c5530;  // Forest green
+$secondary-color: #8b4513;  // Saddle brown
+$accent-color: #9c7c38;  // Celtic gold
+$light-color: #f5f0e1;  // Parchment
+$dark-color: #2b2b2b;  // Almost black
+
+// Season Colors
+$samhain-color: #4a235a;  // Deep purple
+$winter-color: #1b4f72;  // Deep blue
+$imbolc-color: #117a65;  // Emerald green
+$beltane-color: #b9770e;  // Golden amber
+$lughnasadh-color: #b03a2e;  // Rusty red
+
+// Challenge Type Colors
+$physical-color: #c0392b;  // Crimson
+$mental-color: #2980b9;  // Blue
+$social-color: #f39c12;  // Orange
+$spiritual-color: #8e44ad;  // Purple
+
+// Card Type Colors
+$landscape-color: #27ae60;  // Green
+$animal-companion-color: #d35400;  // Burnt orange
+$resource-color: #f1c40f;  // Yellow
+$crafted-item-color: #7f8c8d;  // Silver
+$character-color: #3498db;  // Blue
+
+// Status Colors
+$success-color: #2ecc71;  // Green
+$warning-color: #f39c12;  // Orange
+$danger-color: #e74c3c;  // Red
+$info-color: #3498db;  // Blue
+
+// Typography
+$font-family-base: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+$font-family-display: 'Cinzel', serif;
+$font-family-handwritten: 'Tangerine', cursive;
+
+$font-size-base: 16px;
+$font-size-sm: 14px;
+$font-size-lg: 18px;
+$font-size-xl: 24px;
+$font-size-xxl: 32px;
+
+// Spacing
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-xxl: 48px;
+
+// Border Radius
+$border-radius-sm: 4px;
+$border-radius-md: 8px;
+$border-radius-lg: 12px;
+$border-radius-xl: 16px;
+$border-radius-circle: 50%;
+
+// Box Shadow
+$shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+$shadow-md: 0 4px 8px rgba(0, 0, 0, 0.12);
+$shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.15);
+$shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.2);
+
+// Transitions
+$transition-fast: 150ms ease-in-out;
+$transition-normal: 250ms ease-in-out;
+$transition-slow: 350ms ease-in-out;
+
+// Z-index
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;
+
+// Game-specific
+$card-width: 180px;
+$card-height: 250px;
+$card-width-sm: 140px;
+$card-height-sm: 200px;
+
+// Breakpoints
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;

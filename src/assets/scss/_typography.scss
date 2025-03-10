@@ -1,0 +1,262 @@
+@import 'variables';
+
+// Base Typography
+body {
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  line-height: 1.5;
+  color: $dark-color;
+  background-color: $light-color;
+}
+
+// Headings
+h1, h2, h3, h4, h5, h6 {
+  font-family: $font-family-display;
+  margin-bottom: $spacing-md;
+  font-weight: 700;
+  line-height: 1.2;
+  color: $primary-color;
+}
+
+h1 {
+  font-size: $font-size-xxl;
+  margin-top: $spacing-xl;
+}
+
+h2 {
+  font-size: $font-size-xl;
+  margin-top: $spacing-lg;
+}
+
+h3 {
+  font-size: $font-size-lg;
+  margin-top: $spacing-md;
+}
+
+h4 {
+  font-size: $font-size-base;
+  margin-top: $spacing-sm;
+}
+
+// Game Title
+.game-title {
+  font-family: $font-family-display;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: $primary-color;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  letter-spacing: 1px;
+  text-align: center;
+  margin-bottom: $spacing-lg;
+}
+
+// Card Titles
+.card-title {
+  font-family: $font-family-display;
+  font-size: $font-size-lg;
+  font-weight: 600;
+  margin-bottom: $spacing-sm;
+}
+
+// Landscape Names
+.landscape-name {
+  font-family: $font-family-display;
+  font-size: $font-size-lg;
+  font-weight: 700;
+  color: $landscape-color;
+}
+
+// Character Names
+.character-name {
+  font-family: $font-family-display;
+  font-size: $font-size-lg;
+  font-weight: 700;
+  color: $character-color;
+}
+
+// Resource Names
+.resource-name {
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  font-weight: 600;
+  color: $resource-color;
+}
+
+// Animal Companion Names
+.companion-name {
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  font-weight: 600;
+  color: $animal-companion-color;
+}
+
+// Crafted Item Names
+.item-name {
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  font-weight: 600;
+  color: $crafted-item-color;
+}
+
+// Season Names
+.season-name {
+  font-family: $font-family-display;
+  font-size: $font-size-lg;
+  font-weight: 700;
+  
+  &.samhain {
+    color: $samhain-color;
+  }
+  
+  &.winter {
+    color: $winter-color;
+  }
+  
+  &.imbolc {
+    color: $imbolc-color;
+  }
+  
+  &.beltane {
+    color: $beltane-color;
+  }
+  
+  &.lughnasadh {
+    color: $lughnasadh-color;
+  }
+}
+
+// Game Log
+.game-log {
+  font-family: $font-family-base;
+  font-size: $font-size-sm;
+  line-height: 1.4;
+}
+
+// Challenge Types
+.challenge-type {
+  font-weight: 600;
+  
+  &.physical {
+    color: $physical-color;
+  }
+  
+  &.mental {
+    color: $mental-color;
+  }
+  
+  &.social {
+    color: $social-color;
+  }
+  
+  &.spiritual {
+    color: $spiritual-color;
+  }
+}
+
+// Stats and Values
+.stat-value {
+  font-weight: 700;
+  color: $accent-color;
+}
+
+.stat-label {
+  font-weight: 600;
+  color: $dark-color;
+}
+
+// Ability Descriptions
+.ability-description {
+  font-style: italic;
+  color: $dark-color;
+  font-size: $font-size-sm;
+}
+
+// Drawback Descriptions
+.drawback-description {
+  font-style: italic;
+  color: $danger-color;
+  font-size: $font-size-sm;
+}
+
+// Celtic Quotes
+.celtic-quote {
+  font-family: $font-family-handwritten;
+  font-size: $font-size-xl;
+  font-style: italic;
+  color: $accent-color;
+  text-align: center;
+  margin: $spacing-lg 0;
+  line-height: 1.4;
+}
+
+// Links
+a {
+  color: $accent-color;
+  text-decoration: none;
+  transition: color $transition-fast;
+  
+  &:hover {
+    color: darken($accent-color, 15%);
+    text-decoration: underline;
+  }
+}
+
+// Button Text
+.btn {
+  font-family: $font-family-base;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+// Helper Classes
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-bold {
+  font-weight: 700;
+}
+
+.text-italic {
+  font-style: italic;
+}
+
+.text-small {
+  font-size: $font-size-sm;
+}
+
+.text-large {
+  font-size: $font-size-lg;
+}
+
+.text-primary {
+  color: $primary-color;
+}
+
+.text-secondary {
+  color: $secondary-color;
+}
+
+.text-accent {
+  color: $accent-color;
+}
+
+.text-success {
+  color: $success-color;
+}
+
+.text-warning {
+  color: $warning-color;
+}
+
+.text-danger {
+  color: $danger-color;
+}
+
+.text-info {
+  color: $info-color;
+}

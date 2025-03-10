@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pathfinder's Journey: The Celtic Realm</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        :root {
+            --landscape-color: #7c9a64;
+            --animal-color: #8f6b4a;
+            --resource-color: #a67d53;
+            --crafted-color: #72594b;
+            --season-color: #9e7c5f;
+            --character-color: #5e6e8a;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        #app {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1, h2 {
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        h1 {
+            color: #f3d35e;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 20px;
+        }
+        
+        .play-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .landscape-path {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            min-height: 200px;
+        }
+        
+        .card-decks {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+        
+        .deck {
+            border: 1px solid #7f8c8d;
+            border-radius: 10px;
+            padding: 15px;
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+        
+        .deck-title {
+            text-align: center;
+            margin-top: 0;
+            color: #f3d35e;
+            font-size: 1em;
+            border-bottom: 1px solid #7f8c8d;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .card {
+            width: 120px;
+            height: 170px;
+            border-radius: 10px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            text-align: center;
+            font-size: 0.85em;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card.face-down {
+            background-color: #34495e;
+        }
+        
+        .card.face-down:after {
+            content: "Celtic Realm";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #f3d35e;
+            font-weight: bold;
+        }
+        
+        .card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 12px 16px rgba(0, 0, 0, 0.4);
+            z-index: 10;
+        }
+        
+        .card.flip-enter-active, .card.flip-leave-active {
+            transition: all 0.5s;
+        }
+        
+        .card.flip-enter-from, .card.flip-leave-to {
+            transform: rotateY(180deg);
+            opacity: 0;
+        }
+        
+        .landscape-card {
+            background-color: var(--landscape-color);
+            background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.1) 75%, transparent 75%, transparent);
+            background-size: 10px 10px;
+        }
+        
+        .animal-card {
+            background-color: var(--animal-color);
+            background-image: radial-gradient(circle, rgba(255, 255, 255, 0.1) 20%, transparent 20%);
+            background-size: 15px 15px;
+        }
+        
+        .resource-card {
+            background-color: var(--resource-color);
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.1) 1px, transparent 1px), 
+                            linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 10px 10px;
+        }
+        
+        .crafted-card {
+            background-color: var(--crafted-color);
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255, 255, 255, 0.1) 5px, rgba(255, 255, 255, 0.1) 10px);
+        }
+        
+        .season-card {
+            background-color: var(--season-color);
+            background-image: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.2) 0%, transparent 60%);
+        }
+        
+        .character-card {
+            background-color: var(--character-color);
+            background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.1) 75%, transparent 75%, transparent);
+            background-size: 20px 20px;
+        }
+        
+        .card-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .card-content {
+            font-size: 0.8em;
+            line-height: 1.2;
+        }
+        
+        .game-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .dice-container {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 15px;
+        }
+        
+        .die {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .health-die {
+            background-color: #e74c3c;
+        }
+        
+        .resource-die {
+            background-color: #2ecc71;
+        }
+        
+        .progress-die {
+            background-color: #3498db;
+        }
+        
+        .challenge-die {
+            background-color: #9b59b6;
+            border-radius: 50%;
+        }
+        
+        .button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #f3d35e;
+            color: #2c3e50;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 5px;
+        }
+        
+        .button:hover {
+            background-color: #f1c40f;
+        }
+        
+        .button:disabled {
+            background-color: #7f8c8d;
+            cursor: not-allowed;
+        }
+        
+        .player-info {
+            margin-top: 20px;
+        }
+        
+        .message-log {
+            height: 150px;
+            overflow-y: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 15px;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+        
+        .hand {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            min-height: 190px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .hand-title {
+            width: 100%;
+            color: #f3d35e;
+            margin: 0 0 10px 0;
+            border-bottom: 1px solid #7f8c8d;
+            padding-bottom: 5px;
+        }
+        
+        @keyframes cardFlip {
+            0% { transform: rotateY(0deg); }
+            50% { transform: rotateY(180deg); }
+            100% { transform: rotateY(360deg); }
+        }
+        
+        @keyframes sparkle {
+            0% { box-shadow: 0 0 10px rgba(243, 211, 94, 0.7); }
+            50% { box-shadow: 0 0 20px rgba(243, 211, 94, 1); }
+            100% { box-shadow: 0 0 10px rgba(243, 211, 94, 0.7); }
+        }
+        
+        .card.flipping {
+            animation: cardFlip 1s ease;
+        }
+        
+        .card.selected {
+            animation: sparkle 1.5s infinite;
+            border: 2px solid #f3d35e;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        
+        .modal-content {
+            background-color: #34495e;
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+        
+        .seasonal-effect {
+            color: #f3d35e;
+            font-style: italic;
+            margin-top: 10px;
+        }
+        
+        .action-button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #f3d35e;
+            color: #2c3e50;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 5px;
+        }
+        
+        .action-button:hover {
+            background-color: #f1c40f;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1>Pathfinder's Journey: The Celtic Realm</h1>
+        
+        <div v-if="gameState === 'setup'">
+            <h2>Choose Your Character</h2>
+            <div class="card-container">
+                <div 
+                    v-for="character in characters" 
+                    :key="character.id"
+                    class="card character-card"
+                    :class="{ selected: selectedCharacter === character.id }"
+                    @click="selectCharacter(character.id)">
+                    <div class="card-title">{{ character.name }}</div>
+                    <div class="card-content">{{ character.description }}</div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="button" @click="startGame" :disabled="!selectedCharacter">Start Journey</button>
+            </div>
+        </div>
+        
+        <div v-else-if="gameState === 'playing'" class="game-board">
+            <div class="play-area">
+                <div class="landscape-path">
+                    <div v-for="(card, index) in landscapePath" :key="index" 
+                        class="card"
+                        :class="[
+                            card.revealed ? 'landscape-card' : 'face-down',
+                            { 'selected': index === currentLandscapeIndex }
+                        ]">
+                        <template v-if="card.revealed">
+                            <div class="card-title">{{ card.name }}</div>
+                            <div class="card-content">{{ card.description }}</div>
+                        </template>
+                    </div>
+                </div>
+                
+                <div class="hand">
+                    <h3 class="hand-title">Your Hand</h3>
+                    <div v-if="playerResources.length === 0 && activeAnimalCompanions.length === 0 && playerCraftedItems.length === 0">
+                        No cards in hand yet. Gather resources and companions on your journey!
+                    </div>
+                    <template v-for="animal in activeAnimalCompanions" :key="'animal-'+animal.id">
+                        <div class="card animal-card" :class="{ selected: selectedCompanion === animal.id }" @click="selectCompanion(animal.id)">
+                            <div class="card-title">{{ animal.name }}</div>
+                            <div class="card-content">{{ animal.description }}</div>
+                        </div>
+                    </template>
+                    <template v-for="resource in playerResources" :key="'resource-'+resource.id">
+                        <div class="card resource-card" :class="{ selected: selectedResources.includes(resource.id) }" @click="toggleResourceSelection(resource.id)">
+                            <div class="card-title">{{ resource.name }}</div>
+                            <div class="card-content">{{ resource.description }}</div>
+                        </div>
+                    </template>
+                    <template v-for="item in playerCraftedItems" :key="'crafted-'+item.id">
+                        <div class="card crafted-card">
+                            <div class="card-title">{{ item.name }}</div>
+                            <div class="card-content">{{ item.description }}</div>
+                        </div>
+                    </template>
+                </div>
+                
+                <div class="card-decks">
+                    <div class="deck">
+                        <h3 class="deck-title">Current Season</h3>
+                        <div class="card-container">
+                            <div class="card season-card">
+                                <div class="card-title">{{ currentSeason.name }}</div>
+                                <div class="card-content">{{ currentSeason.description }}</div>
+                                <div class="seasonal-effect">{{ currentSeason.effect }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="deck">
+                        <h3 class="deck-title">Animal Companions</h3>
+                        <div class="card-container">
+                            <div v-for="animal in availableAnimalCompanions" :key="animal.id" 
+                                 class="card animal-card" @click="acquireAnimalCompanion(animal.id)">
+                                <div class="card-title">{{ animal.name }}</div>
+                                <div class="card-content">{{ animal.description }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="deck">
+                        <h3 class="deck-title">Resources</h3>
+                        <div class="card-container">
+                            <div v-for="resource in availableResources" :key="resource.id"
+                                 class="card resource-card" @click="gatherResource(resource.id)">
+                                <div class="card-title">{{ resource.name }}</div>
+                                <div class="card-content">{{ resource.description }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="deck">
+                        <h3 class="deck-title">Crafting</h3>
+                        <div class="card-container">
+                            <div v-for="item in craftableItems" :key="item.id"
+                                 class="card crafted-card" @click="craftItem(item.id)">
+                                <div class="card-title">{{ item.name }}</div>
+                                <div class="card-content">{{ item.recipe.join(' + ') }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="game-controls">
+                <h2>Journey Status</h2>
+                <div class="player-info">
+                    <h3>{{ getCharacter(selectedCharacter).name }}</h3>
+                    <p>{{ getCharacter(selectedCharacter).description }}</p>
+                </div>
+                
+                <div class="dice-container">
+                    <div class="die health-die">{{ healthPoints }}</div>
+                    <div class="die resource-die">{{ resourceCounter }}</div>
+                    <div class="die progress-die">{{ journeyProgress }}</div>
+                </div>
+                
+                <button class="button" @click="performSeasonalAction" :disabled="seasonalActionUsed">
+                    Seasonal Action
+                </button>
+                <button class="button" @click="resolveLandscapeChallenge" :disabled="landscapeChallengeResolved">
+                    Resolve Challenge
+                </button>
+                <button class="button" @click="useAnimalCompanion" :disabled="!selectedCompanion || animalCompanionUsed">
+                    Use Companion
+                </button>
+                <button class="button" @click="gatherRandomResource" :disabled="!landscapeChallengeResolved || resourceGathered">
+                    Gather Resource
+                </button>
+                <button class="button" @click="startCrafting" :disabled="selectedResources.length === 0">
+                    Craft Item
+                </button>
+                <button class="button" @click="moveToNextLandscape" :disabled="!canMoveToNextLandscape()">
+                    Continue Journey
+                </button>
+                
+                <div class="message-log">
+                    <div v-for="(message, index) in messageLog" :key="index" class="log-entry">
+                        {{ message }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div v-else-if="gameState === 'gameover'" style="text-align: center;">
+            <h2>Journey Complete!</h2>
+            <p>{{ gameOverMessage }}</p>
+            <button class="button" @click="resetGame">Begin a New Journey</button>
+        </div>
+        
+        <div v-if="showModal" class="modal-overlay">
+            <div class="modal-content">
+                <h3>{{ modalTitle }}</h3>
+                <p style="white-space: pre-line;">{{ modalContent }}</p>
+                <button @click="showModal = false" class="action-button">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const { createApp, ref, computed, watch } = Vue;
+        
+        createApp({
+            setup() {
+                // Game state
+                const gameState = ref('setup');
+                const selectedCharacter = ref(null);
+                const healthPoints = ref(6);
+                const resourceCounter = ref(1);
+                const journeyProgress = ref(0);
+                const challengeDieValue = ref(1);
+                const currentLandscapeIndex = ref(0);
+                const landscapeChallengeResolved = ref(false);
+                const seasonalActionUsed = ref(false);
+                const animalCompanionUsed = ref(false);
+                const resourceGathered = ref(false);
+                const selectedCompanion = ref(null);
+                const selectedResources = ref([]);
+                const messageLog = ref(['Welcome to Pathfinder\'s Journey! Choose a character to begin your adventure.']);
+                const playerResources = ref([]);
+                const playerCraftedItems = ref([]);
+                const activeAnimalCompanions = ref([]);
+                const currentSeasonIndex = ref(0);
+                const showModal = ref(false);
+                const modalTitle = ref('');
+                const modalContent = ref('');
+                const gameOverMessage = ref('');
+                
+                // Card data
+                const landscapes = [
+                    { id: 1, name: 'Ancient Stone Circle', description: 'A mystical place of power.', challenge: 'Navigate the energy flows (6).', resolved: false, revealed: false },
+                    { id: 2, name: 'Misty Barrow Downs', description: 'Ancient burial mounds shrouded in mist.', challenge: 'Find your way through the mist (5).', resolved: false, revealed: false },
+                    { id: 3, name: 'Sacred Oak Grove', description: 'Ancient trees with enormous trunks.', challenge: 'Gain the trees\' blessing (7).', resolved: false, revealed: false },
+                    { id: 4, name: 'Thatched Village', description: 'A small community of skilled crafters.', challenge: 'Trade for local knowledge (4).', resolved: false, revealed: false },
+                    { id: 5, name: 'Iron Forge Dell', description: 'A valley where smiths work their craft.', challenge: 'Learn smithing basics (6).', resolved: false, revealed: false },
+                    { id: 6, name: 'Moonlit Loch', description: 'A peaceful lake reflecting the night sky.', challenge: 'Decode star patterns (5).', resolved: false, revealed: false },
+                    { id: 7, name: 'Menhir Path', description: 'Standing stones creating a mysterious path.', challenge: 'Follow the ancient route (6).', resolved: false, revealed: false },
+                    { id: 8, name: 'Faerie Knoll', description: 'Home to the fae folk.', challenge: 'Bargain with the fae (8).', resolved: false, revealed: false },
+                    { id: 9, name: 'Whispering Heath', description: 'A windy plain where voices can be heard.', challenge: 'Interpret the whispers (7).', resolved: false, revealed: false },
+                    { id: 10, name: 'Blackthorn Maze', description: 'A labyrinth of thorny bushes.', challenge: 'Find the center (6).', resolved: false, revealed: false },
+                    { id: 11, name: 'Boggy Lowlands', description: 'Marshy terrain full of hidden treasures.', challenge: 'Cross safely (5).', resolved: false, revealed: false },
+                    { id: 12, name: 'Gathering Fair', description: 'A seasonal market of traders.', challenge: 'Compete in the games (7).', resolved: false, revealed: false },
+                    { id: 13, name: 'Elder Bridge', description: 'An ancient crossing over a deep gorge.', challenge: 'Repair the damaged section (6).', resolved: false, revealed: false },
+                    { id: 14, name: 'Druid\'s Sanctuary', description: 'A hidden grove of wisdom.', challenge: 'Prove your worth (8).', resolved: false, revealed: false },
+                    { id: 15, name: 'Wild Horse Plain', description: 'Open grasslands where horses roam.', challenge: 'Gain a horse\'s trust (7).', resolved: false, revealed: false }
+                ];
+                
+                const animalCompanions = [
+                    { id: 1, name: 'Raven Scout', description: 'Helps find hidden paths.', bonus: 2, bestSeason: 'Samhain' },
+                    { id: 2, name: 'Wolf Guardian', description: 'Protects against dangers.', bonus: 3, bestSeason: 'Winter\'s Depth' },
+                    { id: 3, name: 'Deer Guide', description: 'Leads to safe passages.', bonus: 2, bestSeason: 'Imbolc' },
+                    { id: 4, name: 'Bear Protector', description: 'Provides strength and courage.', bonus: 3, bestSeason: 'Beltane' },
+                    { id: 5, name: 'Hare Pathfinder', description: 'Discovers shortcuts.', bonus: 1, bestSeason: 'Imbolc' },
+                    { id: 6, name: 'Boar Digger', description: 'Unearths buried treasures.', bonus: 2, bestSeason: 'Lughnasadh' },
+                    { id: 7, name: 'Fox Trickster', description: 'Distracts enemies and foes.', bonus: 2, bestSeason: 'Samhain' },
+                    { id: 8, name: 'Owl Sage', description: 'Shares ancient wisdom.', bonus: 2, bestSeason: 'Winter\'s Depth' },
+                    { id: 9, name: 'Salmon Journeyer', description: 'Helps cross water barriers.', bonus: 2, bestSeason: 'Beltane' },
+                    { id: 10, name: 'Horse Carrier', description: 'Speeds up travel.', bonus: 2, bestSeason: 'Lughnasadh' }
+                ];
+                
+                const resources = [
+                    { id: 1, name: 'Rowan Wood', description: 'Sacred wood with protective properties.', season: 'Samhain' },
+                    { id: 2, name: 'Bog Iron', description: 'Raw iron from marshy areas.', season: 'Winter\'s Depth' },
+                    { id: 3, name: 'Silver Mistletoe', description: 'Rare plant with magical properties.', season: 'Imbolc' },
+                    { id: 4, name: 'Standing Stone Chips', description: 'Fragments with residual power.', season: 'any' },
+                    { id: 5, name: 'Woven Reeds', description: 'Flexible material for binding.', season: 'Beltane' },
+                    { id: 6, name: 'Horse Hair', description: 'Strands from wild horse manes.', season: 'Lughnasadh' },
+                    { id: 7, name: 'Oak Galls', description: 'Growths with alchemical properties.', season: 'Lughnasadh' },
+                    { id: 8, name: 'Amber Shards', description: 'Fossilized tree resin pieces.', season: 'any' },
+                    { id: 9, name: 'Barrow Dust', description: 'Soil from ancient burial mounds.', season: 'Samhain' },
+                    { id: 10, name: 'Forge Cinders', description: 'Remnants of blacksmith fires.', season: 'Winter\'s Depth' },
+                    { id: 11, name: 'Sacred Water', description: 'Collected from moonlit lochs.', season: 'Beltane' },
+                    { id: 12, name: 'Ogham Sticks', description: 'Carved wooden runes.', season: 'Imbolc' }
+                ];
+                
+                const craftedItems = [
+                    { id: 1, name: 'Beast Speaker Charm', description: 'Allows communication with animals.', recipe: ['Horse Hair', 'Amber Shards', 'Oak Galls'], effect: 'Animal Companions provide +1 bonus.' },
+                    { id: 2, name: 'Colossal Whistle', description: 'Summons giant allies.', recipe: ['Rowan Wood', 'Silver Mistletoe'], effect: 'Bypass one physical challenge automatically.' },
+                    { id: 3, name: 'Earth Speaker Staff', description: 'Channels earth energies.', recipe: ['Rowan Wood', 'Standing Stone Chips', 'Barrow Dust'], effect: 'Gain +2 to landscape challenges.' },
+                    { id: 4, name: 'Giant\'s Bridle', description: 'Harness for large creatures.', recipe: ['Bog Iron', 'Horse Hair', 'Woven Reeds'], effect: 'Travel two landscapes at once.' },
+                    { id: 5, name: 'Ogham Divining Set', description: 'Reads the future.', recipe: ['Oak Galls', 'Sacred Water', 'Ogham Sticks'], effect: 'See the next landscape card before travel.' },
+                    { id: 6, name: 'Seasonal Compass', description: 'Tracks seasonal transitions.', recipe: ['Amber Shards', 'Standing Stone Chips', 'Forge Cinders'], effect: 'Choose which season comes next.' },
+                    { id: 7, name: 'Iron Grove Key', description: 'Unlocks hidden pathways.', recipe: ['Bog Iron', 'Silver Mistletoe', 'Forge Cinders'], effect: 'Skip one landscape if needed.' },
+                    { id: 8, name: 'Spirit Bridge Tokens', description: 'Create ethereal crossings.', recipe: ['Barrow Dust', 'Sacred Water', 'Amber Shards'], effect: 'Return to previous landscapes easily.' }
+                ];
+                
+                const seasons = [
+                    { id: 1, name: 'Samhain', description: 'Winter Beginning', effect: '+2 to spiritual challenges, -1 to physical ones.', action: 'Commune with spirits.' },
+                    { id: 2, name: 'Winter\'s Depth', description: 'Cold and stillness', effect: '+1 to all challenges in snowy or cold areas.', action: 'Gather strength through rest.' },
+                    { id: 3, name: 'Imbolc', description: 'Spring Stirrings', effect: 'Animal companions gain +1 bonus.', action: 'Plant a seed of intention.' },
+                    { id: 4, name: 'Beltane', description: 'Summer Beginning', effect: '+2 to challenges involving growth or creation.', action: 'Celebrate with dance.' },
+                    { id: 5, name: 'Lughnasadh', description: 'Harvest Beginning', effect: 'Gather one extra resource.', action: 'Share your bounty.' }
+                ];
+                
+                const characters = [
+                    { id: 1, name: 'Giant Beastfriend', description: 'Can carry 8 resources and use two Animal Companions.', bonuses: { animals: 2, crafting: -1, physical: 2, magical: 0, knowledge: 0, wisdom: 0 } },
+                    { id: 2, name: 'Hedge Witch/Warlock', description: 'Gains +2 to magical challenges, crafts with one fewer resource.', bonuses: { magical: 2, crafting: 1, physical: -1, animals: 0, knowledge: 0, wisdom: 0 } },
+                    { id: 3, name: 'Iron Crafter', description: 'Crafted items are more powerful, gains +2 to crafting challenges.', bonuses: { crafting: 2, magical: -1, animals: 1, physical: 0, knowledge: 0, wisdom: 0 } },
+                    { id: 4, name: 'Village Elder', description: 'Knows all paths, gains +1 to all challenges but physical challenges are harder.', bonuses: { knowledge: 1, physical: -1, wisdom: 2, magical: 0, crafting: 0, animals: 0 } }
+                ];
+                
+                // Shuffled landscape path
+                const landscapePath = ref([]);
+                
+                // Computed properties
+                const currentLandscape = computed(() => landscapePath.value[currentLandscapeIndex.value]);
+                
+                const currentSeason = computed(() => seasons[currentSeasonIndex.value]);
+                
+                const availableAnimalCompanions = computed(() => {
+                    // Filter animals based on season and those not already active
+                    return animalCompanions.filter(animal => 
+                        !activeAnimalCompanions.value.some(a => a.id === animal.id) &&
+                        (animal.bestSeason === currentSeason.value.name || Math.random() > 0.5)
+                    );
+                });
+                
+                const availableResources = computed(() => {
+                    // Filter resources based on season and reasonable availability
+                    return resources.filter(resource => 
+                        (resource.season === 'any' || resource.season === currentSeason.value.name) &&
+                        Math.random() > 0.3
+                    ).slice(0, 4); // Limit to 4 available at a time
+                });
+                
+                const craftableItems = computed(() => {
+                    // Items player can craft based on available resources
+                    const playerResourceNames = playerResources.value.map(r => r.name);
+                    
+                    return craftedItems.filter(item => {
+                        // Check if player has all required resources
+                        return item.recipe.every(resourceName => 
+                            playerResourceNames.includes(resourceName) &&
+                            playerResourceNames.filter(n => n === resourceName).length >= 
+                            item.recipe.filter(r => r === resourceName).length
+                        );
+                    });
+                });
+                
+                // Methods
+                function selectCharacter(id) {
+                    selectedCharacter.value = id;
+                    
+                    // Adjust starting values based on character
+                    const character = getCharacter(id);
+                    if (character.name === 'Giant Beastfriend') {
+                        resourceCounter.value = 2; // Start with more resources
+                    }
+                    
+                    addMessage(`You have chosen to be the ${character.name}.`);
+                }
+                
+                function getCharacter(id) {
+                    return characters.find(c => c.id === id);
+                }
+                
+                function startGame() {
+                    if (!selectedCharacter.value) {
+                        addMessage("Please select a character before starting your journey.");
+                        return;
+                    }
+                    
+                    // Initialize the game
+                    shuffleLandscapePath();
+                    
+                    // Reset game state
+                    healthPoints.value = 6;
+                    resourceCounter.value = 1;
+                    journeyProgress.value = 0;
+                    currentLandscapeIndex.value = 0;
+                    landscapeChallengeResolved.value = false;
+                    seasonalActionUsed.value = false;
+                    animalCompanionUsed.value = false;
+                    resourceGathered.value = false;
+                    selectedCompanion.value = null;
+                    selectedResources.value = [];
+                    playerResources.value = [];
+                    playerCraftedItems.value = [];
+                    activeAnimalCompanions.value = [];
+                    currentSeasonIndex.value = 0;
+                    
+                    // Character-specific starting bonuses
+                    const character = getCharacter(selectedCharacter.value);
+                    if (character.name === 'Giant Beastfriend') {
+                        // Start with more resources
+                        const startingResource = resources[Math.floor(Math.random() * resources.length)];
+                        const resourceInstance = {
+                            ...startingResource,
+                            id: startingResource.id + '_' + Date.now()
+                        };
+                        playerResources.value.push(resourceInstance);
+                        resourceCounter.value = 1;
+                        addMessage(`You start with ${startingResource.name} as a resource.`);
+                    } else if (character.name === 'Hedge Witch/Warlock') {
+                        // Start with magical knowledge
+                        addMessage("Your magical knowledge will help you craft items with fewer resources.");
+                    } else if (character.name === 'Iron Crafter') {
+                        // Start with crafting bonus
+                        addMessage("Your crafting expertise will make your items more powerful.");
+                    } else if (character.name === 'Village Elder') {
+                        // Start with wisdom
+                        addMessage("Your wisdom gives you insight into the challenges ahead.");
+                    }
+                    
+                    gameState.value = 'playing';
+                    addMessage(`The journey begins! Your first destination is the ${landscapePath.value[0].name}.`);
+                }
+                
+                function shuffleLandscapePath() {
+                    // Create a copy of landscapes and shuffle it
+                    const shuffled = [...landscapes].sort(() => Math.random() - 0.5);
+                    
+                    // Set the first card as revealed
+                    shuffled[0].revealed = true;
+                    
+                    landscapePath.value = shuffled;
+                }
+                
+                function addMessage(message) {
+                    messageLog.value.push(message);
+                    // Keep log at reasonable size
+                    if (messageLog.value.length > 15) {
+                        messageLog.value.shift();
+                    }
+                }
+                
+                function performSeasonalAction() {
+                    if (seasonalActionUsed.value) return;
+                    
+                    const action = currentSeason.value.action;
+                    addMessage(`You ${action}`);
+                    
+                    // Apply seasonal effects
+                    switch(currentSeason.value.name) {
+                        case 'Samhain':
+                            // Increase health or gain a spirit guide
+                            if (Math.random() > 0.5) {
+                                healthPoints.value = Math.min(6, healthPoints.value + 1);
+                                addMessage('The spirits grant you renewed strength.');
+                            } else {
+                                // Try to add a spirit animal
+                                const availableSpirits = availableAnimalCompanions.value;
+                                if (availableSpirits.length > 0) {
+                                    const spirit = availableSpirits[Math.floor(Math.random() * availableSpirits.length)];
+                                    acquireAnimalCompanion(spirit.id);
+                                    addMessage(`A spirit ${spirit.name} appears to guide you.`);
+                                }
+                            }
+                            break;
+                        case 'Winter\'s Depth':
+                            // Restore health through rest
+                            healthPoints.value = Math.min(6, healthPoints.value + 2);
+                            addMessage('Your deep rest restores your strength.');
+                            break;
+                        case 'Imbolc':
+                            // Plant a seed (gain future bonus)
+                            addMessage('Your intention manifests as a +1 bonus to your next challenge.');
+                            // Will add +1 to next challenge
+                            break;
+                        case 'Beltane':
+                            // Celebration brings luck - gain a random resource
+                            gatherRandomResource();
+                            addMessage('Your dance attracts good fortune.');
+                            break;
+                        case 'Lughnasadh':
+                            // Sharing brings community support
+                            if (playerResources.value.length > 0) {
+                                acquireAnimalCompanion(availableAnimalCompanions.value[0]?.id);
+                                addMessage('Your generosity is rewarded with a new ally.');
+                            }
+                            break;
+                    }
+                    
+                    seasonalActionUsed.value = true;
+                }
+                
+                function resolveLandscapeChallenge() {
+                    if (landscapeChallengeResolved.value) return;
+                    
+                    // Roll the challenge die (1-8)
+                    challengeDieValue.value = Math.floor(Math.random() * 8) + 1;
+                    
+                    // Parse the difficulty from the challenge text
+                    const challengeText = currentLandscape.value.challenge;
+                    const difficultyMatch = challengeText.match(/\((\d+)\)/);
+                    const difficulty = difficultyMatch ? parseInt(difficultyMatch[1]) : 6;
+                    
+                    // Calculate total score with bonuses
+                    let totalScore = challengeDieValue.value;
+                    
+                    // Character bonuses
+                    const character = getCharacter(selectedCharacter.value);
+                    const challengeType = getChallengeType(challengeText);
+                    
+                    if (character && character.bonuses) {
+                        if (challengeType === 'physical' && character.bonuses.physical) {
+                            totalScore += character.bonuses.physical;
+                            addMessage(`${character.name} adds ${character.bonuses.physical} to physical challenges.`);
+                        } else if (challengeType === 'magical' && character.bonuses.magical) {
+                            totalScore += character.bonuses.magical;
+                            addMessage(`${character.name} adds ${character.bonuses.magical} to magical challenges.`);
+                        } else if (challengeType === 'knowledge' && character.bonuses.knowledge) {
+                            totalScore += character.bonuses.knowledge;
+                            addMessage(`${character.name} adds ${character.bonuses.knowledge} to knowledge challenges.`);
+                        } else if (challengeType === 'creation' && character.bonuses.crafting) {
+                            totalScore += character.bonuses.crafting;
+                            addMessage(`${character.name} adds ${character.bonuses.crafting} to creation challenges.`);
+                        } else if (challengeType === 'social' && character.bonuses.wisdom) {
+                            totalScore += character.bonuses.wisdom;
+                            addMessage(`${character.name} adds ${character.bonuses.wisdom} to social challenges.`);
+                        }
+                    }
+                    
+                    // Season bonuses
+                    if (currentSeason.value.name === 'Samhain' && challengeType === 'magical') {
+                        totalScore += 2;
+                        addMessage('Samhain season adds +2 to magical challenges.');
+                    } else if (currentSeason.value.name === 'Winter\'s Depth' && challengeText.toLowerCase().includes('snow')) {
+                        totalScore += 1;
+                        addMessage('Winter\'s Depth adds +1 to snowy challenges.');
+                    } else if (currentSeason.value.name === 'Beltane' && challengeType === 'creation') {
+                        totalScore += 2;
+                        addMessage('Beltane season adds +2 to creation challenges.');
+                    }
+                    
+                    // Add bonus from any crafted items
+                    for (const item of playerCraftedItems.value) {
+                        if (item.name === 'Earth Speaker Staff') {
+                            totalScore += 2;
+                            addMessage('Earth Speaker Staff adds +2 to your challenge roll.');
+                        }
+                    }
+                    
+                    // Add bonus from animal companions if used
+                    if (animalCompanionUsed.value && selectedCompanion.value) {
+                        const companion = activeAnimalCompanions.value.find(c => c.id === selectedCompanion.value);
+                        if (companion) {
+                            let bonusAmount = companion.bonus;
+                            // Extra bonus if in their best season
+                            if (companion.bestSeason === currentSeason.value.name) {
+                                bonusAmount += 1;
+                                addMessage(`${companion.name} gets an extra +1 bonus during ${currentSeason.value.name}.`);
+                            }
+                            totalScore += bonusAmount;
+                            addMessage(`${companion.name} adds +${bonusAmount} to your challenge roll.`);
+                        }
+                    }
+                    
+                    // Determine success
+                    const success = totalScore >= difficulty;
+                    
+                    if (success) {
+                        addMessage(`Challenge success! You rolled ${challengeDieValue.value} for a total of ${totalScore} against difficulty ${difficulty}.`);
+                        landscapeChallengeResolved.value = true;
+                        // Mark the landscape as resolved
+                        currentLandscape.value.resolved = true;
+                    } else {
+                        addMessage(`Challenge failed. You rolled ${challengeDieValue.value} for a total of ${totalScore} against difficulty ${difficulty}.`);
+                        // Take damage for failure
+                        healthPoints.value = Math.max(1, healthPoints.value - 1);
+                        addMessage('You lose 1 health point from the strain.');
+                    }
+                }
+                
+                function getChallengeType(challengeText) {
+                    // Determine challenge type based on text
+                    const text = challengeText.toLowerCase();
+                    if (text.includes('navigate') || text.includes('cross') || text.includes('find your way') || text.includes('physical')) {
+                        return 'physical';
+                    } else if (text.includes('magic') || text.includes('blessing') || text.includes('spirit')) {
+                        return 'magical';
+                    } else if (text.includes('knowledge') || text.includes('learn') || text.includes('decode')) {
+                        return 'knowledge';
+                    } else if (text.includes('craft') || text.includes('create') || text.includes('repair')) {
+                        return 'creation';
+                    } else if (text.includes('communicate') || text.includes('speak') || text.includes('bargain')) {
+                        return 'social';
+                    } else {
+                        return 'general';
+                    }
+                }
+                
+                function useAnimalCompanion() {
+                    if (!selectedCompanion.value || animalCompanionUsed.value) return;
+                    
+                    // Find the selected companion
+                    const companion = activeAnimalCompanions.value.find(c => c.id === selectedCompanion.value);
+                    if (!companion) return;
+                    
+                    // Apply companion effect
+                    let bonusAmount = companion.bonus;
+                    
+                    // Extra bonus if in their best season
+                    if (companion.bestSeason === currentSeason.value.name) {
+                        bonusAmount += 1;
+                    }
+                    
+                    // Apply effect based on companion type
+                    switch(companion.name) {
+                        case 'Raven Scout':
+                            // Help find hidden paths - preview next landscape
+                            if (currentLandscapeIndex.value < landscapePath.value.length - 1) {
+                                const nextLandscape = landscapePath.value[currentLandscapeIndex.value + 1];
+                                addMessage(`Your Raven Scout shows you that the next landscape is ${nextLandscape.name}.`);
+                            }
+                            break;
+                        case 'Wolf Guardian':
+                            // Protect against danger - restore health
+                            healthPoints.value = Math.min(6, healthPoints.value + 1);
+                            addMessage('Your Wolf Guardian helps you recover 1 health point.');
+                            break;
+                        default:
+                            // Generic bonus to current challenge
+                            if (!landscapeChallengeResolved.value) {
+                                addMessage(`Your ${companion.name} will give you a +${bonusAmount} bonus to your next challenge roll.`);
+                            } else {
+                                addMessage(`Your ${companion.name} helps you find resources.`);
+                                gatherRandomResource();
+                            }
+                    }
+                    
+                    animalCompanionUsed.value = true;
+                }
+                
+                function selectCompanion(id) {
+                    if (selectedCompanion.value === id) {
+                        selectedCompanion.value = null;
+                    } else {
+                        selectedCompanion.value = id;
+                    }
+                }
+                
+                function gatherRandomResource() {
+                    if (resourceGathered.value) return;
+                    
+                    // Get available resources based on season
+                    const available = availableResources.value;
+                    
+                    if (available.length > 0) {
+                        // Pick a random resource
+                        const resource = available[Math.floor(Math.random() * available.length)];
+                        
+                        // Add to player's resources if not at max
+                        const character = getCharacter(selectedCharacter.value);
+                        const maxResources = character.name === 'Giant Beastfriend' ? 8 : 6;
+                        
+                        if (playerResources.value.length < maxResources) {
+                            // Create a unique ID for this resource instance
+                            const resourceInstance = {
+                                ...resource,
+                                id: resource.id + '_' + Date.now() // Ensure unique ID
+                            };
+                            
+                            playerResources.value.push(resourceInstance);
+                            addMessage(`You gathered ${resource.name}!`);
+                            resourceCounter.value = playerResources.value.length;
+                        } else {
+                            addMessage(`You found ${resource.name}, but can't carry any more resources.`);
+                        }
+                    } else {
+                        addMessage('No suitable resources found in this area.');
+                    }
+                    
+                    resourceGathered.value = true;
+                }
+                
+                function acquireAnimalCompanion(id) {
+                    // Find the animal
+                    const animal = animalCompanions.find(a => a.id === id);
+                    if (!animal) return;
+                    
+                    // Check if we already have this companion
+                    if (activeAnimalCompanions.value.some(a => a.id === id)) {
+                        addMessage(`You already have ${animal.name} as a companion.`);
+                        return;
+                    }
+                    
+                    // Check character limits
+                    const character = getCharacter(selectedCharacter.value);
+                    const animalLimit = character.name === 'Giant Beastfriend' ? 2 : 1;
+                    
+                    if (activeAnimalCompanions.value.length >= animalLimit) {
+                        addMessage(`You cannot have more than ${animalLimit} animal companions.`);
+                        return;
+                    }
+                    
+                    // Add the companion
+                    activeAnimalCompanions.value.push(animal);
+                    addMessage(`${animal.name} has joined your journey!`);
+                }
+                
+                function toggleResourceSelection(id) {
+                    const index = selectedResources.value.indexOf(id);
+                    
+                    if (index === -1) {
+                        // Add to selection
+                        selectedResources.value.push(id);
+                    } else {
+                        // Remove from selection
+                        selectedResources.value.splice(index, 1);
+                    }
+                }
+                
+                function startCrafting() {
+                    if (selectedResources.value.length === 0) return;
+                    
+                    // Get resource names
+                    const selectedResourceObjs = playerResources.value.filter(r => 
+                        selectedResources.value.includes(r.id));
+                    const selectedResourceNames = selectedResourceObjs.map(r => r.name);
+                    
+                    // Check if these resources can craft anything
+                    for (const item of craftedItems) {
+                        const canCraft = checkCrafting(item, selectedResourceNames);
+                        
+                        if (canCraft) {
+                            craftItem(item.id, selectedResourceObjs);
+                            return;
+                        }
+                    }
+                    
+                    // If we get here, crafting failed
+                    addMessage('These resources cannot craft any known items.');
+                    selectedResources.value = [];
+                }
+                
+                function checkCrafting(item, resources) {
+                    // Check if resources match recipe
+                    const recipeCopy = [...item.recipe];
+                    const resourcesCopy = [...resources];
+                    
+                    // For Giant Beastfriend, need one extra resource
+                    const character = getCharacter(selectedCharacter.value);
+                    const requiresExtra = character.name === 'Giant Beastfriend';
+                    
+                    // For Hedge Witch, need one fewer resource
+                    const needsFewer = character.name === 'Hedge Witch/Warlock';
+                    
+                    if (requiresExtra && resourcesCopy.length < item.recipe.length + 1) {
+                        return false;
+                    }
+                    
+                    if (!needsFewer && resourcesCopy.length < item.recipe.length) {
+                        return false;
+                    }
+                    
+                    if (needsFewer && item.recipe.length > 1 && resourcesCopy.length < item.recipe.length - 1) {
+                        return false;
+                    }
+                    
+                    // Standard crafting check (all recipe items must be present)
+                    for (const ingredient of recipeCopy) {
+                        const index = resourcesCopy.indexOf(ingredient);
+                        if (index === -1) {
+                            return false;
+                        }
+                        // Remove the matched resource to prevent double-counting
+                        resourcesCopy.splice(index, 1);
+                    }
+                    
+                    return true;
+                }
+                
+                function craftItem(id, selectedResourceObjs) {
+                    // Find the item
+                    const item = craftedItems.find(i => i.id === id);
+                    if (!item) return;
+                    
+                    // Get the resource names
+                    const selectedResourceNames = selectedResourceObjs.map(r => r.name);
+                    
+                    // For Giant Beastfriend, need one extra resource
+                    const character = getCharacter(selectedCharacter.value);
+                    const requiresExtra = character.name === 'Giant Beastfriend';
+                    
+                    // For Hedge Witch, need one fewer resource
+                    const needsFewer = character.name === 'Hedge Witch/Warlock';
+                    
+                    let canCraft = checkCrafting(item, [...selectedResourceNames]);
+                    
+                    if (!canCraft) {
+                        addMessage(`You need ${item.recipe.join(', ')} to craft ${item.name}.`);
+                        return;
+                    }
+                    
+                    // Remove the used resources from player inventory
+                    const resourceIdsToRemove = [];
+                    const recipeCopy = [...item.recipe];
+                    
+                    // If Hedge Witch/Warlock and more than one resource required, use one fewer
+                    if (needsFewer && recipeCopy.length > 1) {
+                        // Remove one ingredient from the recipe
+                        recipeCopy.pop();
+                    }
+                    
+                    // Match resources to recipe ingredients
+                    for (const ingredient of recipeCopy) {
+                        // Find a resource with this name that hasn't been marked for removal
+                        const resourceObj = selectedResourceObjs.find(r => 
+                            r.name === ingredient && !resourceIdsToRemove.includes(r.id));
+                        
+                        if (resourceObj) {
+                            resourceIdsToRemove.push(resourceObj.id);
+                        }
+                    }
+                    
+                    // If Giant Beastfriend, add one extra random resource
+                    if (requiresExtra) {
+                        // Get a resource that's not already marked for removal
+                        const extraResource = selectedResourceObjs.find(r => !resourceIdsToRemove.includes(r.id));
+                        if (extraResource) {
+                            resourceIdsToRemove.push(extraResource.id);
+                        }
+                    }
+                    
+                    // Remove the resources
+                    playerResources.value = playerResources.value.filter(r => !resourceIdsToRemove.includes(r.id));
+                    
+                    // Add the crafted item
+                    playerCraftedItems.value.push(item);
+                    
+                    // Clear selection
+                    selectedResources.value = [];
+                    
+                    // Update resource counter
+                    resourceCounter.value = playerResources.value.length;
+                    
+                    addMessage(`You crafted ${item.name}! ${item.effect}`);
+                    
+                    // Show info modal about the item
+                    modalTitle.value = item.name;
+                    modalContent.value = `${item.description}\n\nEffect: ${item.effect}`;
+                    showModal.value = true;
+                }
+                
+                function moveToNextLandscape() {
+                    if (!canMoveToNextLandscape()) {
+                        addMessage("You must resolve the current landscape challenge before moving on.");
+                        return;
+                    }
+                    
+                    // Update progress
+                    journeyProgress.value += 1;
+                    currentLandscapeIndex.value += 1;
+                    
+                    // Reset flags for new location
+                    landscapeChallengeResolved.value = false;
+                    seasonalActionUsed.value = false;
+                    animalCompanionUsed.value = false;
+                    resourceGathered.value = false;
+                    
+                    // Check for season change
+                    if (journeyProgress.value % 3 === 0) {
+                        // Move to next season
+                        currentSeasonIndex.value = (currentSeasonIndex.value + 1) % seasons.length;
+                        addMessage(`The season changes to ${currentSeason.value.name}.`);
+                        
+                        // Animal companions may change with seasons
+                        checkCompanionMigration();
+                    }
+                    
+                    // Reveal the new landscape
+                    if (currentLandscapeIndex.value < landscapePath.value.length) {
+                        landscapePath.value[currentLandscapeIndex.value].revealed = true;
+                        addMessage(`You arrive at ${currentLandscape.value.name}.`);
+                    } else {
+                        // Journey complete!
+                        completeJourney();
+                    }
+                }
+                
+                function checkCompanionMigration() {
+                    // Some companions may leave based on season
+                    const leavingCompanions = [];
+                    
+                    for (const companion of activeAnimalCompanions.value) {
+                        // 30% chance of leaving if not in their preferred season
+                        if (companion.bestSeason !== currentSeason.value.name && Math.random() < 0.3) {
+                            leavingCompanions.push(companion.id);
+                            addMessage(`${companion.name} leaves as the season changes.`);
+                        }
+                    }
+                    
+                    // Remove leaving companions
+                    if (leavingCompanions.length > 0) {
+                        activeAnimalCompanions.value = activeAnimalCompanions.value.filter(
+                            c => !leavingCompanions.includes(c.id)
+                        );
+                    }
+                    
+                    // Chance to gain a new companion suited to this season
+                    const seasonalCompanions = animalCompanions.filter(
+                        c => c.bestSeason === currentSeason.value.name &&
+                        !activeAnimalCompanions.value.some(ac => ac.id === c.id)
+                    );
+                    
+                    if (seasonalCompanions.length > 0 && Math.random() < 0.5) {
+                        // Only add if we have room
+                        const character = getCharacter(selectedCharacter.value);
+                        const animalLimit = character.name === 'Giant Beastfriend' ? 2 : 1;
+                        
+                        if (activeAnimalCompanions.value.length < animalLimit) {
+                            const newCompanion = seasonalCompanions[Math.floor(Math.random() * seasonalCompanions.length)];
+                            activeAnimalCompanions.value.push(newCompanion);
+                            addMessage(`${newCompanion.name} joins you during ${currentSeason.value.name}.`);
+                        }
+                    }
+                }
+                
+                function canMoveToNextLandscape() {
+                    // Can only move if current landscape is resolved
+                    if (!currentLandscape.value || !currentLandscape.value.resolved) {
+                        return false;
+                    }
+                    
+                    // Check if we've reached the end
+                    if (currentLandscapeIndex.value >= landscapePath.value.length - 1) {
+                        return false;
+                    }
+                    
+                    return true;
+                }
+                
+                function completeJourney() {
+                    gameState.value = 'gameover';
+                    
+                    // Check victory conditions
+                    const hasAnimalCompanion = activeAnimalCompanions.value.length > 0;
+                    const hasCraftedItems = playerCraftedItems.value.length >= 2;
+                    const hasFullHealth = healthPoints.value >= 5;
+                    const hasCompletedMostChallenges = landscapePath.value.filter(l => l.resolved).length >= Math.floor(landscapePath.value.length * 0.75);
+                    
+                    let message = "";
+                    
+                    // Character-specific ending messages
+                    const character = getCharacter(selectedCharacter.value);
+                    if (character.name === 'Giant Beastfriend') {
+                        message += "As a Giant Beastfriend, your connection with animals has ";
+                        message += hasAnimalCompanion ? "flourished throughout your journey. " : "not reached its full potential. ";
+                    } else if (character.name === 'Hedge Witch/Warlock') {
+                        message += "As a Hedge Witch/Warlock, your magical prowess has ";
+                        message += hasCraftedItems ? "allowed you to craft powerful items. " : "not been fully utilized. ";
+                    } else if (character.name === 'Iron Crafter') {
+                        message += "As an Iron Crafter, your crafting skills have ";
+                        message += hasCraftedItems ? "produced remarkable items. " : "not been put to good use. ";
+                    } else if (character.name === 'Village Elder') {
+                        message += "As a Village Elder, your wisdom has ";
+                        message += hasCompletedMostChallenges ? "guided you successfully through many challenges. " : "not been enough to overcome all obstacles. ";
+                    }
+                    
+                    // General ending message
+                    if (hasAnimalCompanion && hasCraftedItems && hasFullHealth) {
+                        message += "Congratulations! You've successfully completed your journey through the Celtic Realm with loyal animal companions, powerful crafted items, and maintained your health. The lands will remember your name among its greatest legends.";
+                    } else if (hasAnimalCompanion && hasCraftedItems) {
+                        message += "You've traversed the Celtic Realm with loyal animal companions and crafted powerful items. Though your journey was challenging, you've earned your place among the realm's heroes.";
+                    } else if (hasAnimalCompanion) {
+                        message += "You've traversed the Celtic Realm with loyal animal companions, but without enough magical items. Your journey was challenging but not legendary.";
+                    } else if (hasCraftedItems) {
+                        message += "You've crafted powerful items on your journey, but without animal companions to guide you. The Celtic Realm acknowledges your crafting skills.";
+                    } else {
+                        message += "You survived the journey through the Celtic Realm, but without animal companions or crafted items. Consider this a learning experience for your next adventure.";
+                    }
+                    
+                    gameOverMessage.value = message;
+                }
+                
+                function resetGame() {
+                    // Reset all game state
+                    gameState.value = 'setup';
+                    selectedCharacter.value = null;
+                    healthPoints.value = 6;
+                    resourceCounter.value = 1;
+                    journeyProgress.value = 0;
+                    currentLandscapeIndex.value = 0;
+                    landscapeChallengeResolved.value = false;
+                    seasonalActionUsed.value = false;
+                    animalCompanionUsed.value = false;
+                    resourceGathered.value = false;
+                    selectedCompanion.value = null;
+                    selectedResources.value = [];
+                    playerResources.value = [];
+                    playerCraftedItems.value = [];
+                    activeAnimalCompanions.value = [];
+                    currentSeasonIndex.value = 0;
+                    messageLog.value = ['Welcome to Pathfinder\'s Journey! Choose a character to begin your adventure.'];
+                }
+                
+                return {
+                    // State
+                    gameState,
+                    selectedCharacter,
+                    healthPoints,
+                    resourceCounter,
+                    journeyProgress,
+                    challengeDieValue,
+                    currentLandscapeIndex,
+                    landscapeChallengeResolved,
+                    seasonalActionUsed,
+                    animalCompanionUsed,
+                    resourceGathered,
+                    selectedCompanion,
+                    selectedResources,
+                    messageLog,
+                    playerResources,
+                    playerCraftedItems,
+                    activeAnimalCompanions,
+                    currentSeasonIndex,
+                    landscapePath,
+                    showModal,
+                    modalTitle,
+                    modalContent,
+                    gameOverMessage,
+                    
+                    // Computed
+                    currentLandscape,
+                    currentSeason,
+                    availableAnimalCompanions,
+                    availableResources,
+                    craftableItems,
+                    
+                    // Methods
+                    selectCharacter,
+                    getCharacter,
+                    startGame,
+                    performSeasonalAction,
+                    resolveLandscapeChallenge,
+                    useAnimalCompanion,
+                    selectCompanion,
+                    gatherRandomResource,
+                    acquireAnimalCompanion,
+                    toggleResourceSelection,
+                    startCrafting,
+                    craftItem,
+                    moveToNextLandscape,
+                    canMoveToNextLandscape,
+                    resetGame,
+                    
+                    // Data
+                    characters,
+                    landscapes,
+                    animalCompanions,
+                    resources,
+                    craftedItems,
+                    seasons
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
