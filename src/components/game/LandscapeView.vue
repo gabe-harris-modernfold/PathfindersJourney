@@ -212,6 +212,26 @@ export default defineComponent({
       // Move to the next landscape
       gameStore.advanceJourney(1);
       
+      // Generate a new landscape (from the remaining ones in the deck)
+      const availableLandscapes = cardStore.landscapes.filter(l => 
+        !gameStore.visitedLandscapes.includes(l.id)
+      );
+      
+      if (availableLandscapes.length > 0) {
+        // Pick a random landscape from the available ones
+        const randomIndex = Math.floor(Math.random() * availableLandscapes.length);
+        const newLandscape = availableLandscapes[randomIndex];
+        
+        // Update the current landscape
+        gameStore.setCurrentLandscape(newLandscape.id);
+        // Add to visited landscapes
+        gameStore.addVisitedLandscape(newLandscape.id);
+      } else {
+        // If no more landscapes, we've completed the journey
+        gameStore.addToGameLog('You have reached the end of your journey path.', true);
+        gameStore.completeJourney(true);
+      }
+      
       // Reset challenge state for the next landscape
       challengeResolved.value = false;
     };

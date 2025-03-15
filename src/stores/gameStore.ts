@@ -33,7 +33,10 @@ export const useGameStore = defineStore('game', {
     threatTokens: 0,
     blessingTokens: 0,
     challengeHistory: [] as { id: string, outcome: string, turn: number }[],
-    tempEffects: [] as TempEffect[]
+    tempEffects: [] as TempEffect[],
+    journeyComplete: false,
+    wisdom: 0,
+    ceremonyCompleted: false
   }),
   
   getters: {
@@ -225,7 +228,8 @@ export const useGameStore = defineStore('game', {
           // Apply any immediate effects of the season
           if (seasonCard.effects && seasonCard.effects.length > 0) {
             seasonCard.effects.forEach(effect => {
-              this.addToGameLog(`Season Effect: ${effect.name} - ${effect.description}`, false, 'system', {
+              const description = typeof effect.effect === 'string' ? effect.effect : `${effect.effect}`;
+              this.addToGameLog(`Season Effect: ${effect.name} - ${description}`, false, 'system', {
                 effectDetails: effect
               });
               // Here you would apply the actual effect logic
@@ -308,13 +312,19 @@ export const useGameStore = defineStore('game', {
         const challenge = cardStore.getChallengeById(challengeId);
         
         if (challenge) {
-          this.addToGameLog(`You face a challenge: ${challenge.name}`, true, 'challenge', {
+          // Extract challenge details for the log
+          const challengeName = challenge.name || `${this.currentLandscape?.name || 'Unknown'} Challenge`;
+          const challengeType = challenge.type || 'unknown';
+          const challengeDifficulty = challenge.difficulty || 5;
+          const challengeRewards = challenge.rewards || { resources: [], experience: 0 };
+          
+          this.addToGameLog(`You face a challenge: ${challengeName}`, true, 'challenge', {
             previousChallengeId,
             newChallengeId: challengeId,
-            challengeName: challenge.name,
-            challengeType: challenge.type,
-            challengeDifficulty: challenge.difficulty,
-            challengeRewards: challenge.rewards
+            challengeName: challengeName,
+            challengeType: challengeType,
+            challengeDifficulty: challengeDifficulty,
+            challengeRewards: challengeRewards
           });
         }
       } else {
@@ -874,6 +884,136 @@ export const useGameStore = defineStore('game', {
       
       // Here we would apply season-specific resource modifiers
       // For example, some resources become more abundant in certain seasons
+    },
+    
+    // Method to perform a D8 dice roll (1-8)
+    rollD8(): number {
+      // Random number between 1 and 8
+      const roll = Math.floor(Math.random() * 8) + 1;
+      this.addToGameLog(`You rolled a ${roll} on a D8.`, true, 'system');
+      return roll;
+    },
+    
+    // Resolve a challenge based on roll and difficulty
+    resolveChallenge(totalRoll: number, difficulty: number): 'SUCCESS' | 'PARTIAL' | 'FAILURE' {
+      this.addToGameLog(`Challenge attempt: Roll ${totalRoll} vs Difficulty ${difficulty}`, true, 'challenge');
+      
+      // Natural 8 is always a success
+      if (totalRoll >= difficulty + 2) {
+        this.addToGameLog('Critical Success! You overcome the challenge with exceptional results.', true, 'challenge');
+        
+        // Add to challenge history
+        if (this.currentChallenge) {
+          this.challengeHistory.push({
+            id: this.currentChallenge,
+            outcome: 'SUCCESS',
+            turn: this.currentTurn
+          });
+        }
+        
+        // Remove threat tokens for successful challenge
+        this.removeThreatTokens(1);
+        
+        return 'SUCCESS';
+      } else if (totalRoll >= difficulty) {
+        this.addToGameLog('Success! You overcome the challenge.', true, 'challenge');
+        
+        // Add to challenge history
+        if (this.currentChallenge) {
+          this.challengeHistory.push({
+            id: this.currentChallenge,
+            outcome: 'SUCCESS',
+            turn: this.currentTurn
+          });
+        }
+        
+        return 'SUCCESS';
+      } else if (totalRoll >= difficulty - 2) {
+        this.addToGameLog('Partial Success. You manage to barely overcome parts of the challenge.', true, 'challenge');
+        
+        // Add to challenge history
+        if (this.currentChallenge) {
+          this.challengeHistory.push({
+            id: this.currentChallenge,
+            outcome: 'PARTIAL',
+            turn: this.currentTurn
+          });
+        }
+        
+        // Add threat tokens for partial success
+        this.addThreatTokens(1);
+        
+        return 'PARTIAL';
+      } else {
+        this.addToGameLog('Failure. The challenge proves too difficult for now.', true, 'challenge');
+        
+        // Add to challenge history
+        if (this.currentChallenge) {
+          this.challengeHistory.push({
+            id: this.currentChallenge,
+            outcome: 'FAILURE',
+            turn: this.currentTurn
+          });
+        }
+        
+        // Add threat tokens for failure
+        this.addThreatTokens(2);
+        
+        return 'FAILURE';
+      }
+    },
+    
+    // Perform a special action at a location
+    performSpecialAction(actionId: string): { success: boolean; message: string } {
+      const cardStore = useCardStore();
+      const playerStore = usePlayerStore();
+      
+      // Handle different special actions based on ID
+      switch (actionId) {
+        case 'standing_stones_ceremony':
+          // This is the final ceremony at the Great Standing Stones
+          this.ceremonyCompleted = true;
+          this.journeyComplete = true;
+          
+          // Add wisdom to player
+          playerStore.wisdom = (playerStore.wisdom || 0) + 5;
+          
+          // Log the result
+          this.addToGameLog('You have performed the ancient ceremony at the Standing Stones. Your journey is complete!', true, 'special');
+          
+          return {
+            success: true,
+            message: 'You have successfully completed the journey!'
+          };
+          
+        case 'heal_at_spring':
+          // Healing at the sacred spring
+          playerStore.healHealth(5);
+          
+          this.addToGameLog('You drink from the sacred spring and feel revitalized.', true, 'special');
+          
+          return {
+            success: true,
+            message: 'You feel refreshed and healed.'
+          };
+          
+        case 'meditation':
+          // Gaining wisdom through meditation
+          playerStore.wisdom = (playerStore.wisdom || 0) + 2;
+          
+          this.addToGameLog('You meditate peacefully, gaining insight and wisdom.', true, 'special');
+          
+          return {
+            success: true,
+            message: 'Your mind feels clearer and wiser.'
+          };
+          
+        default:
+          return {
+            success: false,
+            message: 'That action is not available at this location.'
+          };
+      }
     },
   }
 });

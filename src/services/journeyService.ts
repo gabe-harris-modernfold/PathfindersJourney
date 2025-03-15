@@ -150,10 +150,10 @@ class JourneyService {
     
     // Add landscape-specific challenges to the game
     if (landscape.challenges && landscape.challenges.length > 0) {
-      // Set current challenge if there is one
-      if (landscape.challenges[0] && landscape.challenges[0].id) {
-        gameStore.setCurrentChallenge(landscape.challenges[0].id);
-      }
+      // Set challenge from landscape
+      const challenge = landscape.challenges[0];
+      const challengeId = `${landscape.id}_${challenge.type.toLowerCase()}`;
+      gameStore.setCurrentChallenge(challengeId);
     }
   }
   

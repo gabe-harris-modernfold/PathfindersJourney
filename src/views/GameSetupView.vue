@@ -23,7 +23,7 @@
           <p>{{ character.description }}</p>
           
           <div class="character-stats">
-            <div class="stat"><span class="stat-label">Health:</span> {{ character.health }}</div>
+            <div class="stat"><span class="stat-label">Health:</span> {{ character.healthPoints }}</div>
             <div class="stat"><span class="stat-label">Capacity:</span> {{ character.resourceCapacity }}</div>
           </div>
           
@@ -112,9 +112,11 @@ const startGame = (character: CharacterCard) => {
       }
     }
     
-    // Navigate to the game board
+    // Navigate to the game board - use a slight delay to ensure all state changes are processed
     console.log('Navigating to game board');
-    router.push('/game');
+    setTimeout(() => {
+      router.push('/game');
+    }, 50);
   } catch (error) {
     console.error('Error starting game:', error);
     alert('There was an error starting your adventure. Please try again.');

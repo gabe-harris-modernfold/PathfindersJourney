@@ -1,5 +1,6 @@
 <template>
-  <div class="action-panel">
+  <div class="action-panel" style="border: 2px solid lightblue; position: relative;">
+    <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">ActionPanel</div>
     <h2 class="action-panel__title">Actions</h2>
     
     <div class="action-panel__phase-info">

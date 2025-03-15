@@ -62,9 +62,24 @@ export const useCardStore = defineStore('card', {
     },
     
     getChallengeById: (state) => (id: string) => {
-      // Flatten all challenges from all landscapes
-      const allChallenges = state.landscapes.reduce((acc, landscape) => {
-        return [...acc, ...landscape.challenges];
+      const allChallenges = state.landscapes.reduce((challenges, landscape) => {
+        if (landscape.challenges) {
+          // Convert landscape challenges to full challenge cards for compatibility
+          const landscapeChallenges = landscape.challenges.map(challenge => ({
+            id: `${landscape.id}_${challenge.type.toLowerCase()}`,
+            name: `${landscape.name} ${challenge.type}`,
+            description: `A ${challenge.type} challenge at ${landscape.name}`,
+            type: challenge.type as ChallengeType,
+            difficulty: challenge.difficulty,
+            rewards: {
+              resources: [],
+              experience: 10,
+              knowledge: landscape.id
+            }
+          }));
+          return [...challenges, ...landscapeChallenges];
+        }
+        return challenges;
       }, [] as ChallengeCard[]);
       
       return allChallenges.find(challenge => challenge.id === id);
@@ -82,8 +97,12 @@ export const useCardStore = defineStore('card', {
       );
     },
     
-    getAllCraftedItemCards: (state) => () => {
+    getAllCraftedItems: (state) => () => {
       return state.craftedItems;
+    },
+    
+    getCraftableItems: (state) => () => {
+      return state.craftedItems.map(item => item.id);
     }
   },
   
@@ -107,12 +126,17 @@ export const useCardStore = defineStore('card', {
           name: 'The Druid',
           description: 'A keeper of ancient wisdom with a deep connection to nature.',
           type: CardType.CHARACTER,
-          health: 8,
+          healthPoints: 8,
+          strength: 6,
+          wisdom: 10,
+          agility: 6,
+          diplomacy: 8,
+          survival: 9,
           resourceCapacity: 6,
+          image: '/images/characters/druid.jpg',
           specialAbility: {
             name: 'Nature\'s Harmony',
-            description: 'Can communicate with animals to gain insights about the landscape.',
-            effect: 'Reveal one hidden resource in the current landscape.'
+            description: 'Can communicate with animals to gain insights about the landscape.'
           },
           startingResources: ['resource_1', 'resource_5'],
           startingCompanion: 'companion_1'
@@ -122,12 +146,17 @@ export const useCardStore = defineStore('card', {
           name: 'The Warrior',
           description: 'A brave fighter skilled in combat and survival.',
           type: CardType.CHARACTER,
-          health: 12,
+          healthPoints: 12,
+          strength: 10,
+          wisdom: 6,
+          agility: 8,
+          diplomacy: 5,
+          survival: 8,
           resourceCapacity: 4,
+          image: '/images/characters/warrior.jpg',
           specialAbility: {
             name: 'Battle Prowess',
-            description: 'Years of training have honed combat skills to perfection.',
-            effect: 'Add +2 to any challenge attempt once per turn.'
+            description: 'Years of training have honed combat skills to perfection.'
           },
           startingResources: ['resource_2', 'resource_3']
         },
@@ -136,14 +165,119 @@ export const useCardStore = defineStore('card', {
           name: 'The Bard',
           description: 'A storyteller who carries the history and legends of the Celtic people.',
           type: CardType.CHARACTER,
-          health: 6,
+          healthPoints: 6,
+          strength: 5,
+          wisdom: 9,
+          agility: 7,
+          diplomacy: 10,
+          survival: 7,
           resourceCapacity: 8,
+          image: '/images/characters/bard.jpg',
           specialAbility: {
             name: 'Ancient Tales',
-            description: 'Knowledge of old stories reveals secrets of the land.',
-            effect: 'Gain insight into one challenge before attempting it.'
+            description: 'Knowledge of old stories reveals secrets of the land.'
           },
           startingResources: ['resource_4', 'resource_7', 'resource_9']
+        },
+        {
+          id: 'giant_beastfriend',
+          name: 'Giant Beastfriend',
+          description: 'A towering figure with a natural affinity for wild creatures, able to form bonds with even the most ferocious beasts.',
+          type: CardType.CHARACTER,
+          healthPoints: 7,
+          strength: 8,
+          wisdom: 7,
+          agility: 5,
+          diplomacy: 4,
+          survival: 9,
+          resourceCapacity: 8,
+          image: '/images/characters/giant_beastfriend.jpg',
+          specialAbility: {
+            name: 'Animal Empathy',
+            description: 'Animal Companions cost -1 resource to bond with'
+          },
+          startingResources: ['resource_3', 'resource_6'],
+          challengeBonuses: {
+            'physical': 3,
+            'mental': 2,
+            'spiritual': 3,
+            'social': 1
+          }
+        },
+        {
+          id: 'hedge_witch',
+          name: 'Hedge Witch/Warlock',
+          description: 'A practitioner of herbal magic and minor enchantments who dwells at the borderlands between civilization and wilderness.',
+          type: CardType.CHARACTER,
+          healthPoints: 5,
+          strength: 4,
+          wisdom: 10,
+          agility: 6,
+          diplomacy: 5,
+          survival: 8,
+          resourceCapacity: 7,
+          image: '/images/characters/hedge_witch.jpg',
+          specialAbility: {
+            name: 'Herbal Knowledge',
+            description: 'Can substitute one resource for another when crafting'
+          },
+          startingResources: ['resource_8', 'resource_10'],
+          challengeBonuses: {
+            'physical': 1,
+            'mental': 3,
+            'spiritual': 4,
+            'social': 1
+          }
+        },
+        {
+          id: 'iron_crafter',
+          name: 'Iron Crafter',
+          description: 'A master smith whose knowledge of metals and fire allows them to create items of remarkable power.',
+          type: CardType.CHARACTER,
+          healthPoints: 6,
+          strength: 7,
+          wisdom: 8,
+          agility: 5,
+          diplomacy: 6,
+          survival: 6,
+          resourceCapacity: 6,
+          image: '/images/characters/iron_crafter.jpg',
+          specialAbility: {
+            name: 'Master Smith',
+            description: 'Crafting requires one fewer resource'
+          },
+          startingResources: ['resource_2', 'resource_5'],
+          challengeBonuses: {
+            'physical': 3,
+            'mental': 3,
+            'spiritual': 1,
+            'social': 2
+          }
+        },
+        {
+          id: 'village_elder',
+          name: 'Village Elder',
+          description: 'A respected keeper of tradition and wisdom, whose connection to the community provides unique advantages.',
+          type: CardType.CHARACTER,
+          healthPoints: 5,
+          strength: 3,
+          wisdom: 12,
+          agility: 4,
+          diplomacy: 9,
+          survival: 7,
+          resourceCapacity: 5,
+          image: '/images/characters/village_elder.jpg',
+          specialAbility: {
+            name: 'Ancient Wisdom',
+            description: 'Start with knowledge of entire journey path (all landscapes revealed at beginning)'
+          },
+          startingResources: ['resource_7', 'resource_9'],
+          challengeBonuses: {
+            'physical': 1,
+            'mental': 4,
+            'spiritual': 3,
+            'social': 3
+          }
         }
       ];
     },

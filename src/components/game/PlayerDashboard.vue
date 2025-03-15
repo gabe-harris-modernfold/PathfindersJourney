@@ -1,220 +1,58 @@
 <template>
-  <div class="player-dashboard">
-    <div class="player-dashboard__header">
-      <h3 class="character-name">{{ character?.name || 'Unknown Character' }}</h3>
-      <p v-if="character">{{ character.description }}</p>
-    </div>
-    
-    <div class="player-dashboard__stats">
-      <div class="stat-item">
-        <span class="stat-label">Health:</span>
-        <span class="stat-value">{{ playerHealth }} / {{ playerMaxHealth }}</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">Resources:</span>
-        <span class="stat-value">{{ playerResources.length }} / {{ playerResourceCapacity }}</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">Experience:</span>
-        <span class="stat-value">{{ playerExperience }}</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">Knowledge:</span>
-        <span class="stat-value">{{ playerKnowledge.length }} / 5</span>
+  <div class="player-dashboard" style="border: 2px solid lightblue; position: relative;">
+    <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">PlayerDashboard</div>
+    <div class="player-info">
+      <h2 v-if="character">{{ character.name }}</h2>
+      <div class="player-stats">
+        <div class="stat">
+          <span class="stat-label">Health:</span> 
+          <span class="stat-value">{{ playerStore.health }}/{{ playerStore.maxHealth }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Experience:</span> 
+          <span class="stat-value">{{ playerStore.experience }}</span>
+        </div>
       </div>
     </div>
-    
-    <div class="player-dashboard__ability mt-3">
-      <h4>Special Ability: {{ character?.specialAbility.name }}</h4>
-      <p class="ability-description">{{ character?.specialAbility.description }}</p>
-      <button 
-        class="btn btn--accent btn--sm mt-2" 
-        @click="useSpecialAbility"
-        :disabled="specialAbilityUsed"
-      >
-        {{ specialAbilityUsed ? 'Ability Used' : 'Use Ability' }}
-      </button>
-    </div>
-    
-    <div class="player-dashboard__inventory mt-4">
-      <h4>Resources</h4>
-      <div v-if="playerResources.length === 0" class="empty-state">
-        No resources collected yet.
-      </div>
-      <div v-else class="resource-list">
-        <div 
-          v-for="resourceId in playerResources" 
-          :key="resourceId"
-          class="resource-list__item"
-          @click="showResourceDetails(resourceId)"
-        >
+
+    <div class="resources-section">
+      <h3>Resources</h3>
+      <div v-if="playerStore.resources.length === 0" class="empty-state">No resources collected yet</div>
+      <ul v-else class="resource-list">
+        <li v-for="resourceId in playerStore.resources" :key="resourceId" class="resource-list__item">
           {{ getResourceName(resourceId) }}
-        </div>
-      </div>
-      
-      <h4 class="mt-3">Animal Companions</h4>
-      <div v-if="playerCompanions.length === 0" class="empty-state">
-        No animal companions yet.
-      </div>
-      <div v-else class="companion-list">
-        <div 
-          v-for="companionId in playerCompanions" 
-          :key="companionId"
-          class="companion-list__item"
-          :class="{ wary: isCompanionWary(companionId) }"
-          @click="showCompanionDetails(companionId)"
-        >
-          <div>{{ getCompanionName(companionId) }}</div>
-          <div v-if="isCompanionWary(companionId)" class="wary-status">Wary</div>
-        </div>
-      </div>
-      
-      <h4 class="mt-3">Crafted Items</h4>
-      <div v-if="playerItems.length === 0" class="empty-state">
-        No crafted items yet.
-      </div>
-      <div v-else class="crafted-items-list">
-        <div 
-          v-for="itemId in playerItems" 
-          :key="itemId"
-          class="crafted-items-list__item"
-          @click="showItemDetails(itemId)"
-        >
-          <div>{{ getItemName(itemId) }}</div>
-          <div class="uses-remaining">Uses: {{ getItemUsesRemaining(itemId) }}</div>
-        </div>
-      </div>
+        </li>
+      </ul>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, computed } from 'vue';
-import { useCardStore, usePlayerStore, useGameStore } from '@/stores';
+import { usePlayerStore } from '@/stores/playerStore';
+import { useCardStore } from '@/stores/cardStore';
 
 export default defineComponent({
   name: 'PlayerDashboard',
+  
   setup() {
-    const cardStore = useCardStore();
     const playerStore = usePlayerStore();
-    const gameStore = useGameStore();
+    const cardStore = useCardStore();
     
     const character = computed(() => {
       if (!playerStore.characterId) return null;
       return cardStore.getCharacterById(playerStore.characterId);
     });
     
-    const playerHealth = computed(() => playerStore.health);
-    const playerMaxHealth = computed(() => playerStore.maxHealth);
-    const playerResources = computed(() => playerStore.resources);
-    const playerResourceCapacity = computed(() => playerStore.resourceCapacity);
-    const playerCompanions = computed(() => playerStore.animalCompanions);
-    const playerItems = computed(() => playerStore.craftedItems);
-    const playerExperience = computed(() => playerStore.experience);
-    const playerKnowledge = computed(() => playerStore.knowledgeDiscovered);
-    const specialAbilityUsed = computed(() => playerStore.specialAbilityUsed);
-    
     const getResourceName = (resourceId: string) => {
       const resource = cardStore.getResourceById(resourceId);
       return resource ? resource.name : 'Unknown Resource';
     };
     
-    const getCompanionName = (companionId: string) => {
-      const companion = cardStore.getAnimalCompanionById(companionId);
-      return companion ? companion.name : 'Unknown Companion';
-    };
-    
-    const getItemName = (itemId: string) => {
-      const item = cardStore.getCraftedItemById(itemId);
-      return item ? item.name : 'Unknown Item';
-    };
-    
-    const getItemUsesRemaining = (itemId: string) => {
-      const item = cardStore.getCraftedItemById(itemId);
-      return item ? 3 : 0; // Default to 3 uses for crafted items
-    };
-    
-    const isCompanionWary = (companionId: string) => {
-      const companion = cardStore.getAnimalCompanionById(companionId);
-      return companion ? false : true; // Default to not wary if companion exists
-    };
-    
-    const showResourceDetails = (resourceId: string) => {
-      const resource = cardStore.getResourceById(resourceId);
-      if (resource) {
-        gameStore.addToGameLog(`Resource: ${resource.name} - ${resource.description}`);
-        if (resource.specialEffect) {
-          gameStore.addToGameLog(`Effect: ${resource.specialEffect.description}`);
-        }
-      }
-    };
-    
-    const showCompanionDetails = (companionId: string) => {
-      const companion = cardStore.getAnimalCompanionById(companionId);
-      if (companion) {
-        gameStore.addToGameLog(`Companion: ${companion.name} - ${companion.description}`);
-        gameStore.addToGameLog(`Ability: ${companion.ability.name} - ${companion.ability.description}`);
-        
-        const waryStatus = 'This companion is ready to assist you.';
-        gameStore.addToGameLog(waryStatus);
-      }
-    };
-    
-    const showItemDetails = (itemId: string) => {
-      const item = cardStore.getCraftedItemById(itemId);
-      if (item) {
-        gameStore.addToGameLog(`Item: ${item.name} - ${item.description}`);
-        gameStore.addToGameLog(`Ability: ${item.ability.name} - ${item.ability.description}`);
-        
-        if (item.drawback) {
-          gameStore.addToGameLog(`Drawback: ${item.drawback.description}`);
-        }
-        
-        gameStore.addToGameLog(`Uses remaining: 3`); // Default to 3 uses
-      }
-    };
-    
-    const useSpecialAbility = () => {
-      if (playerStore.useSpecialAbility()) {
-        // Implement character-specific ability effects
-        if (character.value) {
-          switch (character.value.id) {
-            case 'beastfriend':
-              // Example: Heal animal companions
-              playerStore.animalCompanions.forEach(companionId => {
-                console.log(`Animal companion ${companionId} is now active`);
-              });
-              gameStore.addToGameLog('All your animal companions are no longer wary.');
-              break;
-            // Add other character abilities as needed
-            default:
-              gameStore.addToGameLog('You used your special ability.');
-              break;
-          }
-        }
-      }
-    };
-    
     return {
+      playerStore,
       character,
-      playerHealth,
-      playerMaxHealth,
-      playerResources,
-      playerResourceCapacity,
-      playerCompanions,
-      playerItems,
-      playerExperience,
-      playerKnowledge,
-      specialAbilityUsed,
-      getResourceName,
-      getCompanionName,
-      getItemName,
-      getItemUsesRemaining,
-      isCompanionWary,
-      showResourceDetails,
-      showCompanionDetails,
-      showItemDetails,
-      useSpecialAbility
+      getResourceName
     };
   }
 });
@@ -243,11 +81,263 @@ export default defineComponent({
 .resource-list__item,
 .companion-list__item,
 .crafted-items-list__item {
+  margin-bottom: $spacing-sm;
+  padding: $spacing-xs;
+  border-radius: $border-radius-md;
+  background-color: rgba($light-color, 0.6);
+}
+
+.player-dashboard {
+  width: 100%;
+  padding: $spacing-md;
+  background-color: rgba($light-color, 0.8);
+  border-radius: $border-radius-md;
+  box-shadow: 0 2px 4px rgba($dark-color, 0.2);
+  
+  .player-info {
+    margin-bottom: $spacing-md;
+    
+    h2 {
+      margin-top: 0;
+      margin-bottom: $spacing-sm;
+      color: $primary-color;
+    }
+  }
+  
+  .player-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-sm;
+    
+    .stat {
+      padding: $spacing-xs $spacing-sm;
+      background-color: rgba($dark-color, 0.1);
+      border-radius: $border-radius-md;
+      
+      .stat-label {
+        font-weight: bold;
+        margin-right: $spacing-xs;
+      }
+    }
+  }
+  
+  .resources-section,
+  .companions-section,
+  .crafted-items-section {
+    margin-top: $spacing-lg;
+    
+    h3 {
+      margin-top: 0;
+      margin-bottom: $spacing-sm;
+      border-bottom: 1px solid $border-color;
+      padding-bottom: $spacing-xs;
+    }
+  }
+  
+  .resource-list,
+  .companion-list,
+  .crafted-items-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+}
+
+.feed-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba($dark-color, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.feed-dialog {
+  background-color: $light-color;
+  padding: $spacing-md;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-md;
+  width: 400px;
+}
+
+.feed-dialog__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-sm;
+}
+
+.feed-dialog__body {
+  margin-bottom: $spacing-md;
+}
+
+.feed-dialog__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.close-btn {
+  font-size: $font-size-lg;
   cursor: pointer;
-  transition: transform $transition-fast;
+  margin-left: $spacing-sm;
+}
+
+.resource-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.resource-option {
+  padding: $spacing-sm;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  
+  &.selected {
+    background-color: $accent-color;
+    color: $light-color;
+  }
+}
+
+.companion-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: $spacing-md;
+}
+
+.companion-card {
+  background-color: $light-color;
+  border: 2px solid $border-color;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-md;
+  padding: $spacing-sm;
+  cursor: pointer;
+  transition: all $transition-normal;
+  position: relative;
+  min-height: 180px;
+  
+  // Card appearance
+  background-image: linear-gradient(to bottom, rgba(255,255,255,0.8) 0%, rgba(240,240,240,0.2) 100%);
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    right: 3px;
+    bottom: 3px;
+    border: 1px solid rgba(255,255,255,0.6);
+    border-radius: calc($border-radius-md - 3px);
+    pointer-events: none;
+  }
+  
+  &.selected {
+    transform: translateY(-5px);
+    border-color: $accent-color;
+    box-shadow: $shadow-md;
+  }
+  
+  &.wary {
+    border-color: $warning-color;
+    
+    &::after {
+      content: "Wary";
+      position: absolute;
+      top: $spacing-sm;
+      right: $spacing-sm;
+      background-color: $warning-color;
+      color: $light-color;
+      padding: $spacing-xs $spacing-sm;
+      border-radius: $border-radius-md;
+      font-size: $font-size-xs;
+      font-weight: bold;
+      transform: rotate(10deg);
+    }
+  }
   
   &:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: $shadow-md;
+  }
+  
+  &__header {
+    margin-bottom: $spacing-sm;
+    
+    .companion-name {
+      font-weight: bold;
+      font-size: $font-size-md;
+      margin-bottom: $spacing-xs;
+    }
+    
+    .companion-loyalty {
+      display: flex;
+      align-items: center;
+      margin-top: $spacing-xs;
+      
+      .loyalty-label {
+        margin-right: $spacing-xs;
+        font-size: $font-size-sm;
+      }
+      
+      .loyalty-meter {
+        flex-grow: 1;
+        height: 8px;
+        background-color: rgba($dark-color, 0.1);
+        border-radius: $border-radius-md;
+        overflow: hidden;
+        
+        .loyalty-bar {
+          height: 100%;
+          background-color: $primary-color;
+          transition: width $transition-normal;
+        }
+      }
+    }
+  }
+  
+  &__body {
+    font-size: $font-size-sm;
+    margin-bottom: $spacing-sm;
+    
+    .companion-ability {
+      margin-top: $spacing-sm;
+      padding-top: $spacing-sm;
+      border-top: 1px solid rgba($dark-color, 0.1);
+      
+      h5 {
+        margin: 0 0 $spacing-xs 0;
+        font-size: $font-size-sm;
+      }
+      
+      .ability-description {
+        font-size: $font-size-xs;
+        color: rgba($dark-color, 0.7);
+      }
+    }
+  }
+  
+  &__footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: $spacing-sm;
+    
+    button {
+      flex: 1;
+      margin: 0 $spacing-xs;
+      
+      &:first-child {
+        margin-left: 0;
+      }
+      
+      &:last-child {
+        margin-right: 0;
+      }
+    }
   }
 }
 </style>

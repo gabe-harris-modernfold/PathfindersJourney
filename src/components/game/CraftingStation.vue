@@ -1,5 +1,6 @@
 <template>
-  <div class="crafting-station">
+  <div class="crafting-station" style="border: 2px solid lightblue; position: relative;">
+    <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">CraftingStation</div>
     <h3 class="crafting-station__title">Crafting Station</h3>
     
     <div v-if="currentPhase !== GamePhase.CRAFTING" class="crafting-station__inactive">
@@ -92,10 +93,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, ref } from 'vue';
+import { defineComponent, computed, ref, onMounted } from 'vue';
 import { GamePhase } from '@/models/enums/phases';
 import { useCardStore, usePlayerStore, useGameStore } from '@/stores';
 import { CraftedItemCard } from '@/models/types/cards';
+import { CraftingService } from '@/services/craftingService';
 
 export default defineComponent({
   name: 'CraftingStation',
@@ -104,7 +106,17 @@ export default defineComponent({
     const playerStore = usePlayerStore();
     const gameStore = useGameStore();
     
+    const craftingService = ref<CraftingService | null>(null);
     const selectedRecipe = ref<CraftedItemCard | null>(null);
+    
+    onMounted(() => {
+      try {
+        craftingService.value = new CraftingService();
+        console.log('CraftingStation: CraftingService initialized successfully');
+      } catch (error) {
+        console.error('CraftingStation: Error initializing CraftingService:', error);
+      }
+    });
     
     const currentPhase = computed(() => {
       return gameStore.currentPhase;
@@ -127,7 +139,13 @@ export default defineComponent({
     const canCraftSelectedRecipe = computed(() => {
       if (!selectedRecipe.value) return false;
       
-      // Check if the player has all required resources
+      // Use craftingService if available, otherwise fallback to simple resource check
+      if (craftingService.value) {
+        const result = craftingService.value.canCraftItem(selectedRecipe.value.id);
+        return result.canCraft;
+      }
+      
+      // Fallback: Check if the player has all required resources
       return selectedRecipe.value.requiredResources.every(resourceId => 
         playerResources.value.includes(resourceId)
       );
@@ -149,10 +167,19 @@ export default defineComponent({
     const craftItem = () => {
       if (!selectedRecipe.value || !canCraftSelectedRecipe.value) return;
       
-      // Remove resources used for crafting
-      selectedRecipe.value.requiredResources.forEach(resourceId => {
-        playerStore.removeResource(resourceId);
-      });
+      if (craftingService.value) {
+        // Use the crafting service if available
+        const result = craftingService.value.craftItem(selectedRecipe.value.id);
+        if (!result) {
+          console.error('Failed to craft item');
+          return;
+        }
+      } else {
+        // Fallback: Remove resources used for crafting
+        selectedRecipe.value.requiredResources.forEach(resourceId => {
+          playerStore.removeResource(resourceId);
+        });
+      }
       
       // Add the crafted item to the player's inventory
       playerStore.addCraftedItem(selectedRecipe.value.id);

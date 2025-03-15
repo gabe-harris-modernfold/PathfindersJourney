@@ -31,13 +31,18 @@ $warning-color: #f39c12;  // Orange
 $danger-color: #e74c3c;  // Red
 $info-color: #3498db;  // Blue
 
+// Border Colors
+$border-color: rgba(0, 0, 0, 0.2);  // Light gray for borders
+
 // Typography
 $font-family-base: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 $font-family-display: 'Cinzel', serif;
 $font-family-handwritten: 'Tangerine', cursive;
 
 $font-size-base: 16px;
+$font-size-xs: 12px;
 $font-size-sm: 14px;
+$font-size-md: 16px;
 $font-size-lg: 18px;
 $font-size-xl: 24px;
 $font-size-xxl: 32px;

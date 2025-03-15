@@ -336,29 +336,30 @@ class CraftingService {
    */
   getRecipeSuggestions(): string[] {
     const cardStore = useCardStore();
-    const craftableItems = cardStore.getAllCraftedItemCards();
+    const craftableItems = cardStore.getAllCraftedItems();
     
     // Filter to items that can be crafted
     return craftableItems
-      .filter(item => this.canCraftItem(item.id).canCraft)
+      .filter(item => item.requiredResources && item.requiredResources.length > 0)
       .map(item => item.id);
   }
   
   /**
-   * Get recipe suggestions filtered by complexity tier
-   * @param maxComplexity Maximum complexity tier to include
-   * @returns Array of craftable item IDs matching the complexity requirement
+   * Get recipe suggestions filtered by complexity (number of required resources)
+   * @param maxComplexity The maximum number of resources required for a recipe
+   * @returns An array of item IDs for craftable items that meet the complexity requirement
    */
   getRecipeSuggestionsByComplexity(maxComplexity: number): string[] {
     const cardStore = useCardStore();
-    const craftableItems = cardStore.getAllCraftedItemCards();
+    const craftableItems = cardStore.getAllCraftedItems();
     
     // Filter to items that can be crafted and match complexity
     return craftableItems
-      .filter(item => {
-        const complexityValue = getComplexityValue(item.complexity);
-        return complexityValue <= maxComplexity && this.canCraftItem(item.id).canCraft;
-      })
+      .filter(item => 
+        item.requiredResources && 
+        item.requiredResources.length > 0 && 
+        item.requiredResources.length <= maxComplexity
+      )
       .map(item => item.id);
   }
   
@@ -407,22 +408,38 @@ class CraftingService {
    * Apply effects when an item is crafted
    * @param itemId The ID of the crafted item
    */
-  private applyCraftingEffects(itemId: string): void {
-    const cardStore = useCardStore();
+  applyItemEffect(itemId: string) {
     const playerStore = usePlayerStore();
+    const cardStore = useCardStore();
     
     const item = cardStore.getCraftedItemById(itemId);
-    if (!item || !item.ability || typeof item.ability !== 'object' || !item.ability.effect) {
+    if (!item || !item.ability || typeof item.ability !== 'object') {
       return;
     }
     
-    // Apply item ability effect
-    // This would typically be a function call
-    console.log(`Applying crafting effect for ${item.name}`);
+    // Apply the item's ability effects based on its type
+    // In a real implementation, this would include specific logic for each item
     
-    // If item has a drawback, apply it
-    if (item.drawback && typeof item.drawback === 'object' && item.drawback.effect) {
-      console.log(`Applying drawback for ${item.name}`);
+    if (item.ability.type === 'healing') {
+      // Example: Healing items restore health
+      playerStore.healHealth(2);
+    } else if (item.ability.type === 'protection') {
+      // Example: Protection items add temporary effects
+      const gameStore = useGameStore();
+      gameStore.addTempEffect(
+        `${itemId}_protection`,
+        `${item.name} Protection`,
+        item.ability.description || '',
+        2,
+        3
+      );
+    }
+    
+    // If the item has a drawback, apply it
+    if (item.drawback) {
+      // Example: Some drawbacks could reduce health or add threat
+      const gameStore = useGameStore();
+      gameStore.addThreatTokens(1);
     }
   }
   
@@ -455,4 +472,4 @@ class CraftingService {
   }
 }
 
-export const craftingService = new CraftingService();
+export { CraftingService };

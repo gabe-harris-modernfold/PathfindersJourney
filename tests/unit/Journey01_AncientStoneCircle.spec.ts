@@ -110,10 +110,12 @@ describe('Journey 1/15: Giant Beastfriend at Ancient Stone Circle', () => {
     
     // Mock a successful roll (7) despite difficult challenge
     const mockRoll = 7;
-    vi.spyOn(gameStore, 'rollD8').mockReturnValue(mockRoll);
+    // Use type assertion to tell TypeScript that rollD8 exists
+    vi.spyOn(gameStore as any, 'rollD8').mockReturnValue(mockRoll);
     
     // Resolve the challenge
-    const success = gameStore.resolveChallenge(mockRoll + characterBonus, totalDifficulty);
+    // Use type assertion to access resolveChallenge method
+    const success = (gameStore as any).resolveChallenge(mockRoll + characterBonus, totalDifficulty);
     
     // Should be a partial success (roll + bonus = difficulty - 1)
     expect(success).toBe('PARTIAL');
@@ -171,7 +173,8 @@ describe('Journey 1/15: Giant Beastfriend at Ancient Stone Circle', () => {
     
     // For the first landscape, we don't have enough resources to craft yet
     // but we'll gather resources for future crafting
-    const craftableItems = playerStore.getCraftableItems();
+    // Use type assertion to access getCraftableItems method
+    const craftableItems = (playerStore as any).getCraftableItems();
     expect(craftableItems.length).toBe(0); // No craftable items yet with current resources
     
     // Advance to next phase

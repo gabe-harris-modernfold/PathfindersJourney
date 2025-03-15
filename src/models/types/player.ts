@@ -38,6 +38,7 @@ export interface PlayerState {
   hasCraftedLegendaryItem: boolean;
   uniqueCraftedItemsCount: number;
   companionLoyalty: { [companionId: string]: CompanionStatus };
+  wisdom: number;
 }
 
 export interface PlayerActionResult {

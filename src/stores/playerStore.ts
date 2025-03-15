@@ -20,7 +20,8 @@ export const usePlayerStore = defineStore('player', {
     activeEffects: [],
     hasCraftedLegendaryItem: false,
     uniqueCraftedItemsCount: 0,
-    companionLoyalty: {}
+    companionLoyalty: {},
+    wisdom: 0,  // Add missing wisdom property
   }),
   
   getters: {
@@ -67,35 +68,39 @@ export const usePlayerStore = defineStore('player', {
   },
   
   actions: {
-    selectCharacter(characterId: string) {
+    setCharacter(characterId: string): void {
       const cardStore = useCardStore();
       const character = cardStore.getCharacterById(characterId);
       
       if (character) {
         this.characterId = characterId;
-        this.health = character.health;
-        this.maxHealth = character.health;
+        this.health = character.healthPoints;
+        this.maxHealth = character.healthPoints;
         this.resourceCapacity = character.resourceCapacity;
         
         // Add starting resources if any
-        if (character.startingResources && character.startingResources.length > 0) {
+        if (character.startingResources) {
           character.startingResources.forEach(resourceId => {
             this.addResource(resourceId);
           });
         }
         
-        // Add starting companion if any
+        // Add starting companions if any
         if (character.startingCompanion) {
-          this.animalCompanions = [character.startingCompanion];
-          this.companionLoyalty = {
-            [character.startingCompanion]: 1
-          };
+          this.addAnimalCompanion(character.startingCompanion);
         }
         
-        return true;
+        if (character.startingCompanions) {
+          character.startingCompanions.forEach(companionId => {
+            this.addAnimalCompanion(companionId);
+          });
+        }
       }
-      
-      return false;
+    },
+    
+    selectCharacter(characterId: string): boolean {
+      this.setCharacter(characterId);
+      return true;
     },
     
     addResource(resourceId: string) {
@@ -275,9 +280,15 @@ export const usePlayerStore = defineStore('player', {
       return false;
     },
     
-    gainExperience(amount: number) {
+    // Add experience points to the player
+    addExperience(amount: number): number {
       this.experience += amount;
       return this.experience;
+    },
+    
+    // For backward compatibility with tests
+    gainExperience(amount: number): number {
+      return this.addExperience(amount);
     },
     
     loseHealth(amount: number) {
@@ -454,6 +465,229 @@ export const usePlayerStore = defineStore('player', {
           }
         }
       });
-    }
+    },
+    
+    // Use a companion's special ability
+    useCompanionAbility(companionId: string): boolean {
+      // Check if the companion exists and is in a loyal state
+      if (!this.animalCompanions.includes(companionId)) {
+        return false;
+      }
+      
+      const status = this.companionLoyalty[companionId];
+      if (!status || status.state !== CompanionState.LOYAL) {
+        return false;
+      }
+      
+      // Get companion info from card store to perform ability
+      const cardStore = useCardStore();
+      const gameStore = useGameStore();
+      const companion = cardStore.getCompanionById(companionId);
+      
+      if (!companion) {
+        return false;
+      }
+      
+      gameStore.addToGameLog(`You use ${companion.name}'s special ability: ${companion.ability.description}`, true, 'companion');
+      
+      // Apply ability effects based on companion type
+      // (In a real implementation, this would have specific logic for each companion)
+      
+      return true;
+    },
+    
+    // Get the loyalty status of a companion
+    getCompanionStatus(companionId: string): CompanionState {
+      if (!this.animalCompanions.includes(companionId)) {
+        return CompanionState.LEAVING;
+      }
+      
+      const status = this.companionLoyalty[companionId];
+      if (!status) {
+        return CompanionState.LOYAL; // Default to loyal if no status is found
+      }
+      
+      return status.state;
+    },
+    
+    // Use a crafted item's effect
+    useCraftedItem(itemId: string): boolean {
+      // Check if the player has the item
+      if (!this.craftedItems.includes(itemId)) {
+        return false;
+      }
+      
+      // Get item details from card store
+      const cardStore = useCardStore();
+      const gameStore = useGameStore();
+      const item = cardStore.getCraftedItemById(itemId);
+      
+      if (!item) {
+        return false;
+      }
+      
+      gameStore.addToGameLog(`You use ${item.name}: ${item.description}`, true, 'crafting');
+      
+      // Apply item effects based on the type
+      // (In a real implementation, this would have specific logic for each item)
+      
+      // Track item usage - some items might be single-use
+      // For now, we'll keep items after use
+      
+      return true;
+    },
+    
+    // Use a companion to help with a challenge
+    useCompanionForChallenge(companionId: string): boolean {
+      // Check if the companion exists and is in a loyal state
+      if (!this.animalCompanions.includes(companionId)) {
+        return false;
+      }
+      
+      const status = this.companionLoyalty[companionId];
+      if (!status || status.state !== CompanionState.LOYAL) {
+        return false;
+      }
+      
+      // Get companion info from card store
+      const cardStore = useCardStore();
+      const gameStore = useGameStore();
+      const companion = cardStore.getCompanionById(companionId);
+      
+      if (!companion) {
+        return false;
+      }
+      
+      gameStore.addToGameLog(`${companion.name} helps you with the challenge.`, true, 'companion');
+      
+      // In a real implementation, this could reduce companion loyalty or have other effects
+      
+      return true;
+    },
+    
+    // Use a companion to keep watch during the night
+    useCompanionForNight(companionId: string): boolean {
+      // Check if the companion exists and is in a loyal state
+      if (!this.animalCompanions.includes(companionId)) {
+        return false;
+      }
+      
+      const status = this.companionLoyalty[companionId];
+      if (!status || status.state !== CompanionState.LOYAL) {
+        return false;
+      }
+      
+      // Get companion info from card store
+      const cardStore = useCardStore();
+      const gameStore = useGameStore();
+      const companion = cardStore.getCompanionById(companionId);
+      
+      if (!companion) {
+        return false;
+      }
+      
+      gameStore.addToGameLog(`${companion.name} keeps watch over you during the night.`, true, 'companion');
+      
+      // In a real implementation, this could reduce companion loyalty or have other effects
+      
+      return true;
+    },
+    
+    // Get a list of items that can be crafted with current resources
+    getCraftableItems(): string[] {
+      const cardStore = useCardStore();
+      const allCraftableItems = cardStore.getAllCraftedItems().map(item => item.id);
+      const craftableItems: string[] = [];
+      
+      for (const itemId of allCraftableItems) {
+        const item = cardStore.getCraftedItemById(itemId);
+        if (!item || !item.requiredResources) continue;
+        
+        // Check if we have all the required resources
+        let canCraft = true;
+        for (const resourceId of item.requiredResources) {
+          if (!this.resources.includes(resourceId)) {
+            canCraft = false;
+            break;
+          }
+        }
+        
+        if (canCraft) {
+          craftableItems.push(itemId);
+        }
+      }
+      
+      return craftableItems;
+    },
+
+    // Craft an item from resources
+    craftItem(itemId: string): boolean {
+      const cardStore = useCardStore();
+      const gameStore = useGameStore();
+      const item = cardStore.getCraftedItemById(itemId);
+      
+      if (!item || !item.requiredResources) {
+        return false;
+      }
+      
+      // Check if we have all the resources needed
+      for (const resourceId of item.requiredResources) {
+        if (!this.resources.includes(resourceId)) {
+          return false;
+        }
+      }
+      
+      // Remove resources used in crafting
+      for (const resourceId of item.requiredResources) {
+        this.removeResource(resourceId);
+      }
+      
+      // Add the crafted item
+      this.addCraftedItem(itemId);
+      
+      gameStore.addToGameLog(`You crafted ${item.name}.`, true, 'crafting');
+      
+      return true;
+    },
+
+    // Rest to recover health
+    rest(): boolean {
+      const gameStore = useGameStore();
+      
+      // Heal 1 health point when resting
+      this.healHealth(1);
+      
+      gameStore.addToGameLog(`You rest and recover. Health is now ${this.health}/${this.maxHealth}.`, true, 'system');
+      
+      return true;
+    },
+    
+    // Use a companion to help with gathering resources
+    useCompanionForGathering(companionId: string): boolean {
+      // Check if the companion exists and is in a loyal state
+      if (!this.animalCompanions.includes(companionId)) {
+        return false;
+      }
+      
+      const status = this.companionLoyalty[companionId];
+      if (!status || status.state !== CompanionState.LOYAL) {
+        return false;
+      }
+      
+      // Get companion info from card store
+      const cardStore = useCardStore();
+      const gameStore = useGameStore();
+      const companion = cardStore.getCompanionById(companionId);
+      
+      if (!companion) {
+        return false;
+      }
+      
+      gameStore.addToGameLog(`${companion.name} helps you gather resources.`, true, 'companion');
+      
+      // In a real implementation, this could reduce companion loyalty or have other effects
+      
+      return true;
+    },
   }
 });
