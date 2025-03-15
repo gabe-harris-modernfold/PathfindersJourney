@@ -364,7 +364,7 @@ export default defineComponent({
 .empty-state {
   text-align: center;
   padding: $spacing-lg;
-  color: $text-color-light;
+  color: $secondary-color;
   font-style: italic;
 }
 

@@ -1,23 +1,7 @@
 <template>
   <div class="game-board" style="border: 2px solid lightblue; position: relative;">
-    <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">GameBoardView</div>
-    <div class="game-header">
-      <PlayerDashboard />
-    </div>
-    
     <main class="game-content">
-      <!-- Season Section -->
-      <section class="season-section">
-        <div class="seasonal-wheel-container" style="margin-bottom: 0;">
-          <SeasonalWheel 
-            :season="gameStore.currentSeason" 
-            :quests="seasonalQuests"
-            v-if="gameStore.currentSeason"
-          />
-        </div>
-      </section>
-      
-      <!-- Cards Row Section - Directly below the wheel -->
+      <!-- Cards Row Section -->
       <section class="cards-row-section">
         <div class="cards-row">
           <div class="card-item">
@@ -47,6 +31,17 @@
               :cardType="CardType.CHARACTER"
             >
               <p>{{ currentCharacter.specialAbility }}</p>
+            </GameCard>
+          </div>
+          
+          <!-- Resource Cards -->
+          <div v-for="resourceId in playerStore.resources" :key="resourceId" class="card-item">
+            <GameCard
+              :title="getCardResourceName(resourceId)"
+              subtitle="Resource"
+              :cardType="CardType.RESOURCE"
+            >
+              <p>A valuable resource that can be used for crafting and survival.</p>
             </GameCard>
           </div>
         </div>
@@ -83,7 +78,7 @@
               <h4>Available Resources:</h4>
               <ul>
                 <li v-for="resourceId in currentLandscape.availableResources" :key="resourceId">
-                  {{ getResourceName(resourceId) }}
+                  {{ getCardResourceName(resourceId) }}
                 </li>
               </ul>
             </div>
@@ -93,7 +88,11 @@
       
       <!-- Phase-specific content -->
       <section class="phase-content" style="border: 2px solid lightblue; position: relative; margin-top: 0; padding: 5px; background-color: rgba(240, 230, 210, 0.3); border-radius: 8px; border: 1px solid #8c7851;">
-        <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">PhaseContent</div>
+        <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">GameBoardView</div>
+        <div style="position: absolute; top: -20px; left: 115px; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">PhaseContent</div>
+        <!-- Player Dashboard -->
+        <PlayerDashboard />
+        
         <!-- Phase navigation bar -->
         <div class="phase-navigation" style="border: 2px solid lightblue; position: relative; display: flex; justify-content: space-between; margin-bottom: 5px; padding-bottom: 2px; border-bottom: 1px solid #8c7851;">
           <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">PhaseNavigation</div>
@@ -110,7 +109,7 @@
         <div v-if="gameStore.currentPhase === GamePhase.SEASONAL_ASSESSMENT" style="display: flex; flex-direction: column; align-items: center; width: 100%; position: relative; border: 2px solid lightblue; padding: 5px;">
           <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">SeasonalAssessmentPhase</div>
           <button @click="gameStore.advancePhase()" style="margin-top: 0; font-weight: bold; padding: 5px 10px; font-size: 0.9rem; border-radius: 6px; cursor: pointer; background: linear-gradient(to bottom, #8c7851, #5a3e2b); border: 2px solid #f0c8a0; color: #fff; transition: all 0.3s ease;">
-            Continue to Next Phase
+            Go Forth
           </button>
         </div>
         
@@ -132,7 +131,7 @@
             <GameCard 
               :title="currentChallenge.name" 
               :subtitle="currentChallenge.description" 
-              :cardType="currentChallenge.type"
+              :cardType="CardType.CHARACTER"
             >
               <div>
                 <p><strong>Difficulty:</strong> {{ currentChallenge.difficulty }}</p>
@@ -195,12 +194,12 @@
           <h2 class="phase-title">THREAT LEVEL CHECK</h2>
           <div class="phase-description">
             <p>The threat level in the Celtic Realm is currently: <strong>{{ gameStore.threatTokens }}</strong></p>
-            <div class="threat-meter" style="width: 100%; height: 30px; background-color: rgba(250, 235, 215, 0.3); border-radius: 15px; margin: 10px 0; overflow: hidden; border: 1px solid #8c7851;">
-              <div class="threat-level" :style="{width: `${Math.min(gameStore.threatTokens * 10, 100)}%`, height: '100%', backgroundColor: gameStore.threatTokens > 7 ? '#993333' : gameStore.threatTokens > 4 ? '#cc9900' : '#669966', transition: 'width 0.5s ease'}"></div>
+            <div>
+              <!-- Threat meter removed -->
             </div>
           </div>
           <button @click="gameStore.advancePhase()" style="margin-top: 5px; font-weight: bold; padding: 5px 10px; font-size: 0.9rem; border-radius: 6px; cursor: pointer; background: linear-gradient(to bottom, #8c7851, #5a3e2b); border: 2px solid #f0c8a0; color: #fff; transition: all 0.3s ease;">
-            Continue to Next Phase
+            Remain Vigilant
           </button>
         </div>
         
@@ -208,6 +207,7 @@
         <div v-else-if="gameStore.currentPhase === GamePhase.RESOURCE_MANAGEMENT" style="position: relative; border: 2px solid lightblue; padding: 10px;">
           <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">ResourceManagementPhase</div>
           <h2 class="phase-title">RESOURCE MANAGEMENT</h2>
+          <ResourceManagement />
           <div class="resource-actions mt-4">
             <button 
               @click="gatherResources" 
@@ -292,8 +292,8 @@
             <p>The landscape presents challenges and opportunities. Overcome them to continue your journey.</p>
             <div class="landscape-challenges">
               <p>Current Landscape: <strong>{{ currentLandscape?.name || 'Unknown' }}</strong></p>
-              <p>Challenge Type: <strong>{{ currentLandscape?.challengeType || 'Unknown' }}</strong></p>
-              <p>Base Difficulty: <strong>{{ currentLandscape?.challengeLevel || 4 }}</strong></p>
+              <p>Challenge Type: <strong>{{ currentLandscape?.challenges?.[0]?.type || 'Unknown' }}</strong></p>
+              <p>Base Difficulty: <strong>{{ currentLandscape?.challenges?.[0]?.difficulty || 4 }}</strong></p>
               <p>Season Modifier: <strong>{{ getSeasonModifier() }}</strong></p>
               <p>Threat Modifier: <strong>+{{ Math.floor(gameStore.threatTokens / 3) }}</strong></p>
               <p>Total Difficulty: <strong>{{ getChallengeDifficulty() }}</strong></p>
@@ -334,7 +334,7 @@
         <!-- Seasonal Assessment Phase -->
         <div v-else-if="gameStore.currentPhase === GamePhase.SEASONAL_ASSESSMENT">
           <button @click="gameStore.advancePhase()" style="margin-top: 0; font-weight: bold; padding: 5px 10px; font-size: 0.9rem; border-radius: 6px; cursor: pointer; background: linear-gradient(to bottom, #8c7851, #5a3e2b); border: 2px solid #f0c8a0; color: #fff; transition: all 0.3s ease;">
-            Continue Journey
+            Go Forth
           </button>
         </div>
       </section>
@@ -352,9 +352,6 @@ import { useRouter } from 'vue-router';
 import { usePlayerStore } from '@/stores/playerStore';
 import { useGameStore } from '@/stores/gameStore';
 import { useCardStore } from '@/stores/cardStore';
-import { GamePhase } from '@/models/enums/phases';
-import { Season } from '@/models/enums/seasons';
-import { CardType, ChallengeType } from '@/models/enums/cardTypes';
 import CompanionManagement from '@/components/game/CompanionManagement.vue';
 import AnimalCompanionSelection from '@/components/game/AnimalCompanionSelection.vue';
 import PlayerDashboard from '@/components/game/PlayerDashboard.vue';
@@ -362,11 +359,13 @@ import CraftingStation from '@/components/game/CraftingStation.vue';
 import GameLog from '@/components/game/GameLog.vue';
 import GameCard from '@/components/core/GameCard.vue';
 import GameMap from '@/components/game/GameMap.vue';
-import SeasonalAssessmentCard from '@/components/game/SeasonalAssessmentCard.vue';
-import SeasonalWheel from '@/components/game/SeasonalWheel.vue';
+import ResourceManagement from '@/components/game/ResourceManagement.vue';
 import { CraftingService } from '@/services/craftingService';
 import type { ResourceCard } from '@/models/types/cards';
 import type { LandscapeCard } from '@/models/types/cards';
+import { GamePhase } from '@/models/enums/phases';
+import { Season } from '@/models/enums/seasons';
+import { CardType, ChallengeType } from '@/models/enums/cardTypes';
 
 // Interface for challenge result
 interface ChallengeResult {
@@ -688,7 +687,7 @@ const avoidChallenge = () => {
 const getChallengeDifficulty = () => {
   if (!currentLandscape.value) return 5;
   
-  const baseDifficulty = currentLandscape.value.challengeLevel || 5;
+  const baseDifficulty = currentLandscape.value.challenges?.[0]?.difficulty || 5;
   const threatModifier = Math.floor(gameStore.threatTokens / 3);
   
   // Calculate season modifier based on current season
@@ -865,14 +864,9 @@ const gatherResources = () => {
   gameStore.advancePhase();
 };
 
-const getResourceName = (resourceId: string) => {
-  const resource = cardStore.getResourceById(resourceId);
-  return resource ? resource.name : 'Unknown Resource';
-};
-
 const getRequiredResourcesText = (resources: string[]): string => {
   if (!resources || !resources.length) return 'None';
-  return resources.map(id => getResourceName(id)).join(', ');
+  return resources.map(id => cardStore.getResourceById(id)?.name || id).join(', ');
 };
 
 const canCraftItem = (itemId: string) => {
@@ -957,15 +951,22 @@ const advancePhase = () => {
   gameStore.advancePhase();
 };
 
-// End the journey and return to character selection
+// End the journey and return to home screen
 const endJourney = () => {
   console.log('Ending journey...');
   playerStore.resetPlayer();
   gameStore.resetGame();
-  router.push('/');
+  router.push('/menu');
 };
 
 // Helper functions
+const formatPhase = (phase: GamePhase): string => {
+  if (!phase) return 'Unknown';
+  
+  const phaseName = phase.toString().replace(/_/g, ' ').toLowerCase();
+  return phaseName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+};
+
 const formatSeason = (season: Season): string => {
   if (!season) return 'Unknown';
   
@@ -974,12 +975,9 @@ const formatSeason = (season: Season): string => {
   return seasonName.charAt(0) + seasonName.slice(1).toLowerCase();
 };
 
-const formatPhase = (phase: GamePhase): string => {
-  if (!phase) return 'Unknown';
-  
-  // Convert enum value to readable format (e.g., SEASONAL_ASSESSMENT to Seasonal Assessment)
-  const phaseName = phase.toString();
-  return phaseName.charAt(0) + phaseName.slice(1).toLowerCase().replace('_', ' ');
+const getCardResourceName = (resourceId: string): string => {
+  const resource = cardStore.getResourceById(resourceId);
+  return resource ? resource.name : 'Unknown Resource';
 };
 
 const triggerRandomEvent = () => {
@@ -992,6 +990,14 @@ const triggerOtherworldlyManifestation = () => {
   // Use the gameStore's otherworldly manifestation trigger
   gameStore.triggerOtherworldlyManifestation();
   gameStore.addToGameLog("The veil thins as otherworldly forces manifest!", true);
+};
+
+const advanceToChallenge = () => {
+  gameStore.advancePhase();
+};
+
+const advanceToNextPhase = () => {
+  gameStore.advancePhase();
 };
 </script>
 
