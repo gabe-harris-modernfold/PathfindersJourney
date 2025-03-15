@@ -1,5 +1,5 @@
 <template>
-  <div class="seasonal-assessment-card" style="position: relative;">
+  <div class="seasonal-assessment-card" style="position: relative; border: 2px solid #f0c8a0;">
     <div style="position: absolute; top: -20px; left: 0; background-color: #f0c8a0; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">SeasonalAssessmentCard</div>
     
     <GameCard

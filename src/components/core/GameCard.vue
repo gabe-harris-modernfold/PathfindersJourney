@@ -3,7 +3,7 @@
     class="game-card" 
     :class="cardTypeClass"
     @click="$emit('click', $event)"
-    style="position: relative; border-radius: 12px; aspect-ratio: 2.5/3.5; display: flex; flex-direction: column; box-shadow: 3px 3px 8px rgba(0,0,0,0.2); overflow: hidden; background: linear-gradient(to bottom, #f0e6d2 0%, #e6d7b9 100%); border: 2px solid #8c7851;"
+    style="position: relative; border-radius: 12px; aspect-ratio: 2.5/3.5; max-width: 160px; width: 100%; display: flex; flex-direction: column; box-shadow: 3px 3px 8px rgba(0,0,0,0.2); overflow: hidden; background: linear-gradient(to bottom, #f0e6d2 0%, #e6d7b9 100%); border: 2px solid #8c7851;"
   >
     <div style="position: absolute; top: -20px; left: 0; background-color: #f0e6d2; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">GameCard</div>
     
@@ -267,6 +267,10 @@ export default defineComponent({
   &.game-card--character {
     border: 2px solid #82632b;
     border-top-width: 4px;
+  }
+  
+  .game-card__body p {
+    font-size: 12pt;
   }
 }
 </style>

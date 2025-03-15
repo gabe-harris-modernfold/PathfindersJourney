@@ -8,26 +8,52 @@
     <main class="game-content">
       <!-- Season Section -->
       <section class="season-section">
-        <div class="season-card-container">
-          <GameCard
-            :title="formatSeason(gameStore.currentSeason)"
-            subtitle="Current Season"
-            :cardType="CardType.SEASON"
-          >
-            <p>The seasons affect which resources are available and the effectiveness of your animal companions.</p>
-          </GameCard>
-        </div>
-        
         <div class="seasonal-wheel-container">
           <SeasonalWheel 
             :season="gameStore.currentSeason" 
             :quests="seasonalQuests"
+            v-if="gameStore.currentSeason"
           />
+        </div>
+      </section>
+      
+      <!-- Cards Row Section - Directly below the wheel -->
+      <section class="cards-row-section">
+        <div class="cards-row">
+          <div class="card-item">
+            <GameCard
+              :title="formatSeason(gameStore.currentSeason)"
+              subtitle="Current Season"
+              :cardType="CardType.SEASON"
+            >
+              <p>The seasons affect which resources are available and the effectiveness of your animal companions.</p>
+            </GameCard>
+          </div>
+          
+          <div v-if="currentLandscape" class="card-item">
+            <GameCard
+              :title="currentLandscape.name"
+              subtitle="Current Landscape"
+              :cardType="CardType.LANDSCAPE"
+            >
+              <p>{{ currentLandscape.description }}</p>
+            </GameCard>
+          </div>
+          
+          <div v-if="currentCharacter" class="card-item">
+            <GameCard
+              :title="currentCharacter.name"
+              subtitle="Your Character"
+              :cardType="CardType.CHARACTER"
+            >
+              <p>{{ currentCharacter.specialAbility }}</p>
+            </GameCard>
+          </div>
         </div>
       </section>
 
       <!-- Character Section -->
-      <section class="character-section">
+      <section class="character-section" v-if="false">
         <div class="character-card-container">
           <GameCard
             :title="currentCharacter ? currentCharacter.name : 'No Character Selected'"
@@ -46,7 +72,7 @@
       </section>
       
       <!-- Landscape Section -->
-      <section class="landscape-section" v-if="currentLandscape">
+      <section class="landscape-section" v-if="false">
         <div class="landscape-card-container">
           <GameCard 
             :title="currentLandscape.name" 
@@ -66,9 +92,11 @@
       </section>
       
       <!-- Phase-specific content -->
-      <section class="phase-content" style="margin-top: 20px; padding: 15px; background-color: rgba(240, 230, 210, 0.3); border-radius: 8px; border: 1px solid #8c7851;">
+      <section class="phase-content" style="border: 2px solid lightblue; position: relative; margin-top: 20px; padding: 15px; background-color: rgba(240, 230, 210, 0.3); border-radius: 8px; border: 1px solid #8c7851;">
+        <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">PhaseContent</div>
         <!-- Phase navigation bar -->
-        <div class="phase-navigation" style="display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #8c7851;">
+        <div class="phase-navigation" style="border: 2px solid lightblue; position: relative; display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #8c7851;">
+          <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">PhaseNavigation</div>
           <div class="current-phase" style="font-weight: bold; color: #5a3e2b;">
             Current Phase: {{ formatPhase(gameStore.currentPhase) }}
           </div>
@@ -79,9 +107,16 @@
         </div>
         
         <!-- Seasonal Assessment Phase -->
-        <div v-if="gameStore.currentPhase === GamePhase.SEASONAL_ASSESSMENT" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+        <div v-if="gameStore.currentPhase === GamePhase.SEASONAL_ASSESSMENT" style="display: flex; flex-direction: column; align-items: center; width: 100%; position: relative; border: 2px solid lightblue;">
+          <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">SeasonalAssessmentPhase</div>
           <h2 class="phase-title" style="color: #5a3e2b; margin-bottom: 15px; text-align: center; width: 100%;">SEASONAL ASSESSMENT</h2>
-          <SeasonalAssessmentCard />
+          <div v-if="false">
+            <SeasonalAssessmentCard />
+          </div>
+          <div class="seasonal-assessment-content">
+            <p>The current season is <strong>{{ formatSeason(gameStore.currentSeason) }}</strong>.</p>
+            <p>Assess how the season affects your journey and resources.</p>
+          </div>
           <button @click="gameStore.advancePhase()" style="margin-top: 20px; font-weight: bold; padding: 10px 20px; font-size: 1rem; border-radius: 6px; cursor: pointer; background: linear-gradient(to bottom, #8c7851, #5a3e2b); border: 2px solid #f0c8a0; color: #fff; transition: all 0.3s ease;">
             Continue to Next Phase
           </button>
@@ -163,7 +198,8 @@
         </div>
         
         <!-- Threat Level Check Phase -->
-        <div v-else-if="gameStore.currentPhase === GamePhase.THREAT_LEVEL_CHECK">
+        <div v-else-if="gameStore.currentPhase === GamePhase.THREAT_LEVEL_CHECK" style="position: relative; border: 2px solid lightblue; padding: 10px;">
+          <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">ThreatLevelCheckPhase</div>
           <h2 class="phase-title">THREAT LEVEL CHECK</h2>
           <div class="phase-description">
             <p>The threat level in the Celtic Realm is currently: <strong>{{ gameStore.threatTokens }}</strong></p>
@@ -177,9 +213,9 @@
         </div>
         
         <!-- Resource Management Phase -->
-        <div v-else-if="gameStore.currentPhase === GamePhase.RESOURCE_MANAGEMENT">
+        <div v-else-if="gameStore.currentPhase === GamePhase.RESOURCE_MANAGEMENT" style="position: relative; border: 2px solid lightblue; padding: 10px;">
+          <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">ResourceManagementPhase</div>
           <h2 class="phase-title">RESOURCE MANAGEMENT</h2>
-          
           <div class="resource-actions mt-4">
             <button 
               @click="gatherResources" 
@@ -202,16 +238,10 @@
           </div>
         </div>
         
-        <!-- Crafting Phase -->
-        <div v-else-if="gameStore.currentPhase === GamePhase.CRAFTING">
-          <h2 data-testid="craftingHeader" data-phase="crafting" class="phase-title">CRAFTING</h2>
-          <CraftingStation />
-        </div>
-        
         <!-- Animal Companion Phase -->
-        <div v-else-if="gameStore.currentPhase === GamePhase.ANIMAL_COMPANION">
+        <div v-else-if="gameStore.currentPhase === GamePhase.ANIMAL_COMPANION" style="position: relative; border: 2px solid lightblue; padding: 10px;">
+          <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">AnimalCompanionPhase</div>
           <h2 class="phase-title">ANIMAL COMPANION</h2>
-          
           <div v-if="playerStore.animalCompanions.length === 0">
             <AnimalCompanionSelection
               @select-companion="selectCompanion"
@@ -241,12 +271,17 @@
           </div>
         </div>
         
+        <!-- Crafting Phase -->
+        <div v-else-if="gameStore.currentPhase === GamePhase.CRAFTING" style="position: relative; border: 2px solid lightblue; padding: 10px;">
+          <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">CraftingPhase</div>
+          <h2 class="phase-title">CRAFTING</h2>
+          <CraftingStation />
+        </div>
+        
         <!-- Journey Phase -->
         <div v-else-if="gameStore.currentPhase === GamePhase.JOURNEY">
           <h2 class="phase-title">JOURNEY</h2>
-          
           <GameMap />
-          
           <div class="journey-actions mt-4">
             <button 
               @click="gameStore.advanceJourney(1)"
@@ -258,22 +293,43 @@
         </div>
         
         <!-- Landscape Challenge Phase -->
-        <div v-else-if="gameStore.currentPhase === GamePhase.LANDSCAPE_CHALLENGE">
+        <div v-else-if="gameStore.currentPhase === GamePhase.LANDSCAPE_CHALLENGE" style="position: relative; border: 2px solid lightblue; padding: 10px;">
+          <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">LandscapeChallengePhase</div>
           <h2 class="phase-title">LANDSCAPE CHALLENGE</h2>
           <div class="phase-description">
             <p>The landscape presents challenges and opportunities. Overcome them to continue your journey.</p>
             <div class="landscape-challenges">
               <p>Current Landscape: <strong>{{ currentLandscape?.name || 'Unknown' }}</strong></p>
-              <p>Challenge Level: <strong>{{ currentLandscape?.challengeLevel || 'Unknown' }}</strong></p>
+              <p>Challenge Type: <strong>{{ currentLandscape?.challengeType || 'Unknown' }}</strong></p>
+              <p>Base Difficulty: <strong>{{ currentLandscape?.challengeLevel || 4 }}</strong></p>
+              <p>Season Modifier: <strong>{{ getSeasonModifier() }}</strong></p>
+              <p>Threat Modifier: <strong>+{{ Math.floor(gameStore.threatTokens / 3) }}</strong></p>
+              <p>Total Difficulty: <strong>{{ getChallengeDifficulty() }}</strong></p>
+            </div>
+            
+            <div class="player-bonus" style="margin-top: 15px;">
+              <p>Your Bonus:</p>
+              <p>Character Ability: <strong>{{ playerStore.selectedCharacter?.abilityModifier || 0 }}</strong></p>
+              <p>Item Bonuses: <strong>{{ getItemBonuses() }}</strong></p>
+              <p>Blessing Tokens: <strong>+{{ gameStore.blessingTokens }}</strong></p>
+              <p>Total Bonus: <strong>{{ getTotalBonus() }}</strong></p>
+            </div>
+            
+            <div class="challenge-actions" style="margin-top: 20px; display: flex; gap: 10px;">
+              <button @click="resolveChallengeLandscape()" style="font-weight: bold; padding: 10px 20px; font-size: 1rem; border-radius: 6px; cursor: pointer; background: linear-gradient(to bottom, #8c7851, #5a3e2b); border: 2px solid #f0c8a0; color: #fff; transition: all 0.3s ease;">
+                Roll D8 and Resolve Challenge
+              </button>
+              
+              <button @click="avoidChallengeLandscape()" style="font-weight: bold; padding: 10px 20px; font-size: 1rem; border-radius: 6px; cursor: pointer; background: linear-gradient(to bottom, #8c7851, #5a3e2b); border: 2px solid #8c7851; color: #fff; transition: all 0.3s ease;">
+                Avoid Challenge (Cost: 2 Resources)
+              </button>
             </div>
           </div>
-          <button @click="gameStore.advancePhase()" style="margin-top: 20px; font-weight: bold; padding: 10px 20px; font-size: 1rem; border-radius: 6px; cursor: pointer; background: linear-gradient(to bottom, #8c7851, #5a3e2b); border: 2px solid #f0c8a0; color: #fff; transition: all 0.3s ease;">
-            Continue to Next Phase
-          </button>
         </div>
         
         <!-- Challenge Resolution Phase -->
-        <div v-else-if="gameStore.currentPhase === GamePhase.CHALLENGE_RESOLUTION">
+        <div v-else-if="gameStore.currentPhase === GamePhase.CHALLENGE_RESOLUTION" style="position: relative; border: 2px solid lightblue; padding: 10px;">
+          <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">ChallengeResolutionPhase</div>
           <h2 class="phase-title">CHALLENGE RESOLUTION</h2>
           <div class="phase-description">
             <p>Resolve the current challenge with your skills and resources.</p>
@@ -650,19 +706,147 @@ const avoidChallenge = () => {
 };
 
 const getChallengeDifficulty = () => {
-  if (!currentChallenge.value) return '?';
+  if (!currentLandscape.value) return 5;
   
-  const baseDifficulty = currentChallenge.value.difficulty || 5;
-  const threatModifier = gameStore.threatLevel;
-  const seasonModifier = 0; // TODO: Add seasonal modifiers
-  const totalDifficulty = baseDifficulty + threatModifier + seasonModifier;
+  const baseDifficulty = currentLandscape.value.challengeLevel || 5;
+  const threatModifier = Math.floor(gameStore.threatTokens / 3);
   
-  return `${totalDifficulty} (Base: ${baseDifficulty} + Threat: ${threatModifier} + Season: ${seasonModifier})`;
+  // Calculate season modifier based on current season
+  const seasonModifiers = {
+    [Season.SAMHAIN]: 0,
+    [Season.WINTERS_DEPTH]: -2,
+    [Season.IMBOLC]: -1,
+    [Season.BELTANE]: 1,
+    [Season.LUGHNASADH]: 2
+  };
+  const seasonModifier = seasonModifiers[gameStore.currentSeason] || 0;
+  
+  return baseDifficulty + threatModifier + seasonModifier;
+};
+
+const getItemBonuses = () => {
+  // Safely calculate item bonuses
+  return playerStore.equippedItems?.reduce((total, item) => {
+    return total + (item?.challengeBonus || 0);
+  }, 0) || 0;
+};
+
+const getTotalBonus = () => {
+  // Character ability modifier
+  const characterBonus = playerStore.selectedCharacter?.abilityModifier || 0;
+  
+  // Item bonuses from equipped items
+  const itemBonus = getItemBonuses();
+  
+  // Blessing tokens
+  const blessingBonus = gameStore.blessingTokens;
+  
+  return characterBonus + itemBonus + blessingBonus;
+};
+
+const getSeasonModifier = () => {
+  const seasonModifiers = {
+    [Season.SAMHAIN]: 0,
+    [Season.WINTERS_DEPTH]: -2,
+    [Season.IMBOLC]: -1,
+    [Season.BELTANE]: 1,
+    [Season.LUGHNASADH]: 2
+  };
+  
+  return seasonModifiers[gameStore.currentSeason] || 0;
+};
+
+const resolveChallengeLandscape = () => {
+  try {
+    // Roll the eight-sided die
+    const diceRoll = Math.floor(Math.random() * 8) + 1;
+    gameStore.addToGameLog(`You rolled a ${diceRoll} on a D8.`, true);
+    
+    const playerBonus = getTotalBonus();
+    const totalRoll = diceRoll + playerBonus;
+    const difficulty = getChallengeDifficulty();
+    
+    gameStore.addToGameLog(`You rolled a ${diceRoll} + ${playerBonus} bonus = ${totalRoll} total against difficulty ${difficulty}.`, true);
+    
+    // Natural 8 always succeeds
+    const isNaturalSuccess = diceRoll === 8;
+    const isSuccess = isNaturalSuccess || totalRoll >= difficulty;
+    
+    if (isNaturalSuccess) {
+      gameStore.addToGameLog("A natural 8! Automatic success regardless of difficulty!", true);
+    }
+    
+    // Create and store the challenge result
+    lastChallengeResult.value = {
+      success: isSuccess,
+      message: isSuccess ? 
+        "You successfully overcome the landscape challenge!" : 
+        "You failed to overcome the landscape challenge...",
+      damage: isSuccess ? 0 : Math.max(1, Math.floor((difficulty - totalRoll) / 2))
+    };
+    
+    // Apply damage if failed
+    if (!isSuccess) {
+      playerStore.loseHealth(lastChallengeResult.value.damage);
+      gameStore.addToGameLog(`You lost ${lastChallengeResult.value.damage} health from failing the challenge.`, true);
+    }
+    
+    // Move to challenge resolution phase
+    gameStore.setPhase(GamePhase.CHALLENGE_RESOLUTION);
+  } catch (error) {
+    console.error("Error in resolveChallengeLandscape:", error);
+    gameStore.addToGameLog("An error occurred while resolving the challenge.", true, 'error');
+  }
+};
+
+const avoidChallengeLandscape = () => {
+  // Check if player has at least 2 resources
+  const totalResources = playerStore.resources.length;
+  if (totalResources < 2) {
+    gameStore.addToGameLog("You need at least 2 resources to avoid this challenge!", true);
+    return;
+  }
+  
+  // Spend 2 random resources
+  const spentResources = [];
+  for (let i = 0; i < 2; i++) {
+    if (playerStore.resources.length > 0) {
+      const index = Math.floor(Math.random() * playerStore.resources.length);
+      const resource = playerStore.resources.splice(index, 1)[0];
+      spentResources.push(resource);
+    }
+  }
+  
+  // Log the avoidance
+  const resourceNames = spentResources.map(r => r.name || r.id).join(" and ");
+  gameStore.addToGameLog(`You spent ${resourceNames} to avoid the challenge.`, true);
+  
+  // Advance to resource management
+  gameStore.setPhase(GamePhase.RESOURCE_MANAGEMENT);
 };
 
 const handleThreatCheck = () => {
-  // Use the threat level check handler in gameStore
-  gameStore.handleThreatLevelCheck();
+  // Log the threat level evaluation
+  gameStore.addToGameLog(`Threat level assessed at ${gameStore.threatTokens} tokens.`, true);
+
+  // Calculate challenge difficulty modifier
+  const threatModifier = Math.floor(gameStore.threatTokens / 3);
+  if (threatModifier > 0) {
+    gameStore.addToGameLog(`Challenge difficulty increased by +${threatModifier} due to threat level.`, false);
+  }
+
+  // Check for random event trigger
+  if (gameStore.threatTokens >= 5) {
+    gameStore.addToGameLog(`The elevated threat level brings uncertainty. Be prepared for a random event.`, false);
+  }
+
+  // Check for otherworldly manifestation
+  if (gameStore.threatTokens >= 10) {
+    gameStore.addToGameLog(`The veil between worlds grows thin! An Otherworldly Manifestation is imminent!`, true);
+  }
+
+  // Advance to the next phase
+  gameStore.advancePhase();
 };
 
 const gatherResources = () => {
@@ -817,8 +1001,72 @@ const formatPhase = (phase: GamePhase): string => {
   const phaseName = phase.toString();
   return phaseName.charAt(0) + phaseName.slice(1).toLowerCase().replace('_', ' ');
 };
+
+const triggerRandomEvent = () => {
+  // Use the gameStore's random event trigger
+  gameStore.triggerRandomEvent();
+  gameStore.addToGameLog("A random event has been drawn due to the high threat level.", true);
+};
+
+const triggerOtherworldlyManifestation = () => {
+  // Use the gameStore's otherworldly manifestation trigger
+  gameStore.triggerOtherworldlyManifestation();
+  gameStore.addToGameLog("The veil thins as otherworldly forces manifest!", true);
+};
 </script>
 
 <style lang="scss" scoped>
-/* ... */
+.game-board {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f4e9;
+}
+
+.game-header {
+  padding: 1rem;
+  background-color: rgba(92, 61, 46, 0.1);
+}
+
+.game-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.season-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+  width: 100%;
+  
+  .seasonal-wheel-container {
+    display: flex;
+    justify-content: center;
+  }
+}
+
+.cards-row-section {
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+.cards-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.5rem;
+  width: 100%;
+  
+  .card-item {
+    flex: 0 0 auto;
+    max-width: calc(25% - 1rem); /* Ensures 4 cards per row with gap consideration */
+    min-width: 160px; /* Minimum width to match our card size */
+    margin-bottom: 1rem;
+  }
+}
 </style>

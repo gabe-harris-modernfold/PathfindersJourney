@@ -2,7 +2,6 @@
   <div class="companion-management">
     <div class="companion-management__header">
       <h2 class="companion-management__title">Animal Companions</h2>
-      <button class="btn btn--icon" @click="emitClose">&times;</button>
     </div>
     
     <div class="companion-management__content">

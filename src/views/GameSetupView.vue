@@ -190,11 +190,11 @@ loadCharacters();
     background-color: rgba(255, 255, 255, 0.8);
     border: 2px solid #d9c5a0;
     border-radius: 10px;
-    padding: 1rem;
+    padding: 0.4rem;
     transition: all 0.3s ease;
     cursor: pointer;
-    width: 250px; /* Standard playing card width ratio */
-    height: 350px; /* Standard playing card height ratio */
+    width: 160px; /* Reduced to standard playing card width */
+    height: 224px; /* Reduced to maintain 2.5/3.5 aspect ratio */
     display: flex;
     flex-direction: column;
     position: relative;
@@ -212,7 +212,7 @@ loadCharacters();
     }
     
     h3 {
-      font-size: 1.3rem;
+      font-size: 0.9rem;
       color: #5c3d2e;
       margin-bottom: 0.25rem;
       text-align: center;
@@ -221,22 +221,23 @@ loadCharacters();
     p {
       color: #6a5d4d;
       margin-bottom: 0.5rem;
-      line-height: 1.3;
-      font-size: 0.9rem;
+      line-height: 1.2;
+      font-size: 0.65rem;
       flex-grow: 1;
       overflow-y: auto;
+      max-height: 45px;
     }
     
     .character-stats {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.25rem;
       
       .stat {
         background-color: rgba(92, 61, 46, 0.1);
-        padding: 0.3rem;
+        padding: 0.2rem;
         border-radius: 5px;
-        font-size: 0.85rem;
+        font-size: 0.65rem;
         
         .stat-label {
           font-weight: bold;
@@ -246,8 +247,8 @@ loadCharacters();
     }
     
     .character-abilities {
-      margin-bottom: 0.75rem;
-      font-size: 0.85rem;
+      margin-bottom: 0.25rem;
+      font-size: 0.65rem;
       color: #6a5d4d;
       
       strong {
@@ -259,12 +260,15 @@ loadCharacters();
       background-color: #5c3d2e;
       color: white;
       border: none;
-      padding: 0.5rem 1rem;
+      padding: 0.25rem 0.5rem;
       border-radius: 5px;
       cursor: pointer;
       transition: background-color 0.3s;
       width: 100%;
       margin-top: auto;
+      font-size: 0.7rem;
+      margin-bottom: 0.25rem;
+      display: block;
       
       &:hover {
         background-color: darken(#5c3d2e, 10%);
