@@ -8,7 +8,7 @@
     <main class="game-content">
       <!-- Season Section -->
       <section class="season-section">
-        <div class="seasonal-wheel-container">
+        <div class="seasonal-wheel-container" style="margin-bottom: 0;">
           <SeasonalWheel 
             :season="gameStore.currentSeason" 
             :quests="seasonalQuests"
@@ -92,10 +92,10 @@
       </section>
       
       <!-- Phase-specific content -->
-      <section class="phase-content" style="border: 2px solid lightblue; position: relative; margin-top: 20px; padding: 15px; background-color: rgba(240, 230, 210, 0.3); border-radius: 8px; border: 1px solid #8c7851;">
+      <section class="phase-content" style="border: 2px solid lightblue; position: relative; margin-top: 0; padding: 5px; background-color: rgba(240, 230, 210, 0.3); border-radius: 8px; border: 1px solid #8c7851;">
         <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">PhaseContent</div>
         <!-- Phase navigation bar -->
-        <div class="phase-navigation" style="border: 2px solid lightblue; position: relative; display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #8c7851;">
+        <div class="phase-navigation" style="border: 2px solid lightblue; position: relative; display: flex; justify-content: space-between; margin-bottom: 5px; padding-bottom: 2px; border-bottom: 1px solid #8c7851;">
           <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">PhaseNavigation</div>
           <div class="current-phase" style="font-weight: bold; color: #5a3e2b;">
             Current Phase: {{ formatPhase(gameStore.currentPhase) }}
@@ -107,17 +107,9 @@
         </div>
         
         <!-- Seasonal Assessment Phase -->
-        <div v-if="gameStore.currentPhase === GamePhase.SEASONAL_ASSESSMENT" style="display: flex; flex-direction: column; align-items: center; width: 100%; position: relative; border: 2px solid lightblue;">
+        <div v-if="gameStore.currentPhase === GamePhase.SEASONAL_ASSESSMENT" style="display: flex; flex-direction: column; align-items: center; width: 100%; position: relative; border: 2px solid lightblue; padding: 5px;">
           <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">SeasonalAssessmentPhase</div>
-          <h2 class="phase-title" style="color: #5a3e2b; margin-bottom: 15px; text-align: center; width: 100%;">SEASONAL ASSESSMENT</h2>
-          <div v-if="false">
-            <SeasonalAssessmentCard />
-          </div>
-          <div class="seasonal-assessment-content">
-            <p>The current season is <strong>{{ formatSeason(gameStore.currentSeason) }}</strong>.</p>
-            <p>Assess how the season affects your journey and resources.</p>
-          </div>
-          <button @click="gameStore.advancePhase()" style="margin-top: 20px; font-weight: bold; padding: 10px 20px; font-size: 1rem; border-radius: 6px; cursor: pointer; background: linear-gradient(to bottom, #8c7851, #5a3e2b); border: 2px solid #f0c8a0; color: #fff; transition: all 0.3s ease;">
+          <button @click="gameStore.advancePhase()" style="margin-top: 0; font-weight: bold; padding: 5px 10px; font-size: 0.9rem; border-radius: 6px; cursor: pointer; background: linear-gradient(to bottom, #8c7851, #5a3e2b); border: 2px solid #f0c8a0; color: #fff; transition: all 0.3s ease;">
             Continue to Next Phase
           </button>
         </div>
@@ -128,7 +120,7 @@
           <div class="phase-description">
             <p>You are exploring {{ currentLandscape?.name }}. What will you discover?</p>
           </div>
-          <button @click="gameStore.advancePhase()" style="margin-top: 20px; font-weight: bold; padding: 10px 20px; font-size: 1rem; border-radius: 6px; cursor: pointer; background: linear-gradient(to bottom, #8c7851, #5a3e2b); border: 2px solid #f0c8a0; color: #fff; transition: all 0.3s ease;">
+          <button @click="gameStore.advancePhase()" style="margin-top: 5px; font-weight: bold; padding: 5px 10px; font-size: 0.9rem; border-radius: 6px; cursor: pointer; background: linear-gradient(to bottom, #8c7851, #5a3e2b); border: 2px solid #f0c8a0; color: #fff; transition: all 0.3s ease;">
             Continue to Next Phase
           </button>
         </div>
@@ -207,7 +199,7 @@
               <div class="threat-level" :style="{width: `${Math.min(gameStore.threatTokens * 10, 100)}%`, height: '100%', backgroundColor: gameStore.threatTokens > 7 ? '#993333' : gameStore.threatTokens > 4 ? '#cc9900' : '#669966', transition: 'width 0.5s ease'}"></div>
             </div>
           </div>
-          <button @click="gameStore.advancePhase()" style="margin-top: 20px; font-weight: bold; padding: 10px 20px; font-size: 1rem; border-radius: 6px; cursor: pointer; background: linear-gradient(to bottom, #8c7851, #5a3e2b); border: 2px solid #f0c8a0; color: #fff; transition: all 0.3s ease;">
+          <button @click="gameStore.advancePhase()" style="margin-top: 5px; font-weight: bold; padding: 5px 10px; font-size: 0.9rem; border-radius: 6px; cursor: pointer; background: linear-gradient(to bottom, #8c7851, #5a3e2b); border: 2px solid #f0c8a0; color: #fff; transition: all 0.3s ease;">
             Continue to Next Phase
           </button>
         </div>
@@ -316,11 +308,11 @@
             </div>
             
             <div class="challenge-actions" style="margin-top: 20px; display: flex; gap: 10px;">
-              <button @click="resolveChallengeLandscape()" style="font-weight: bold; padding: 10px 20px; font-size: 1rem; border-radius: 6px; cursor: pointer; background: linear-gradient(to bottom, #8c7851, #5a3e2b); border: 2px solid #f0c8a0; color: #fff; transition: all 0.3s ease;">
+              <button @click="resolveChallengeLandscape()" style="font-weight: bold; padding: 5px 10px; font-size: 0.9rem; border-radius: 6px; cursor: pointer; background: linear-gradient(to bottom, #8c7851, #5a3e2b); border: 2px solid #f0c8a0; color: #fff; transition: all 0.3s ease;">
                 Roll D8 and Resolve Challenge
               </button>
               
-              <button @click="avoidChallengeLandscape()" style="font-weight: bold; padding: 10px 20px; font-size: 1rem; border-radius: 6px; cursor: pointer; background: linear-gradient(to bottom, #8c7851, #5a3e2b); border: 2px solid #8c7851; color: #fff; transition: all 0.3s ease;">
+              <button @click="avoidChallengeLandscape()" style="font-weight: bold; padding: 5px 10px; font-size: 0.9rem; border-radius: 6px; cursor: pointer; background: linear-gradient(to bottom, #8c7851, #5a3e2b); border: 2px solid #8c7851; color: #fff; transition: all 0.3s ease;">
                 Avoid Challenge (Cost: 2 Resources)
               </button>
             </div>
@@ -334,28 +326,16 @@
           <div class="phase-description">
             <p>Resolve the current challenge with your skills and resources.</p>
           </div>
-          <button @click="gameStore.advancePhase()" style="margin-top: 20px; font-weight: bold; padding: 10px 20px; font-size: 1rem; border-radius: 6px; cursor: pointer; background: linear-gradient(to bottom, #8c7851, #5a3e2b); border: 2px solid #f0c8a0; color: #fff; transition: all 0.3s ease;">
+          <button @click="gameStore.advancePhase()" style="margin-top: 5px; font-weight: bold; padding: 5px 10px; font-size: 0.9rem; border-radius: 6px; cursor: pointer; background: linear-gradient(to bottom, #8c7851, #5a3e2b); border: 2px solid #f0c8a0; color: #fff; transition: all 0.3s ease;">
             Continue to Next Phase
           </button>
         </div>
         
         <!-- Seasonal Assessment Phase -->
         <div v-else-if="gameStore.currentPhase === GamePhase.SEASONAL_ASSESSMENT">
-          <h2 class="phase-title">SEASONAL ASSESSMENT</h2>
-          
-          <div class="season-assessment-content">
-            <p>The current season is <strong>{{ formatSeason(gameStore.currentSeason) }}</strong>.</p>
-            <p>Assess how the season affects your journey and resources.</p>
-          </div>
-          
-          <div class="season-actions mt-4">
-            <button 
-              @click="gameStore.advancePhase()" 
-              class="btn btn--primary"
-            >
-              Continue Journey
-            </button>
-          </div>
+          <button @click="gameStore.advancePhase()" style="margin-top: 0; font-weight: bold; padding: 5px 10px; font-size: 0.9rem; border-radius: 6px; cursor: pointer; background: linear-gradient(to bottom, #8c7851, #5a3e2b); border: 2px solid #f0c8a0; color: #fff; transition: all 0.3s ease;">
+            Continue Journey
+          </button>
         </div>
       </section>
     </main>
@@ -1024,33 +1004,34 @@ const triggerOtherworldlyManifestation = () => {
 }
 
 .game-header {
-  padding: 1rem;
+  padding: 0.5rem;
   background-color: rgba(92, 61, 46, 0.1);
 }
 
 .game-content {
   flex-grow: 1;
   overflow-y: auto;
-  padding: 1rem;
+  padding: 0.25rem;
   display: flex;
   flex-direction: column;
 }
 
-.season-section {
+.season-section, 
+.cards-row-section {
+  margin-bottom: 0.25rem;
+  width: 100%;
   display: flex;
   justify-content: center;
-  margin-bottom: 1rem;
-  width: 100%;
+  align-items: center;
   
-  .seasonal-wheel-container {
-    display: flex;
-    justify-content: center;
+  h2, h3 {
+    font-size: 28px; 
   }
-}
-
-.cards-row-section {
-  width: 100%;
-  margin-bottom: 2rem;
+  
+  p {
+    font-size: 18px;
+    line-height: 1.6;
+  }
 }
 
 .cards-row {
@@ -1058,15 +1039,19 @@ const triggerOtherworldlyManifestation = () => {
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 1rem;
-  padding: 0.5rem;
+  gap: 0.8rem;
+  padding: 0.25rem;
   width: 100%;
   
   .card-item {
     flex: 0 0 auto;
-    max-width: calc(25% - 1rem); /* Ensures 4 cards per row with gap consideration */
-    min-width: 160px; /* Minimum width to match our card size */
-    margin-bottom: 1rem;
+    max-width: calc(31% - 0.8rem); 
+    min-width: 200px; 
+    margin-bottom: 0.8rem;
   }
+}
+
+.seasonal-wheel-container {
+  margin-bottom: 0;
 }
 </style>

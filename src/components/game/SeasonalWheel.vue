@@ -5,57 +5,32 @@
         class="seasonal-wheel__dial" 
         :style="`transform: rotate(${rotationDegrees}deg)`"
       >
+        <!-- Night sky with stars background -->
+        <div class="night-sky">
+          <div class="star-field">
+            <div v-for="n in 100" :key="n" class="twinkling-star" :style="`top: ${Math.random() * 100}%; left: ${Math.random() * 100}%; animation-delay: ${Math.random() * 5}s; animation-duration: ${3 + Math.random() * 7}s;`"></div>
+          </div>
+        </div>
+        
         <!-- Season sections - 5 sections (72° each) -->
         <div class="seasonal-wheel__section" data-season="samhain">
-          <div class="seasonal-wheel__label">Samhain</div>
-          <div class="seasonal-wheel__quest" :class="{ 'completed': isQuestCompleted('SAMHAIN') }">
-            <span>Quest</span>
-          </div>
+          <div class="moon-phase new-moon"></div>
         </div>
         <div class="seasonal-wheel__section" data-season="winters_depth">
-          <div class="seasonal-wheel__label">Winter's Depth</div>
-          <div class="seasonal-wheel__quest" :class="{ 'completed': isQuestCompleted('WINTERS_DEPTH') }">
-            <span>Quest</span>
-          </div>
+          <div class="moon-phase crescent-moon"></div>
         </div>
         <div class="seasonal-wheel__section" data-season="imbolc">
-          <div class="seasonal-wheel__label">Imbolc</div>
-          <div class="seasonal-wheel__quest" :class="{ 'completed': isQuestCompleted('IMBOLC') }">
-            <span>Quest</span>
-          </div>
+          <div class="moon-phase quarter-moon"></div>
         </div>
         <div class="seasonal-wheel__section" data-season="beltane">
-          <div class="seasonal-wheel__label">Beltane</div>
-          <div class="seasonal-wheel__quest" :class="{ 'completed': isQuestCompleted('BELTANE') }">
-            <span>Quest</span>
-          </div>
+          <div class="moon-phase gibbous-moon"></div>
         </div>
         <div class="seasonal-wheel__section" data-season="lughnasadh">
-          <div class="seasonal-wheel__label">Lughnasadh</div>
-          <div class="seasonal-wheel__quest" :class="{ 'completed': isQuestCompleted('LUGHNASADH') }">
-            <span>Quest</span>
-          </div>
+          <div class="moon-phase full-moon"></div>
         </div>
       </div>
       
-      <div class="seasonal-wheel__pointer"></div>
-    </div>
-    
-    <div class="seasonal-wheel__info">
-      <h3>{{ formattedSeason }}</h3>
-      <div class="seasonal-wheel__effects">
-        <div v-if="seasonEffects.length > 0">
-          <h4>Season Effects:</h4>
-          <ul>
-            <li v-for="(effect, index) in seasonEffects" :key="index">
-              {{ effect }}
-            </li>
-          </ul>
-        </div>
-        <div v-else>
-          <p>No active seasonal effects</p>
-        </div>
-      </div>
+      <!-- Removed the pointer triangle -->
     </div>
   </div>
 </template>
@@ -129,152 +104,225 @@ const isQuestCompleted = (seasonId: string) => {
 <style lang="scss" scoped>
 .seasonal-wheel {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 1rem;
+  place-items: center;
+  width: 100%;
   
   &__container {
     position: relative;
-    width: 200px;
-    height: 200px;
+    width: 550px;
+    height: 550px;
+    margin: 2rem auto;
   }
   
   &__dial {
-    position: absolute;
+    position: relative;
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    background: #f0e6d2;
-    border: 3px solid #8c7851;
-    transition: transform 0.5s ease-in-out;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    transition: transform 0.5s ease;
+    overflow: hidden;
+    background-color: transparent; // Changed from dark blue to transparent
   }
   
   &__section {
     position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    padding-top: 10px;
-    transform-origin: center bottom;
+    justify-content: center;
+    transform-origin: center;
     
     &[data-season="samhain"] {
       transform: rotate(0deg);
-      background: radial-gradient(ellipse at center, rgba(0,0,0,0) 30%, rgba(89, 62, 49, 0.5) 100%);
     }
     
     &[data-season="winters_depth"] {
       transform: rotate(72deg);
-      background: radial-gradient(ellipse at center, rgba(0,0,0,0) 30%, rgba(173, 216, 230, 0.5) 100%);
     }
     
     &[data-season="imbolc"] {
       transform: rotate(144deg);
-      background: radial-gradient(ellipse at center, rgba(0,0,0,0) 30%, rgba(144, 238, 144, 0.5) 100%);
     }
     
     &[data-season="beltane"] {
       transform: rotate(216deg);
-      background: radial-gradient(ellipse at center, rgba(0,0,0,0) 30%, rgba(255, 182, 193, 0.5) 100%);
     }
     
     &[data-season="lughnasadh"] {
       transform: rotate(288deg);
-      background: radial-gradient(ellipse at center, rgba(0,0,0,0) 30%, rgba(255, 215, 0, 0.5) 100%);
-    }
-  }
-  
-  &__label {
-    font-weight: bold;
-    font-size: 0.8rem;
-    margin-bottom: 0.5rem;
-    text-align: center;
-    width: 80px;
-  }
-  
-  &__quest {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #d4c8a8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 20px;
-    
-    span {
-      font-size: 0.6rem;
-      display: none;
-    }
-    
-    &.completed {
-      background: #6b8e23;
-    }
-    
-    &:hover {
-      span {
-        display: block;
-        position: absolute;
-        background: rgba(0, 0, 0, 0.7);
-        color: white;
-        padding: 0.25rem 0.5rem;
-        border-radius: 3px;
-        white-space: nowrap;
-      }
     }
   }
   
   &__pointer {
+    display: none; /* Hide the triangle pointer */
+  }
+  
+  .moon-phase {
     position: absolute;
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-top: 15px solid #8c7851;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    z-index: 15;
+    animation: float 8s ease-in-out infinite;
+    transform: translateY(-130px);
+  }
+  
+  .new-moon {
+    background-color: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+  }
+  
+  .crescent-moon {
+    background-color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    position: relative;
+    overflow: hidden;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: rgba(10, 17, 40, 0.9);
+      box-shadow: inset 0 0 10px rgba(10, 17, 40, 0.9);
+    }
+  }
+  
+  .quarter-moon {
+    background: linear-gradient(90deg, #fff 50%, transparent 50%);
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+  }
+  
+  .gibbous-moon {
+    background: linear-gradient(90deg, #fff 75%, transparent 25%);
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+  }
+  
+  .full-moon {
+    background-color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+  }
+  
+  .floating-season-name {
+    display: none; /* Hide the original season names */
+  }
+  
+  .night-sky {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+  
+  .star-field {
+    position: absolute;
+    width: 130%;
+    height: 130%;
+    left: -15%;
+    top: -15%;
     z-index: 2;
   }
   
-  &__info {
-    padding: 1rem;
-    background: rgba(240, 230, 210, 0.3);
-    border-radius: 8px;
+  .twinkling-star {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background-color: white;
+    border-radius: 50%;
+    opacity: 0;
+    z-index: 3;
+    box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.8);
+    animation: twinkle 5s infinite ease-in-out;
     
-    h3 {
-      margin-top: 0;
-      color: #5c4d3c;
-      border-bottom: 1px solid #8c7851;
-      padding-bottom: 0.5rem;
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      box-shadow: 0 0 20px 4px rgba(255, 255, 255, 0.4);
+      animation: glow 5s infinite alternate;
     }
-    
-    h4 {
-      margin-bottom: 0.5rem;
-      color: #5c4d3c;
+  }
+  
+  @keyframes float {
+    0% {
+      transform: translateY(-130px);
     }
-    
-    ul {
-      margin: 0;
-      padding-left: 1.5rem;
-      
-      li {
-        margin-bottom: 0.25rem;
-      }
+    50% {
+      transform: translateY(-150px);
+    }
+    100% {
+      transform: translateY(-130px);
+    }
+  }
+  
+  @keyframes twinkle {
+    0%, 100% {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.5);
+    }
+  }
+  
+  @keyframes glow {
+    0% {
+      box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.4);
+    }
+    100% {
+      box-shadow: 0 0 20px 4px rgba(255, 255, 255, 0.8);
     }
   }
 }
 
 @media (max-width: 768px) {
   .seasonal-wheel {
-    grid-template-columns: 1fr;
-    
     &__container {
-      margin: 0 auto;
+      width: 380px;
+      height: 380px;
+    }
+    
+    .moon-phase {
+      width: 40px;
+      height: 40px;
+      transform: translateY(-120px);
+    }
+    
+    .crescent-moon {
+      &::after {
+        width: 40px;
+        height: 40px;
+        top: -7px;
+        right: -7px;
+      }
+    }
+    
+    @keyframes float {
+      0% {
+        transform: translateY(-120px);
+      }
+      50% {
+        transform: translateY(-140px);
+      }
+      100% {
+        transform: translateY(-120px);
+      }
     }
   }
 }

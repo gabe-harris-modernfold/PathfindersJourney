@@ -396,13 +396,6 @@ export const useGameStore = defineStore('game', {
         season: this.currentSeason
       };
       
-      // Add timestamp to the message for better readability
-      const time = new Date(entry.timestamp);
-      const timeString = `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}:${time.getSeconds().toString().padStart(2, '0')}`;
-      
-      // Format the message with the type and time
-      entry.message = `[${timeString}][${type.toUpperCase()}] ${message}`;
-      
       // Log to console for debugging
       if (type === 'error') {
         console.error(entry.message, details);

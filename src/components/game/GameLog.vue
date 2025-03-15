@@ -3,18 +3,20 @@
     <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">GameLog</div>
     <h3 class="game-log__title">Journey Log</h3>
     <div class="game-log__entries" ref="logContainer">
-      <div 
-        v-for="(entry, index) in gameLog" 
-        :key="index" 
-        class="game-log__entry"
-        :class="{ 'game-log__entry--highlight': entry.highlight }"
-      >
-        <span class="game-log__timestamp">{{ formatTimestamp(entry.timestamp) }}</span>
-        <span class="game-log__message">{{ entry.message }}</span>
-      </div>
       <div v-if="gameLog.length === 0" class="game-log__empty">
         Your journey has just begun. Events will be recorded here.
       </div>
+      <p v-else class="game-log__paragraph">
+        <template v-for="(entry, index) in gameLog" :key="index">
+          <span 
+            class="log-sentence" 
+            :class="{ 'log-sentence--highlight': entry.highlight }"
+          >
+            <span class="first-letter">{{ entry.message.charAt(0) }}</span>{{ entry.message.substring(1) }}
+            <span class="log-sentence__separator" v-if="index < gameLog.length - 1">. </span>
+          </span>
+        </template>
+      </p>
     </div>
   </div>
 </template>
@@ -61,62 +63,95 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/scss/variables';
-
 .game-log {
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: $border-radius-md;
-  background-color: rgba(0, 0, 0, 0.02);
-  padding: $spacing-md;
-  height: 300px;
-  display: flex;
-  flex-direction: column;
+  background-color: rgba(240, 230, 210, 0.2);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  width: 100%;
+  max-height: 300px;
+  overflow-y: auto;
   
   &__title {
-    margin-top: 0;
-    margin-bottom: $spacing-md;
-    padding-bottom: $spacing-sm;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    background: linear-gradient(to right, #8c7851, #5a3e2b);
+    color: #fff;
+    margin: 0;
+    padding: 10px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    font-family: 'Cinzel', serif;
+    text-align: center;
+    font-size: 26px;
   }
   
   &__entries {
-    flex-grow: 1;
+    padding: 10px;
     overflow-y: auto;
-    font-size: $font-size-sm;
-    line-height: 1.4;
+    max-height: 250px;
   }
   
-  &__entry {
-    margin-bottom: $spacing-xs;
-    padding: $spacing-xs;
-    border-radius: $border-radius-sm;
-    
-    &:hover {
-      background-color: rgba(0, 0, 0, 0.05);
-    }
-    
-    &--highlight {
-      background-color: rgba($accent-color, 0.1);
-      border-left: 3px solid $accent-color;
-      padding-left: $spacing-sm;
-    }
-  }
-  
-  &__timestamp {
-    color: rgba($dark-color, 0.6);
-    margin-right: $spacing-sm;
-    font-family: monospace;
-  }
-  
-  &__message {
-    color: $dark-color;
+  &__paragraph {
+    margin: 10px;
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 4px;
+    font-size: 28px;
+    line-height: 2.2;
+    color: #333;
+    text-align: justify;
+    font-family: 'Tangerine', cursive;
+    letter-spacing: 0.5px;
+    word-spacing: 2px;
   }
   
   &__empty {
-    color: rgba($dark-color, 0.6);
-    font-style: italic;
+    padding: 15px;
     text-align: center;
-    margin-top: $spacing-lg;
+    font-style: italic;
+    color: #777;
+    font-size: 22px;
+  }
+}
+
+.log-sentence {
+  display: inline;
+  position: relative;
+  margin-bottom: 8px;
+  
+  .first-letter {
+    font-size: 250%;
+    font-weight: bold;
+    color: #5a3e2b;
+    line-height: 0.7;
+    vertical-align: bottom;
+    font-family: 'Tangerine', cursive;
+    display: inline-block;
+    margin-right: 2px;
+    position: relative;
+    top: 5px;
+  }
+  
+  &--highlight {
+    font-weight: bold;
+    
+    .first-letter {
+      color: #8c7851;
+    }
+  }
+  
+  &__separator {
+    margin: 0 5px;
+    display: inline-block;
+    position: relative;
+  }
+}
+
+@media (max-width: 768px) {
+  .game-log {
+    max-height: 200px;
+    
+    &__entries {
+      max-height: 150px;
+    }
   }
 }
 </style>

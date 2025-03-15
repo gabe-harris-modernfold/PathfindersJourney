@@ -64,7 +64,7 @@ export default defineComponent({
 .empty-state {
   font-style: italic;
   color: rgba($dark-color, 0.6);
-  margin-bottom: $spacing-md;
+  margin-bottom: $spacing-xs;
 }
 
 .wary-status {
@@ -81,7 +81,7 @@ export default defineComponent({
 .resource-list__item,
 .companion-list__item,
 .crafted-items-list__item {
-  margin-bottom: $spacing-sm;
+  margin-bottom: $spacing-xs;
   padding: $spacing-xs;
   border-radius: $border-radius-md;
   background-color: rgba($light-color, 0.6);
@@ -89,17 +89,17 @@ export default defineComponent({
 
 .player-dashboard {
   width: 100%;
-  padding: $spacing-md;
+  padding: $spacing-xs;
   background-color: rgba($light-color, 0.8);
   border-radius: $border-radius-md;
   box-shadow: 0 2px 4px rgba($dark-color, 0.2);
   
   .player-info {
-    margin-bottom: $spacing-md;
+    margin-bottom: $spacing-xs;
     
     h2 {
       margin-top: 0;
-      margin-bottom: $spacing-sm;
+      margin-bottom: $spacing-xs / 2;
       color: $primary-color;
     }
   }
@@ -107,7 +107,8 @@ export default defineComponent({
   .player-stats {
     display: flex;
     flex-wrap: wrap;
-    gap: $spacing-sm;
+    gap: $spacing-xs;
+    margin-bottom: $spacing-xs;
     
     .stat {
       padding: $spacing-xs $spacing-sm;
@@ -124,13 +125,13 @@ export default defineComponent({
   .resources-section,
   .companions-section,
   .crafted-items-section {
-    margin-top: $spacing-lg;
+    margin-top: $spacing-xs;
     
     h3 {
       margin-top: 0;
-      margin-bottom: $spacing-sm;
+      margin-bottom: $spacing-xs / 2;
       border-bottom: 1px solid $border-color;
-      padding-bottom: $spacing-xs;
+      padding-bottom: $spacing-xs / 2;
     }
   }
   
@@ -167,11 +168,11 @@ export default defineComponent({
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: $spacing-sm;
+  margin-bottom: $spacing-xs;
 }
 
 .feed-dialog__body {
-  margin-bottom: $spacing-md;
+  margin-bottom: $spacing-xs;
 }
 
 .feed-dialog__footer {
@@ -183,17 +184,17 @@ export default defineComponent({
 .close-btn {
   font-size: $font-size-lg;
   cursor: pointer;
-  margin-left: $spacing-sm;
+  margin-left: $spacing-xs;
 }
 
 .resource-options {
   display: flex;
   flex-wrap: wrap;
-  gap: $spacing-sm;
+  gap: $spacing-xs;
 }
 
 .resource-option {
-  padding: $spacing-sm;
+  padding: $spacing-xs;
   border: 1px solid $border-color;
   border-radius: $border-radius-md;
   cursor: pointer;
@@ -207,7 +208,7 @@ export default defineComponent({
 .companion-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: $spacing-md;
+  gap: $spacing-xs;
 }
 
 .companion-card {
@@ -215,7 +216,7 @@ export default defineComponent({
   border: 2px solid $border-color;
   border-radius: $border-radius-md;
   box-shadow: $shadow-md;
-  padding: $spacing-sm;
+  padding: $spacing-xs;
   cursor: pointer;
   transition: all $transition-normal;
   position: relative;
@@ -248,8 +249,8 @@ export default defineComponent({
     &::after {
       content: "Wary";
       position: absolute;
-      top: $spacing-sm;
-      right: $spacing-sm;
+      top: $spacing-xs;
+      right: $spacing-xs;
       background-color: $warning-color;
       color: $light-color;
       padding: $spacing-xs $spacing-sm;
@@ -266,18 +267,18 @@ export default defineComponent({
   }
   
   &__header {
-    margin-bottom: $spacing-sm;
+    margin-bottom: $spacing-xs;
     
     .companion-name {
       font-weight: bold;
       font-size: $font-size-md;
-      margin-bottom: $spacing-xs;
+      margin-bottom: $spacing-xs / 2;
     }
     
     .companion-loyalty {
       display: flex;
       align-items: center;
-      margin-top: $spacing-xs;
+      margin-top: $spacing-xs / 2;
       
       .loyalty-label {
         margin-right: $spacing-xs;
@@ -302,15 +303,15 @@ export default defineComponent({
   
   &__body {
     font-size: $font-size-sm;
-    margin-bottom: $spacing-sm;
+    margin-bottom: $spacing-xs;
     
     .companion-ability {
-      margin-top: $spacing-sm;
-      padding-top: $spacing-sm;
+      margin-top: $spacing-xs;
+      padding-top: $spacing-xs;
       border-top: 1px solid rgba($dark-color, 0.1);
       
       h5 {
-        margin: 0 0 $spacing-xs 0;
+        margin: 0 0 $spacing-xs / 2 0;
         font-size: $font-size-sm;
       }
       
@@ -324,7 +325,7 @@ export default defineComponent({
   &__footer {
     display: flex;
     justify-content: space-between;
-    margin-top: $spacing-sm;
+    margin-top: $spacing-xs;
     
     button {
       flex: 1;
