@@ -259,27 +259,7 @@ describe('Turn Sequence - Iron Crafter during Imbolc Season', () => {
     // Advance to next phase
     gameStore.advancePhase();
     
-    // 7. PHASE: HEALING RECOVERY (if present) - Test Imbolc's healing bonus
-    // ------------------------------------------
-    if (gameStore.currentPhase === GamePhase.HEALING_RECOVERY) {
-      // In Imbolc, healing is more effective (recover +1 Health)
-      // Reduce health for testing
-      playerStore.health = playerStore.maxHealth - 2;
-      const initialHealth = playerStore.health;
-      
-      // Apply healing (normal healing + Imbolc bonus)
-      const healingAmount = 1; // Base healing
-      const imbolcHealingBonus = 1; // Imbolc seasonal effect
-      playerStore.health += (healingAmount + imbolcHealingBonus);
-      
-      // Verify healing with Imbolc bonus
-      expect(playerStore.health).toBe(initialHealth + 2);
-      
-      // Advance to next phase
-      gameStore.advancePhase();
-    }
-    
-    // 8. PHASE: JOURNEY PROGRESSION
+    // 7. PHASE: JOURNEY PROGRESSION
     // ------------------------------------------
     expect(gameStore.currentPhase).toBe(GamePhase.JOURNEY_PROGRESSION);
     

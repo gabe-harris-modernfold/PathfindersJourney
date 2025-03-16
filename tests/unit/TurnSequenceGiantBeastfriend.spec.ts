@@ -253,18 +253,8 @@ describe('Turn Sequence - Giant Beastfriend in Samhain', () => {
     expect(playerStore.resources.includes('rowan_wood')).toBe(false);
     expect(playerStore.resources.includes('silver_mistletoe')).toBe(false);
     
-    // Advance to next phase - handle HEALING_RECOVERY phase if present
+    // Advance to next phase
     gameStore.advancePhase();
-    
-    // Check if we're in the HEALING_RECOVERY phase and handle it
-    if (gameStore.currentPhase === GamePhase.HEALING_RECOVERY) {
-      // Process healing if needed
-      if (playerStore.health < playerStore.maxHealth) {
-        playerStore.health++; // Simple healing for test
-      }
-      
-      gameStore.advancePhase(); // Move to journey progression
-    }
     
     // 7. PHASE: JOURNEY PROGRESSION
     // ------------------------------------------

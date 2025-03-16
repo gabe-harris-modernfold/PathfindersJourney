@@ -16,23 +16,25 @@
       </p>
       
       <div class="character-selection">
-        <div v-for="character in characters" :key="character.id" class="character-card" 
-             :class="{ 'selected': selectedCharacter && selectedCharacter.id === character.id }"
-             @click="selectCharacter(character)">
-          <h3>{{ character.name }}</h3>
-          <p>{{ character.description }}</p>
+        <GameCard 
+          v-for="character in characters" 
+          :key="character.id" 
+          :title="character.name"
+          cardType="CHARACTER"
+          :class="{ 'selected': selectedCharacter && selectedCharacter.id === character.id }"
+          @click="startGame(character)"
+        >
+          <p style="font-size: 10pt;">{{ character.description }}</p>
           
-          <div class="character-stats">
-            <div class="stat"><span class="stat-label">Health:</span> {{ character.healthPoints }}</div>
-            <div class="stat"><span class="stat-label">Capacity:</span> {{ character.resourceCapacity }}</div>
+          <div class="character-stats" style="font-size: 10pt; background: transparent;">
+            <div class="stat" style="background: transparent;"><span class="stat-label" style="font-size: 9pt;">Health:</span> <span style="font-size: 9pt;">{{ character.healthPoints }}</span></div>
+            <div class="stat" style="background: transparent;"><span class="stat-label" style="font-size: 9pt;">Capacity:</span> <span style="font-size: 9pt;">{{ character.resourceCapacity }}</span></div>
           </div>
           
-          <div class="character-abilities">
+          <div class="character-abilities" style="font-size: 10pt;">
             <strong>{{ getAbilityName(character) }}:</strong> {{ getAbilityDescription(character) }}
           </div>
-          
-          <button class="select-btn" @click.stop="startGame(character)">Start Adventure</button>
-        </div>
+        </GameCard>
       </div>
     </div>
   </div>
@@ -47,6 +49,7 @@ import { useCardStore } from '@/stores/cardStore';
 import { GamePhase } from '@/models/enums/phases';
 import { Season } from '@/models/enums/seasons';
 import type { CharacterCard } from '@/models/types/cards';
+import GameCard from '@/components/core/GameCard.vue'; // Import the GameCard component
 
 // Initialize stores and router
 const router = useRouter();
@@ -186,93 +189,31 @@ loadCharacters();
     margin-top: 1rem;
   }
   
-  .character-card {
-    background-color: rgba(255, 255, 255, 0.8);
-    border: 2px solid #d9c5a0;
-    border-radius: 10px;
-    padding: 0.4rem;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    width: 160px; /* Reduced to standard playing card width */
-    height: 224px; /* Reduced to maintain 2.5/3.5 aspect ratio */
+  .character-stats {
     display: flex;
-    flex-direction: column;
-    position: relative;
-    overflow: hidden;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
     
-    &:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-      border-color: #b39b6f;
-    }
-    
-    &.selected {
-      border-color: #5c3d2e;
+    .stat {
       background-color: rgba(92, 61, 46, 0.1);
-    }
-    
-    h3 {
-      font-size: 0.9rem;
-      color: #5c3d2e;
-      margin-bottom: 0.25rem;
-      text-align: center;
-    }
-    
-    p {
-      color: #6a5d4d;
-      margin-bottom: 0.5rem;
-      line-height: 1.2;
-      font-size: 0.65rem;
-      flex-grow: 1;
-      overflow-y: auto;
-      max-height: 45px;
-    }
-    
-    .character-stats {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 0.25rem;
+      padding: 0.2rem;
+      border-radius: 5px;
+      font-size: 1.3rem;
       
-      .stat {
-        background-color: rgba(92, 61, 46, 0.1);
-        padding: 0.2rem;
-        border-radius: 5px;
-        font-size: 0.65rem;
-        
-        .stat-label {
-          font-weight: bold;
-          color: #5c3d2e;
-        }
-      }
-    }
-    
-    .character-abilities {
-      margin-bottom: 0.25rem;
-      font-size: 0.65rem;
-      color: #6a5d4d;
-      
-      strong {
+      .stat-label {
+        font-weight: bold;
         color: #5c3d2e;
       }
     }
+  }
+  
+  .character-abilities {
+    margin-bottom: 0.25rem;
+    font-size: 1.3rem;
+    color: #6a5d4d;
     
-    .select-btn {
-      background-color: #5c3d2e;
-      color: white;
-      border: none;
-      padding: 0.25rem 0.5rem;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-      width: 100%;
-      margin-top: auto;
-      font-size: 0.7rem;
-      margin-bottom: 0.25rem;
-      display: block;
-      
-      &:hover {
-        background-color: darken(#5c3d2e, 10%);
-      }
+    strong {
+      color: #5c3d2e;
     }
   }
 }

@@ -88,6 +88,8 @@ export default defineComponent({
           return 'wheel-symbol';
         case CardType.CHARACTER:
           return 'silhouette-symbol';
+        case CardType.ACTION:
+          return 'arrow-symbol';
         default:
           return '';
       }
@@ -109,6 +111,8 @@ export default defineComponent({
           return '★'; // star
         case CardType.CHARACTER:
           return '✦'; // diamond star
+        case CardType.ACTION:
+          return '➜'; // arrow
         default:
           return '•'; // bullet
       }
@@ -168,8 +172,14 @@ export default defineComponent({
     border-top-width: 4px;
   }
   
+  &.game-card--action {
+    border: 2px solid #5a3e2b;
+    border-top-width: 4px;
+    background: linear-gradient(to bottom, #f0c8a0 0%, #8c7851 100%);
+  }
+  
   .game-card__body p {
-    font-size: 11pt;
+    font-size: 11px;
   }
   
   &__header {

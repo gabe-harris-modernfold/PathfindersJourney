@@ -8,7 +8,7 @@ import { useCardStore } from './cardStore';
 
 export const useGameStore = defineStore('game', {
   state: () => ({
-    currentPhase: GamePhase.CHARACTER_SELECTION,
+    currentPhase: GamePhase.SEASONAL_ASSESSMENT,
     currentTurn: 1,
     currentSeason: Season.SAMHAIN,
     currentLandscapeId: '',
@@ -89,7 +89,7 @@ export const useGameStore = defineStore('game', {
   actions: {
     startGame(): void {
       this.gameStarted = true;
-      this.currentPhase = GamePhase.CHARACTER_SELECTION;
+      this.currentPhase = GamePhase.SEASONAL_ASSESSMENT;
       this.currentTurn = 1;
       this.currentSeason = Season.SAMHAIN;
       this.threatTokens = 0;
@@ -98,7 +98,7 @@ export const useGameStore = defineStore('game', {
     },
     
     resetGame(): void {
-      this.currentPhase = GamePhase.CHARACTER_SELECTION;
+      this.currentPhase = GamePhase.SEASONAL_ASSESSMENT;
       this.currentTurn = 1;
       this.currentSeason = Season.SAMHAIN;
       this.currentLandscapeId = '';
@@ -146,7 +146,6 @@ export const useGameStore = defineStore('game', {
     
     advancePhase(): void {
       const phaseOrder = [
-        GamePhase.CHARACTER_SELECTION,
         GamePhase.SEASONAL_ASSESSMENT,
         GamePhase.THREAT_LEVEL_CHECK,
         GamePhase.LANDSCAPE_CHALLENGE,
@@ -154,7 +153,6 @@ export const useGameStore = defineStore('game', {
         GamePhase.RESOURCE_MANAGEMENT,
         GamePhase.ANIMAL_COMPANION,
         GamePhase.CRAFTING,
-        GamePhase.HEALING_RECOVERY,
         GamePhase.JOURNEY_PROGRESSION
       ];
       
@@ -1006,6 +1004,125 @@ export const useGameStore = defineStore('game', {
             success: false,
             message: 'That action is not available at this location.'
           };
+      }
+    },
+    
+    // Method to gather resources from the current landscape
+    gatherResources(): void {
+      const playerStore = usePlayerStore();
+      const cardStore = useCardStore();
+      
+      if (!this.currentLandscape) {
+        this.addToGameLog('No landscape available to gather resources from.', true, 'error');
+        return;
+      }
+      
+      // Get available resources from current landscape
+      const availableResources = this.currentLandscape.availableResources || [];
+      
+      if (availableResources.length === 0) {
+        this.addToGameLog(`There are no resources available at ${this.currentLandscape.name}.`, true, 'resource');
+        return;
+      }
+      
+      // Check if player has room for resources
+      if (playerStore.resources.length >= playerStore.resourceCapacity) {
+        this.addToGameLog(`Your resource capacity (${playerStore.resourceCapacity}) is full. You must discard resources before gathering more.`, true, 'resource');
+        return;
+      }
+      
+      // Perform gathering challenge
+      const baseDifficulty = 5; // Base difficulty for resource gathering
+      const seasonalModifier = this.getSeasonalResourceModifier();
+      const threatModifier = Math.floor(this.threatTokens / 3); // Threat level affects difficulty
+      
+      const difficulty = baseDifficulty + threatModifier + seasonalModifier;
+      
+      // Roll for challenge
+      const roll = this.rollD8();
+      const characterModifier = playerStore.wisdom || 0;
+      const totalRoll = roll + characterModifier;
+      
+      // Determine outcome
+      const outcome = this.resolveChallenge(totalRoll, difficulty);
+      
+      // Award resources based on outcome
+      if (outcome === 'SUCCESS') {
+        // Success: Gain 2 resources
+        this.awardResources(2, availableResources);
+        this.addToGameLog(`Success! You've gathered resources from ${this.currentLandscape.name}.`, true, 'resource');
+      } else if (outcome === 'PARTIAL') {
+        // Partial success: Gain 1 resource
+        this.awardResources(1, availableResources);
+        this.addToGameLog(`Partial success. You've gathered a small amount of resources from ${this.currentLandscape.name}.`, true, 'resource');
+      } else {
+        // Failure: No resources gathered
+        this.addToGameLog(`You failed to gather any resources from ${this.currentLandscape.name}.`, true, 'resource');
+      }
+      
+      // Apply seasonal bonus for Lughnasadh (Harvest season)
+      if (this.currentSeason === Season.LUGHNASADH && (outcome === 'SUCCESS' || outcome === 'PARTIAL')) {
+        this.addToGameLog('The harvest season blesses you with an additional resource.', true, 'resource');
+        this.awardResources(1, availableResources);
+      }
+    },
+    
+    // Helper to award resources to the player
+    awardResources(count: number, availableResources: string[]): void {
+      const playerStore = usePlayerStore();
+      const cardStore = useCardStore();
+      
+      // Make sure count doesn't exceed available space
+      const remainingCapacity = playerStore.resourceCapacity - playerStore.resources.length;
+      count = Math.min(count, remainingCapacity);
+      
+      if (count <= 0) {
+        this.addToGameLog('Your resource capacity is full.', true, 'resource');
+        return;
+      }
+      
+      // Filter out resources that don't exist in the card store
+      const validResources = availableResources.filter(id => cardStore.getResourceById(id) !== null);
+      
+      if (validResources.length === 0) {
+        this.addToGameLog('No valid resources available in this area.', true, 'resource');
+        return;
+      }
+      
+      // Randomly select resources from available ones
+      for (let i = 0; i < count; i++) {
+        if (validResources.length === 0) break;
+        
+        const randomIndex = Math.floor(Math.random() * validResources.length);
+        const resourceId = validResources[randomIndex];
+        
+        const resource = cardStore.getResourceById(resourceId);
+        if (!resource) {
+          // Skip this resource if it can't be found (shouldn't happen due to filter above)
+          continue;
+        }
+        
+        playerStore.addResource(resourceId);
+        this.addToGameLog(`You gathered ${resource.name}.`, false, 'resource');
+      }
+    },
+    
+    // Get seasonal modifier for resource gathering
+    getSeasonalResourceModifier(): number {
+      // Check if resources are abundant or scarce in the current season
+      switch (this.currentSeason) {
+        case Season.SAMHAIN:
+          return 1; // Slightly easier gathering during Samhain
+        case Season.WINTERS_DEPTH:
+          return 2; // More difficult during Winter's Depth
+        case Season.IMBOLC:
+          return 0; // Normal during Imbolc
+        case Season.BELTANE:
+          return -1; // Easier during Beltane (abundance)
+        case Season.LUGHNASADH:
+          return -2; // Much easier during Lughnasadh (harvest time)
+        default:
+          return 0;
       }
     },
   }

@@ -90,7 +90,7 @@ class CraftingService {
     );
     
     return {
-      canCraft: missingResources.length === 0 && landscapeSupported && playerSkill,
+      canCraft: missingResources.length === 0,
       missingResources,
       landscapeSupported,
       playerSkill

@@ -22,7 +22,6 @@
       <div class="companion-ability mt-3" v-if="companion?.ability">
         <h5>{{ companion.ability.name }}</h5>
         <p>{{ companion.ability.description }}</p>
-        <p class="ability-effect">{{ companion.ability.effect }}</p>
       </div>
       
       <div class="companion-seasons mt-3" v-if="companion?.affinitySeasons">
@@ -333,12 +332,6 @@ export default defineComponent({
   
   h5 {
     margin-bottom: $spacing-xs;
-  }
-  
-  .ability-effect {
-    font-style: italic;
-    color: $primary-color;
-    margin-top: $spacing-xs;
   }
 }
 

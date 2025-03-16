@@ -1,10 +1,11 @@
 The application requirements are in AI\Game Architecture.md
-The Game is a card game. Played with many cards on a game board.
+
 All tests are made in the @tests directory
 No mocking tests
-use npm run build to build
 Minimise starting and stopping the npm server
 do not create new files
+do not create new css styles
 work with the existing design
+use exisinting componets
 do not run tests
 minial descricptions of work performed back to the user

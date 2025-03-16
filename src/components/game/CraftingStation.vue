@@ -129,8 +129,8 @@ export default defineComponent({
     const availableRecipes = computed(() => {
       // Filter craftable items based on resources the player has
       return cardStore.craftedItems.filter(item => {
-        // Check if the player has at least one of the required resources
-        return item.requiredResources.some(resourceId => 
+        // Check if the player has ALL of the required resources
+        return item.requiredResources.every(resourceId => 
           playerResources.value.includes(resourceId)
         );
       });
@@ -139,13 +139,7 @@ export default defineComponent({
     const canCraftSelectedRecipe = computed(() => {
       if (!selectedRecipe.value) return false;
       
-      // Use craftingService if available, otherwise fallback to simple resource check
-      if (craftingService.value) {
-        const result = craftingService.value.canCraftItem(selectedRecipe.value.id);
-        return result.canCraft;
-      }
-      
-      // Fallback: Check if the player has all required resources
+      // Just check if player has all required resources
       return selectedRecipe.value.requiredResources.every(resourceId => 
         playerResources.value.includes(resourceId)
       );

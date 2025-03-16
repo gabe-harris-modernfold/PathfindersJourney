@@ -109,5 +109,14 @@ export const resources = [
     description: 'Wooden sticks inscribed with Ogham symbols, used to decipher magical writings.',
     image: 'ogham_sticks.jpg',
     preferredBy: ['deer']
+  },
+  {
+    id: 'ancient_crystal',
+    name: 'Ancient Crystal',
+    effect: 'Amplifies spiritual energy',
+    type: 'mystic',
+    description: 'A valuable crystal with properties that can amplify magical energies.',
+    image: 'ancient_crystal.jpg',
+    preferredBy: ['owl']
   }
 ]
