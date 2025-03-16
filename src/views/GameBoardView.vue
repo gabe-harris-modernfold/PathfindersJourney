@@ -946,7 +946,13 @@ const handleThreatCheck = () => {
 };
 
 const gatherResources = () => {
-  if (!currentLandscape.value || playerStore.isResourceCapacityReached) {
+  if (!currentLandscape.value) {
+    gameStore.addToGameLog("Cannot gather resources - no landscape is available.", true, 'error');
+    return;
+  }
+  
+  if (playerStore.isResourceCapacityReached) {
+    gameStore.addToGameLog(`Your resource capacity (${playerStore.resourceCapacity}) is full. You must discard resources before gathering more.`, true, 'resource');
     return;
   }
   
@@ -962,28 +968,39 @@ const gatherResources = () => {
   // Gather random resources available from the landscape
   if (currentLandscape.value.availableResources && currentLandscape.value.availableResources.length > 0) {
     let successfulGathers = 0;
-    while (successfulGathers < resourcesToGather && !playerStore.isResourceCapacityReached) {
+    
+    for (let i = 0; i < resourcesToGather && !playerStore.isResourceCapacityReached; i++) {
       const randomIndex = Math.floor(Math.random() * currentLandscape.value.availableResources.length);
       const resourceId = currentLandscape.value.availableResources[randomIndex];
       
-      // Verify that the resource exists in cardStore before adding it
-      const resourceExists = cardStore.getResourceById(resourceId);
-      if (!resourceExists) {
+      // Get resource from cardStore
+      const resource = cardStore.getResourceById(resourceId);
+      
+      if (!resource) {
         console.error(`Resource with ID ${resourceId} not found in cardStore`);
-        gameStore.addToGameLog(`You attempted to gather a resource, but it was unidentifiable.`, true);
-      } else {
-        const addResult = playerStore.addResource(resourceId);
-        if (addResult) {
-          const resource = cardStore.getResourceById(resourceId);
-          if (resource) {
-            gameStore.addToGameLog(`You gathered ${resource.name}.`, true);
-            successfulGathers++;
-          }
-        }
+        gameStore.addToGameLog(`You attempted to gather a resource, but it was unidentifiable.`, true, 'error');
+        continue;
+      }
+      
+      // Add resource to player inventory
+      const addResult = playerStore.addResource(resourceId);
+      
+      if (addResult) {
+        gameStore.addToGameLog(`You gathered ${resource.name}.`, true, 'resource');
+        successfulGathers++;
+      } else if (playerStore.isResourceCapacityReached) {
+        gameStore.addToGameLog(`Your resource capacity is reached. You cannot gather more resources.`, true, 'resource');
+        break;
       }
     }
+    
+    if (successfulGathers === 0) {
+      gameStore.addToGameLog(`You failed to gather any resources.`, true, 'resource');
+    } else {
+      gameStore.addToGameLog(`You successfully gathered ${successfulGathers} resource(s) from ${currentLandscape.value.name}.`, true, 'resource');
+    }
   } else {
-    gameStore.addToGameLog("There are no resources to gather at this location.", true);
+    gameStore.addToGameLog(`There are no resources to gather at ${currentLandscape.value.name}.`, true, 'resource');
   }
   
   // Advance to the next phase

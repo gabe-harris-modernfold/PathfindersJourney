@@ -1,5 +1,5 @@
 // Landscape data based on the game rules
-export const landscapes = [
+const landscapes = [
   {
     id: 'ancient_stone_circle',
     name: 'Ancient Stone Circle',
@@ -161,3 +161,5 @@ export const landscapes = [
     companions: ['horse']
   }
 ]
+
+export default landscapes;

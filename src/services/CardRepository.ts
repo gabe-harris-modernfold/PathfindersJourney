@@ -16,7 +16,7 @@ import landscapes from '@/models/data/landscapes.js';
 import resources from '@/models/data/resources.js';
 import companions from '@/models/data/companions.js';
 import craftedItems from '@/models/data/crafted-items.js';
-import seasons from '@/models/data/seasons.js';
+import { seasons } from '@/models/data/seasons.js';
 
 export class CardRepository {
   private characters: CharacterCard[];
