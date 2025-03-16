@@ -216,7 +216,6 @@
         <!-- Resource Management Phase -->
         <div v-else-if="gameStore.currentPhase === GamePhase.RESOURCE_MANAGEMENT" style="position: relative; border: 2px solid lightblue; padding: 10px;">
           <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">ResourceManagementPhase</div>
-          <h2 class="phase-title">RESOURCE MANAGEMENT</h2>
           <ResourceManagement />
         </div>
         
@@ -527,7 +526,7 @@ const resolveChallenge = () => {
   
   // Calculate challenge difficulty including threat level
   const baseDifficulty = currentChallenge.value.difficulty || 5;
-  const threatModifier = gameStore.threatLevel;
+  const threatModifier = gameStore.threatTokens;
   const seasonModifier = 0; // TODO: Add seasonal modifiers
   const totalDifficulty = baseDifficulty + threatModifier + seasonModifier;
   
