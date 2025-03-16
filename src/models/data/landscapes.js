@@ -8,7 +8,8 @@ const landscapes = [
     difficulty: 5,
     description: 'A circle of towering stones, humming with ancient power and guarded by spectral entities.',
     availableResources: ['standing_stone_chips', 'barrow_dust', 'amber_shards', 'ancient_crystal'],
-    image: 'stone_circle.jpg'
+    image: 'stone_circle.jpg',
+    companions: ['raven']
   },
   {
     id: 'misty_barrow_downs',

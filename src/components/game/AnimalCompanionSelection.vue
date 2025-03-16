@@ -124,6 +124,7 @@ export default defineComponent({
       
       // Define which companions are available at which landscapes (based on game rules)
       const landscapeCompanions: { [key: string]: string[] } = {
+        'ancient_stone_circle': ['raven'],
         'sacred_oak_grove': ['wolf', 'deer', 'bear', 'boar'],
         'faerie_knoll': ['fox', 'hare'],
         'moonlit_loch': ['salmon', 'owl'],
@@ -140,7 +141,7 @@ export default defineComponent({
       const availableCompanionTypes = landscapeCompanions[locationId];
       
       // Get companions that match the location and the player doesn't already have
-      return cardStore.animalCompanions.filter(companion => {
+      const companions = cardStore.animalCompanions.filter(companion => {
         // Skip companions the player already has
         if (playerStore.animalCompanions.includes(companion.id)) {
           return false;
@@ -151,6 +152,39 @@ export default defineComponent({
         const companionType = companion.id.split('_')[0].toLowerCase();
         return availableCompanionTypes.includes(companionType);
       });
+      
+      // Add information about available companions to the journey log
+      if (companions.length > 0) {
+        companions.forEach(companion => {
+          // Get preferred resources for this companion
+          const preferredResources = companion.preferredResources || [];
+          const resourceNames = preferredResources.map(resourceId => {
+            const resource = cardStore.getResourceById(resourceId);
+            return resource ? resource.name : resourceId;
+          }).join(', ');
+          
+          // Check if player has compatible resources
+          const canBond = hasCompatibleResources(companion.id);
+          
+          // Add to journey log
+          gameStore.addToGameLog(
+            `The ${companion.name} can be found in this area. ${canBond ? 'You have compatible resources to bond with it.' : 'You need specific resources to bond with it.'}`,
+            false,
+            'companion',
+            {
+              companionId: companion.id,
+              companionName: companion.name,
+              preferredResources: preferredResources,
+              resourceNames: resourceNames,
+              canBond: canBond,
+              ability: companion.ability,
+              description: companion.description
+            }
+          );
+        });
+      }
+      
+      return companions;
     });
     
     // Bond dialog state
@@ -198,6 +232,29 @@ export default defineComponent({
     // Select a companion for detail view
     const selectCompanion = (companionId: string) => {
       emit('select-companion', companionId);
+      
+      // Add detailed information to journey log when a companion is selected
+      const companion = cardStore.getCompanionById(companionId);
+      if (companion) {
+        // Get preferred resources for this companion
+        const preferredResources = companion.preferredResources || [];
+        const resourceNames = preferredResources.map(resourceId => {
+          const resource = cardStore.getResourceById(resourceId);
+          return resource ? resource.name : resourceId;
+        }).join(', ');
+        
+        gameStore.addToGameLog(
+          `You examine the ${companion.name}. It is drawn to these resources: ${resourceNames}. ${companion.ability}`,
+          false,
+          'companion',
+          {
+            companionId: companionId,
+            companionName: companion.name,
+            preferredResources: preferredResources,
+            ability: companion.ability
+          }
+        );
+      }
     };
     
     // Open bond dialog

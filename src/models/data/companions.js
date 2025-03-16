@@ -5,10 +5,10 @@ const companions = [
     name: 'Raven Scout',
     ability: 'Reveal next Landscape card',
     abilityDescription: 'The Raven flies ahead to scout the path, revealing the next landscape you will encounter.',
-    preferredResources: ['standing_stone_chips', 'barrow_dust'],
+    preferredResources: ['standing_stone_chips', 'barrow_dust', 'ogham_sticks', 'sacred_water', 'amber_shards', 'horse_hair'],
     seasonalAffinity: ['samhain', 'winters_depth'],
     image: 'raven.jpg',
-    findLocation: 'whispering_heath',
+    findLocation: 'ancient_stone_circle',
     abilityFunction: (gameState) => {
       // Implementation would reveal the next landscape in the journey path
       return {
