@@ -303,7 +303,7 @@ export const useCardStore = defineStore('card', {
           name: 'Herbal Poultice',
           description: 'A medicinal wrap made from healing herbs.',
           type: CardType.CRAFTED_ITEM,
-          requiredResources: ['resource_1', 'resource_5'],
+          requiredResources: ['herbs', 'sacred_water'],
           complexity: 1,
           ability: {
             name: 'Healing Touch',
@@ -316,7 +316,7 @@ export const useCardStore = defineStore('card', {
           name: 'Oak Staff',
           description: 'A sturdy staff carved from sacred oak wood.',
           type: CardType.CRAFTED_ITEM,
-          requiredResources: ['resource_2'],
+          requiredResources: ['rowan_wood'],
           complexity: 2,
           ability: {
             name: 'Nature\'s Authority',
@@ -333,12 +333,51 @@ export const useCardStore = defineStore('card', {
           name: 'Iron Blade',
           description: 'A simple but effective weapon forged from iron.',
           type: CardType.CRAFTED_ITEM,
-          requiredResources: ['resource_3'],
+          requiredResources: ['bog_iron'],
           complexity: 3,
           ability: {
             name: 'Sharp Edge',
             description: 'The blade cuts through obstacles with ease.',
             effect: 'Add +2 to strength challenges.'
+          }
+        },
+        {
+          id: 'item_4',
+          name: 'Ogham Talisman',
+          description: 'A protective charm carved with ancient druidic symbols.',
+          type: CardType.CRAFTED_ITEM,
+          requiredResources: ['ogham_sticks', 'amber_shards'],
+          complexity: 2,
+          ability: {
+            name: 'Ancient Protection',
+            description: 'The talisman wards against spiritual threats.',
+            effect: 'Reduce threat accumulation by 1 during Otherworldly manifestations.'
+          }
+        },
+        {
+          id: 'item_5',
+          name: 'Crystal Focus',
+          description: 'A crystal that helps concentrate magical energies.',
+          type: CardType.CRAFTED_ITEM,
+          requiredResources: ['ancient_crystal'],
+          complexity: 2,
+          ability: {
+            name: 'Mental Clarity',
+            description: 'The crystal enhances mental abilities.',
+            effect: '+2 to mental challenges.'
+          }
+        },
+        {
+          id: 'item_6',
+          name: 'Witch\'s Brew',
+          description: 'A potent magical concoction.',
+          type: CardType.CRAFTED_ITEM,
+          requiredResources: ['herbs', 'mushrooms'],
+          complexity: 1,
+          ability: {
+            name: 'Magical Enhancement',
+            description: 'Temporarily enhances magical abilities.',
+            effect: 'One-time +3 to any spiritual challenge.'
           }
         }
       ];
