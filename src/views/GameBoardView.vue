@@ -1072,7 +1072,7 @@ const endJourney = () => {
   console.log('Ending journey...');
   playerStore.resetPlayer();
   gameStore.resetGame();
-  router.push('/menu');
+  router.push('/');
 };
 
 // Helper functions
