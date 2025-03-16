@@ -60,12 +60,17 @@ class CompanionService {
     const resource = cardStore.getResourceById(resourceId);
     const companion = cardStore.getCompanionById(companionId);
     
-    if (!resource || !companion) {
+    if (!resource || !companion || !companion.preferredResources) {
       return false;
     }
     
-    // Check if resource is in companion's preferred resources
-    return companion.preferredResources && companion.preferredResources.includes(resourceId);
+    // Extract base resource type from the resourceId
+    const resourceType = resource.id.split('_').slice(0, -1).join('_');
+    
+    // Check if resource type is in companion's preferred resources
+    return companion.preferredResources.some(prefResource => 
+      resourceType === prefResource || resource.id === prefResource
+    );
   }
   
   /**

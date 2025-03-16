@@ -13,6 +13,7 @@ import {
 import characters from '@/models/data/characters.js';
 import landscapes from '@/models/data/landscapes.js';
 import resources from '@/models/data/resources.js';
+import companions from '@/models/data/companions.js';
 
 interface CardStoreState {
   characters: CharacterCard[];
@@ -231,44 +232,78 @@ export const useCardStore = defineStore('card', {
     },
     
     initializeAnimalCompanions() {
-      this.animalCompanions = [
-        {
-          id: 'companion_1',
-          name: 'Raven',
-          description: 'A wise bird associated with prophecy and insight.',
+      try {
+        // Convert the companions data to the AnimalCompanionCard format
+        this.animalCompanions = companions.map((comp: any) => ({
+          id: `${comp.id}_companion`, // Ensure ID format matches what AnimalCompanionSelection expects
+          name: comp.name,
+          description: comp.abilityDescription || '',
           type: CardType.ANIMAL_COMPANION,
           ability: {
-            name: 'Far Sight',
-            description: 'The raven scouts ahead, revealing dangers and opportunities.',
-            effect: 'Preview the next landscape before traveling there.'
+            name: comp.ability || '',
+            description: comp.abilityDescription || '',
+            effect: comp.abilityFunction ? 'Custom effect' : ''
           },
-          affinitySeasons: [Season.SAMHAIN, Season.WINTERS_DEPTH]
-        },
-        {
-          id: 'companion_2',
-          name: 'Wolf',
-          description: 'A loyal pack animal with keen senses.',
-          type: CardType.ANIMAL_COMPANION,
-          ability: {
-            name: 'Pack Hunter',
-            description: 'The wolf helps track and hunt for resources.',
-            effect: 'Gain an extra resource when gathering in a landscape.'
+          preferredResources: comp.preferredResources || [],
+          affinitySeasons: comp.seasonalAffinity?.map((season: string) => {
+            // Convert season strings to Season enum values
+            switch(season.toLowerCase()) {
+              case 'samhain': return Season.SAMHAIN;
+              case 'winters_depth': return Season.WINTERS_DEPTH;
+              case 'imbolc': return Season.IMBOLC;
+              case 'beltane': return Season.BELTANE;
+              case 'lughnasadh': return Season.LUGHNASADH;
+              default: return Season.SAMHAIN;
+            }
+          }) || []
+        }));
+        
+        console.log(`Loaded ${this.animalCompanions.length} animal companions from data file`);
+      } catch (error) {
+        console.error('Error loading animal companions from data file:', error);
+        // Fallback to hardcoded companions if there's an error
+        this.animalCompanions = [
+          {
+            id: 'raven_companion',
+            name: 'Raven',
+            description: 'A wise bird associated with prophecy and insight.',
+            type: CardType.ANIMAL_COMPANION,
+            ability: {
+              name: 'Far Sight',
+              description: 'The raven scouts ahead, revealing dangers and opportunities.',
+              effect: 'Preview the next landscape before traveling there.'
+            },
+            preferredResources: [],
+            affinitySeasons: [Season.SAMHAIN, Season.WINTERS_DEPTH]
           },
-          affinitySeasons: [Season.WINTERS_DEPTH, Season.IMBOLC]
-        },
-        {
-          id: 'companion_3',
-          name: 'Stag',
-          description: 'A majestic forest dweller representing renewal and abundance.',
-          type: CardType.ANIMAL_COMPANION,
-          ability: {
-            name: 'Forest Guide',
-            description: 'The stag knows hidden paths through the wilderness.',
-            effect: 'Reduce the difficulty of navigation challenges by 1.'
+          {
+            id: 'wolf_companion',
+            name: 'Wolf',
+            description: 'A loyal pack animal with keen senses.',
+            type: CardType.ANIMAL_COMPANION,
+            ability: {
+              name: 'Pack Hunter',
+              description: 'The wolf helps track and hunt for resources.',
+              effect: 'Gain an extra resource when gathering in a landscape.'
+            },
+            preferredResources: [],
+            affinitySeasons: [Season.WINTERS_DEPTH, Season.IMBOLC]
           },
-          affinitySeasons: [Season.BELTANE, Season.LUGHNASADH]
-        }
-      ];
+          {
+            id: 'deer_companion',
+            name: 'Stag',
+            description: 'A majestic forest dweller representing renewal and abundance.',
+            type: CardType.ANIMAL_COMPANION,
+            ability: {
+              name: 'Forest Guide',
+              description: 'The stag knows hidden paths through the wilderness.',
+              effect: 'Reduce the difficulty of navigation challenges by 1.'
+            },
+            preferredResources: [],
+            affinitySeasons: [Season.BELTANE, Season.LUGHNASADH]
+          }
+        ];
+      }
     },
     
     initializeResources() {
@@ -393,7 +428,7 @@ export const useCardStore = defineStore('card', {
           season: Season.SAMHAIN,
           abundantResources: ['resource_4'],
           scarceResources: ['resource_1', 'resource_5'],
-          animalAffinities: ['companion_1'],
+          animalAffinities: ['raven_companion'],
           effects: [
             {
               name: 'Thin Veil',
@@ -410,7 +445,7 @@ export const useCardStore = defineStore('card', {
           season: Season.WINTERS_DEPTH,
           abundantResources: [],
           scarceResources: ['resource_1', 'resource_2', 'resource_5'],
-          animalAffinities: ['companion_1', 'companion_2'],
+          animalAffinities: ['raven_companion', 'wolf_companion'],
           effects: [
             {
               name: 'Bitter Cold',
@@ -427,7 +462,7 @@ export const useCardStore = defineStore('card', {
           season: Season.IMBOLC,
           abundantResources: ['resource_3'],
           scarceResources: [],
-          animalAffinities: ['companion_2'],
+          animalAffinities: ['wolf_companion'],
           effects: [
             {
               name: 'Renewal',
@@ -444,7 +479,7 @@ export const useCardStore = defineStore('card', {
           season: Season.BELTANE,
           abundantResources: ['resource_1', 'resource_3', 'resource_5'],
           scarceResources: ['resource_4'],
-          animalAffinities: ['companion_3'],
+          animalAffinities: ['deer_companion'],
           effects: [
             {
               name: 'Abundant Growth',
@@ -461,7 +496,7 @@ export const useCardStore = defineStore('card', {
           season: Season.LUGHNASADH,
           abundantResources: ['resource_1', 'resource_2', 'resource_5'],
           scarceResources: [],
-          animalAffinities: ['companion_3'],
+          animalAffinities: ['deer_companion'],
           effects: [
             {
               name: 'Harvest Bounty',

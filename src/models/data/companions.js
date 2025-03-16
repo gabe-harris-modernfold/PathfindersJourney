@@ -1,5 +1,5 @@
 // Animal Companions data based on the game rules
-export const companions = [
+const companions = [
   {
     id: 'raven',
     name: 'Raven Scout',
@@ -80,7 +80,7 @@ export const companions = [
     id: 'hare',
     name: 'Hare Pathfinder',
     ability: 'Re-roll one failed challenge roll',
-    abilityDescription: 'The Hare's quick thinking and agility inspire you to try again after a failure.',
+    abilityDescription: 'The Hare\'s quick thinking and agility inspire you to try again after a failure.',
     preferredResources: ['woven_reeds'],
     seasonalAffinity: ['imbolc'],
     image: 'hare.jpg',
@@ -97,7 +97,7 @@ export const companions = [
     id: 'boar',
     name: 'Boar Digger',
     ability: 'Collect one extra Resource card',
-    abilityDescription: 'The Boar's keen sense for finding hidden treasures helps you discover additional resources.',
+    abilityDescription: 'The Boar\'s keen sense for finding hidden treasures helps you discover additional resources.',
     preferredResources: ['oak_galls'],
     seasonalAffinity: ['lughnasadh'],
     image: 'boar.jpg',
@@ -114,7 +114,7 @@ export const companions = [
     id: 'fox',
     name: 'Fox Trickster',
     ability: 'Manipulate one die roll by ±2',
-    abilityDescription: 'The Fox's cunning allows you to manipulate fate, adjusting a die roll in your favor.',
+    abilityDescription: 'The Fox\'s cunning allows you to manipulate fate, adjusting a die roll in your favor.',
     preferredResources: ['amber_shards'],
     seasonalAffinity: ['beltane'],
     image: 'fox.jpg',
@@ -133,7 +133,7 @@ export const companions = [
     id: 'owl',
     name: 'Owl Sage',
     ability: 'Gain insight to bypass one challenge without rolling',
-    abilityDescription: 'The Owl's wisdom reveals the solution to a challenge, allowing you to bypass it entirely.',
+    abilityDescription: 'The Owl\'s wisdom reveals the solution to a challenge, allowing you to bypass it entirely.',
     preferredResources: ['barrow_dust'],
     seasonalAffinity: ['samhain', 'winters_depth'],
     image: 'owl.jpg',
@@ -157,7 +157,7 @@ export const companions = [
     id: 'salmon',
     name: 'Salmon Journeyer',
     ability: 'Return to a previous Landscape instantly',
-    abilityDescription: 'The Salmon knows how to swim against the current, guiding you back to a place you've visited before.',
+    abilityDescription: 'The Salmon knows how to swim against the current, guiding you back to a place you\'ve visited before.',
     preferredResources: ['sacred_water'],
     seasonalAffinity: ['imbolc'],
     image: 'salmon.jpg',
@@ -180,7 +180,7 @@ export const companions = [
     id: 'horse',
     name: 'Horse Carrier',
     ability: 'Carry 3 extra Resource cards temporarily',
-    abilityDescription: 'The Horse's strength allows you to carry more resources than you normally could.',
+    abilityDescription: 'The Horse\'s strength allows you to carry more resources than you normally could.',
     preferredResources: ['horse_hair'],
     seasonalAffinity: ['beltane'],
     image: 'horse.jpg',
@@ -195,3 +195,5 @@ export const companions = [
     }
   }
 ]
+
+export default companions;
