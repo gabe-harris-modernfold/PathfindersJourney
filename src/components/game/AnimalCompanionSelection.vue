@@ -12,40 +12,31 @@
         <div 
           v-for="companion in availableCompanions" 
           :key="companion.id"
-          class="companion-card"
-          @click="selectCompanion(companion.id)"
         >
-          <div class="companion-card__header">
-            <h3>{{ companion.name }}</h3>
-            <div class="season-affinity">
-              <span 
-                v-for="season in companion.affinitySeasons" 
-                :key="season"
-                class="season-tag"
-                :class="season.toLowerCase()"
-              >
-                {{ formatSeasonName(season) }}
-              </span>
+          <GameCard
+            :title="companion.name"
+            :subtitle="companion.seasonalAffinity.map(s => formatSeasonName(s)).join(', ')"
+            :cardType="CardType.ANIMAL_COMPANION"
+            @click="selectAndBondWithCompanion(companion.id)"
+          >
+            <div class="companion-card-content">
+              <p class="companion-description">{{ companion.abilityDescription }}</p>
+              <div class="companion-resources">
+                <p class="resources-label">Drawn to:</p>
+                <ul class="resources-list">
+                  <li v-for="(resource, index) in getPreferredResourceNames(companion)" :key="index">
+                    {{ resource }}
+                  </li>
+                </ul>
+              </div>
+              <div v-if="hasCompatibleResources(companion.id)" class="compatible-resources-notice">
+                You have compatible resources to bond with this companion.
+              </div>
+              <div v-else class="incompatible-resources-notice">
+                You need to gather compatible resources.
+              </div>
             </div>
-          </div>
-          
-          <div class="companion-card__body">
-            <p>{{ companion.description }}</p>
-            <div class="companion-ability">
-              <h4>{{ companion.ability.name }}</h4>
-              <p>{{ companion.ability.description }}</p>
-            </div>
-          </div>
-          
-          <div class="companion-card__footer">
-            <button 
-              class="btn btn--primary"
-              @click.stop="bondWithCompanion(companion.id)"
-              :disabled="!hasCompatibleResources(companion.id)"
-            >
-              Bond
-            </button>
-          </div>
+          </GameCard>
         </div>
       </div>
     </div>
@@ -97,9 +88,14 @@ import { defineComponent, ref, computed, onMounted } from 'vue';
 import { useCardStore, usePlayerStore, useGameStore } from '@/stores';
 import { companionService } from '@/services/companionService';
 import { Season } from '@/models/enums/seasons';
+import { CardType } from '@/models/enums/cardTypes';
+import GameCard from '@/components/core/GameCard.vue';
 
 export default defineComponent({
   name: 'AnimalCompanionSelection',
+  components: {
+    GameCard
+  },
   emits: ['select-companion'],
   setup(props, { emit }) {
     const cardStore = useCardStore();
@@ -257,6 +253,12 @@ export default defineComponent({
       }
     };
     
+    // Select and bond with a companion
+    const selectAndBondWithCompanion = (companionId: string) => {
+      selectCompanion(companionId);
+      bondWithCompanion(companionId);
+    };
+    
     // Open bond dialog
     const bondWithCompanion = (companionId: string) => {
       selectedCompanion.value = companionId;
@@ -307,6 +309,15 @@ export default defineComponent({
       closeBondDialog();
     };
     
+    // Get preferred resource names for a companion
+    const getPreferredResourceNames = (companion: any) => {
+      const preferredResources = companion.preferredResources || [];
+      return preferredResources.map(resourceId => {
+        const resource = cardStore.getResourceById(resourceId);
+        return resource ? resource.name : resourceId;
+      });
+    };
+    
     return {
       formatSeasonName,
       availableCompanions,
@@ -317,9 +328,11 @@ export default defineComponent({
       compatibleResources,
       hasCompatibleResources,
       selectCompanion,
+      selectAndBondWithCompanion,
       bondWithCompanion,
       closeBondDialog,
-      confirmBond
+      confirmBond,
+      getPreferredResourceNames
     };
   }
 });
@@ -354,107 +367,41 @@ export default defineComponent({
   gap: $spacing-md;
 }
 
-.companion-card {
-  background-color: $light-color;
-  border: 2px solid $border-color;
-  border-radius: $border-radius-md;
-  box-shadow: $shadow-sm;
+.companion-card-content {
   padding: $spacing-md;
-  transition: all $transition-normal;
-  position: relative;
-  min-height: 200px;
-  display: flex;
-  flex-direction: column;
-  
-  // Card appearance
-  background-image: linear-gradient(to bottom, rgba(255,255,255,0.8) 0%, rgba(240,240,240,0.2) 100%);
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    right: 3px;
-    bottom: 3px;
-    border: 1px solid rgba(255,255,255,0.6);
-    border-radius: calc($border-radius-md - 3px);
-    pointer-events: none;
-  }
-  
-  &:hover {
-    transform: translateY(-3px);
-    box-shadow: $shadow-md;
-  }
-  
-  &__header {
-    margin-bottom: $spacing-md;
-    
-    h3 {
-      margin: 0 0 $spacing-sm 0;
-      color: $primary-color;
-    }
-  }
-  
-  &__body {
-    flex: 1;
-    
-    p {
-      margin-bottom: $spacing-md;
-    }
-    
-    .companion-ability {
-      margin-top: $spacing-md;
-      padding-top: $spacing-md;
-      border-top: 1px solid rgba($dark-color, 0.1);
-      
-      h4 {
-        margin: 0 0 $spacing-xs 0;
-        font-size: $font-size-md;
-      }
-      
-      p {
-        font-size: $font-size-sm;
-        color: rgba($dark-color, 0.7);
-        margin-bottom: 0;
-      }
-    }
-  }
-  
-  &__footer {
-    margin-top: $spacing-md;
-    display: flex;
-    justify-content: flex-end;
-  }
 }
 
-.season-affinity {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-xs;
+.companion-description {
+  margin-bottom: $spacing-md;
+}
+
+.companion-resources {
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1px solid rgba($dark-color, 0.1);
+}
+
+.resources-label {
+  font-weight: bold;
+  margin-bottom: $spacing-xs;
+}
+
+.resources-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.compatible-resources-notice {
+  color: $success-color;
+  font-size: $font-size-xs;
   margin-top: $spacing-xs;
 }
 
-.season-tag {
+.incompatible-resources-notice {
+  color: $danger-color;
   font-size: $font-size-xs;
-  padding: $spacing-xs $spacing-sm;
-  border-radius: $border-radius-md;
-  color: $light-color;
-  
-  &.spring {
-    background-color: #7cb342;
-  }
-  
-  &.summer {
-    background-color: #f9a825;
-  }
-  
-  &.fall, &.autumn {
-    background-color: #ef6c00;
-  }
-  
-  &.winter {
-    background-color: #42a5f5;
-  }
+  margin-top: $spacing-xs;
 }
 
 .bond-dialog-overlay {
