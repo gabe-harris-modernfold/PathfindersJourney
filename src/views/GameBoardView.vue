@@ -199,9 +199,7 @@
         <!-- Threat Level Check Phase -->
         <div v-else-if="gameStore.currentPhase === GamePhase.THREAT_LEVEL_CHECK" style="position: relative; border: 2px solid lightblue; padding: 10px;">
           <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">ThreatLevelCheckPhase</div>
-          <h2 class="phase-title">THREAT LEVEL CHECK</h2>
           <div class="phase-description">
-            <p>The threat level in the Celtic Realm is currently: <strong>{{ gameStore.threatTokens }}</strong></p>
             <div>
               <!-- Threat meter removed -->
             </div>
@@ -320,51 +318,26 @@
         <!-- Landscape Challenge Phase -->
         <div v-else-if="gameStore.currentPhase === GamePhase.LANDSCAPE_CHALLENGE" style="position: relative; border: 2px solid lightblue; padding: 10px;">
           <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">LandscapeChallengePhase</div>
-          <h2 class="phase-title">LANDSCAPE CHALLENGE</h2>
-          <div class="phase-description">
-            <p>The landscape presents challenges and opportunities. Overcome them to continue your journey.</p>
-            <div class="landscape-challenges">
-              <p>Current Landscape: <strong>{{ currentLandscape?.name || 'Unknown' }}</strong></p>
-              <p>Challenge Type: <strong>{{ currentLandscape?.challenges?.[0]?.type || 'Unknown' }}</strong></p>
-              <div style="display: flex; margin-top: 5px; font-size: 0.85rem; color: #666;">
-                <div style="flex: 1; margin-right: 5px;">
-                  <p style="margin: 4px 0;">Base Difficulty: <strong>{{ currentLandscape?.challenges?.[0]?.difficulty || 4 }}</strong></p>
-                  <p style="margin: 4px 0;">Season Modifier: <strong>{{ getSeasonModifier() }}</strong></p>
-                  <p style="margin: 4px 0;">Threat Modifier: <strong>+{{ Math.floor(gameStore.threatTokens / 3) }}</strong></p>
-                  <p style="margin: 4px 0;"><u>Total Difficulty:</u> <strong>{{ getChallengeDifficulty() }}</strong></p>
-                </div>
-                
-                <div style="flex: 1; margin-left: 5px;">
-                  <p style="margin: 4px 0;"><u>Your Bonus:</u></p>
-                  <p style="margin: 4px 0;">Character Ability: <strong>{{ playerStore.selectedCharacter?.abilityModifier || 0 }}</strong></p>
-                  <p style="margin: 4px 0;">Item Bonuses: <strong>{{ getItemBonuses() }}</strong></p>
-                  <p style="margin: 4px 0;">Blessing Tokens: <strong>+{{ gameStore.blessingTokens }}</strong></p>
-                  <p style="margin: 4px 0;"><u>Total Bonus:</u> <strong>{{ getTotalBonus() }}</strong></p>
-                </div>
+          <div class="challenge-actions" style="margin-top: 20px; display: flex; gap: 10px;">
+            <GameCard 
+              title="Roll D8 and Resolve Challenge" 
+              cardType="ACTION"
+              @click="resolveChallengeLandscape()"
+            >
+              <div style="font-size: 1rem; padding: 5px;">
+                Test your skills against the challenge
               </div>
-            </div>
+            </GameCard>
             
-            <div class="challenge-actions" style="margin-top: 20px; display: flex; gap: 10px;">
-              <GameCard 
-                title="Roll D8 and Resolve Challenge" 
-                cardType="ACTION"
-                @click="resolveChallengeLandscape()"
-              >
-                <div style="font-size: 1rem; padding: 5px;">
-                  Test your skills against the challenge
-                </div>
-              </GameCard>
-              
-              <GameCard 
-                title="Avoid Challenge" 
-                cardType="ACTION"
-                @click="avoidChallengeLandscape()"
-              >
-                <div style="font-size: 1rem; padding: 5px;">
-                  Cost: 2 Resources
-                </div>
-              </GameCard>
-            </div>
+            <GameCard 
+              title="Avoid Challenge" 
+              cardType="ACTION"
+              @click="avoidChallengeLandscape()"
+            >
+              <div style="font-size: 1rem; padding: 5px;">
+                Cost: 2 Resources
+              </div>
+            </GameCard>
           </div>
         </div>
         
@@ -1219,5 +1192,14 @@ const advanceToNextPhase = () => {
 
 .seasonal-wheel-container {
   margin-bottom: 0;
+}
+
+.phase-description {
+  p {
+    font-family: 'Cinzel', serif;
+    font-size: 26px;
+    line-height: 1.6;
+    letter-spacing: 0.5px;
+  }
 }
 </style>

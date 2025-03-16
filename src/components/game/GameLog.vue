@@ -94,11 +94,11 @@ export default defineComponent({
     padding: 15px;
     background-color: rgba(255, 255, 255, 0.7);
     border-radius: 4px;
-    font-size: 28px;
-    line-height: 2.2;
+    font-size: 26px;
+    line-height: 1.6;
     color: #333;
     text-align: justify;
-    font-family: 'Tangerine', cursive;
+    font-family: 'Cinzel', serif;
     letter-spacing: 0.5px;
     word-spacing: 2px;
   }
