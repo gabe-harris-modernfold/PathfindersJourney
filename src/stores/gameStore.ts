@@ -275,6 +275,19 @@ export const useGameStore = defineStore('game', {
             requiredLandscapes: 10
           });
         }
+        
+        // Check if we've reached the Wild Horse Plain (final destination)
+        if (landscapeId === 'wild_horse_plain') {
+          this.victoryConditions.journeyCompleted = true;
+          this.addToGameLog('You have reached the Wild Horse Plain, the final destination of your journey!', true, 'system', {
+            journeyCompleted: true
+          });
+          
+          // Check if we should end the game
+          if (this.checkVictoryConditions()) {
+            this.completeJourney(true);
+          }
+        }
       }
     },
     
@@ -341,20 +354,6 @@ export const useGameStore = defineStore('game', {
         newProgress: this.journeyProgress,
         stepsAdded: steps
       });
-      
-      // Check if journey is complete
-      if (this.journeyProgress >= 15) {
-        this.victoryConditions.journeyCompleted = true;
-        this.addToGameLog('You have completed your journey through the Celtic Realm!', true, 'system', {
-          journeyProgress: this.journeyProgress,
-          journeyCompleted: true
-        });
-        
-        // Check if we should end the game
-        if (this.checkVictoryConditions()) {
-          this.completeJourney(true);
-        }
-      }
     },
     
     completeJourney(isVictory: boolean): void {
@@ -635,12 +634,14 @@ export const useGameStore = defineStore('game', {
           description: 'The boundaries between worlds thin, causing strange distortions in reality.',
           effect: () => {
             this.addToGameLog('Reality warps around you, changing your path!', true);
-            // Change the current landscape to a random one
-            const cardStore = useCardStore();
-            const landscapes = cardStore.landscapes;
-            const randomLandscape = landscapes[Math.floor(Math.random() * landscapes.length)];
-            this.setCurrentLandscape(randomLandscape.id);
-            this.addToGameLog(`You suddenly find yourself at ${randomLandscape.name}!`, true);
+            // 50% chance to advance or reverse season
+            if (Math.random() > 0.5) {
+              this.advanceSeason();
+              this.addToGameLog('Time accelerates, advancing the season prematurely!', true);
+            } else {
+              this.reverseSeason();
+              this.addToGameLog('Time flows backwards, returning to the previous season!', true);
+            }
           }
         },
         {

@@ -1034,17 +1034,45 @@ const advancePhase = () => {
     );
     
     if (availableLandscapes.length > 0) {
-      // Pick a random landscape from the available ones
-      const randomIndex = Math.floor(Math.random() * availableLandscapes.length);
-      const newLandscape = availableLandscapes[randomIndex];
+      // First, check if Wild Horse Plain is the only landscape left
+      const wildHorsePlainOnly = availableLandscapes.length === 1 && 
+                                availableLandscapes[0].id === 'wild_horse_plain';
+      
+      let newLandscape;
+      
+      if (wildHorsePlainOnly) {
+        // If Wild Horse Plain is the only landscape left, use it as the final destination
+        newLandscape = availableLandscapes[0];
+        gameStore.addToGameLog('You can see the Wild Horse Plain in the distance - your final destination!', true);
+      } else {
+        // If Wild Horse Plain is not the only one left, make sure we don't select it yet
+        const nonFinalLandscapes = availableLandscapes.filter(l => l.id !== 'wild_horse_plain');
+        
+        if (nonFinalLandscapes.length > 0) {
+          // Pick a random landscape from the available ones (excluding Wild Horse Plain)
+          const randomIndex = Math.floor(Math.random() * nonFinalLandscapes.length);
+          newLandscape = nonFinalLandscapes[randomIndex];
+        } else {
+          // If all other landscapes have been visited, now use Wild Horse Plain
+          newLandscape = availableLandscapes[0]; // This must be Wild Horse Plain
+          gameStore.addToGameLog('After visiting all the other lands, you finally approach the Wild Horse Plain!', true);
+        }
+      }
       
       // Update the current landscape
       gameStore.setCurrentLandscape(newLandscape.id);
       // Add to visited landscapes
       gameStore.addVisitedLandscape(newLandscape.id);
+      
+      // If this is Wild Horse Plain and we've visited it, mark the journey as complete
+      if (newLandscape.id === 'wild_horse_plain') {
+        gameStore.addToGameLog('You have reached the Wild Horse Plain, completing your journey!', true);
+        gameStore.victoryConditions.journeyCompleted = true;
+        gameStore.checkVictoryConditions();
+      }
     } else {
-      // If no more landscapes, we've completed the journey
-      gameStore.addToGameLog('You have reached the end of your journey path.', true);
+      // This should not happen, but just in case
+      gameStore.addToGameLog('You have visited all landscapes, including the Wild Horse Plain.', true);
       gameStore.completeJourney(true);
     }
   }
