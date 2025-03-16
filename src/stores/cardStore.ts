@@ -303,7 +303,7 @@ export const useCardStore = defineStore('card', {
           name: 'Herbal Poultice',
           description: 'A medicinal wrap made from healing herbs.',
           type: CardType.CRAFTED_ITEM,
-          requiredResources: ['herbs', 'sacred_water'],
+          requiredResources: ['sacred_water', 'oak_galls'],
           complexity: 1,
           ability: {
             name: 'Healing Touch',
@@ -333,7 +333,7 @@ export const useCardStore = defineStore('card', {
           name: 'Iron Blade',
           description: 'A simple but effective weapon forged from iron.',
           type: CardType.CRAFTED_ITEM,
-          requiredResources: ['bog_iron'],
+          requiredResources: ['bog_iron', 'forge_cinders'],
           complexity: 3,
           ability: {
             name: 'Sharp Edge',
@@ -372,7 +372,7 @@ export const useCardStore = defineStore('card', {
           name: 'Witch\'s Brew',
           description: 'A potent magical concoction.',
           type: CardType.CRAFTED_ITEM,
-          requiredResources: ['herbs', 'mushrooms'],
+          requiredResources: ['sacred_water', 'barrow_dust'],
           complexity: 1,
           ability: {
             name: 'Magical Enhancement',

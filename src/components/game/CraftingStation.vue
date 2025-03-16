@@ -8,10 +8,22 @@
     </div>
     
     <div v-else class="crafting-station__active">
+      <p class="crafting-station__tip">Crafted items don't count against your resource capacity.</p>
       <div class="crafting-station__recipes">
         <h4>Available Recipes</h4>
         <div v-if="availableRecipes.length === 0" class="empty-state">
           You don't have enough resources to craft any items.
+          <div class="mt-4">
+            <GameCard 
+              title="Continue Journey" 
+              cardType="ACTION"
+              @click="continueJourney"
+            >
+              <div style="font-size: 1.1rem; padding: 10px;">
+                Proceed to the next phase of your adventure
+              </div>
+            </GameCard>
+          </div>
         </div>
         <div v-else class="recipe-list">
           <div 
@@ -87,6 +99,17 @@
       
       <div v-else class="crafting-station__placeholder">
         <p>Select a recipe to view details and craft an item.</p>
+        <div class="mt-4">
+          <GameCard 
+            title="Continue Journey" 
+            cardType="ACTION"
+            @click="continueJourney"
+          >
+            <div style="font-size: 1.1rem; padding: 10px;">
+              Proceed to the next phase of your adventure
+            </div>
+          </GameCard>
+        </div>
       </div>
     </div>
   </div>
@@ -98,9 +121,14 @@ import { GamePhase } from '@/models/enums/phases';
 import { useCardStore, usePlayerStore, useGameStore } from '@/stores';
 import { CraftedItemCard } from '@/models/types/cards';
 import { CraftingService } from '@/services/craftingService';
+import { CardType } from '@/models/enums/cardTypes';
+import GameCard from '@/components/core/GameCard.vue';
 
 export default defineComponent({
   name: 'CraftingStation',
+  components: {
+    GameCard
+  },
   setup() {
     const cardStore = useCardStore();
     const playerStore = usePlayerStore();
@@ -113,6 +141,28 @@ export default defineComponent({
       try {
         craftingService.value = new CraftingService();
         console.log('CraftingStation: CraftingService initialized successfully');
+        
+        // Log player resources
+        console.log('CraftingStation: Player resources:', playerResources.value);
+        
+        // Log crafted items and their requirements
+        console.log('CraftingStation: Available crafted items:', cardStore.craftedItems);
+        
+        // Log each crafted item with a check if player has the required resources
+        cardStore.craftedItems.forEach(item => {
+          console.log(`CraftingStation: Checking recipe ${item.name}:`, {
+            requiredResources: item.requiredResources,
+            playerHasAllResources: item.requiredResources.every(resourceId => 
+              playerResources.value.includes(resourceId)
+            ),
+            missingResources: item.requiredResources.filter(resourceId => 
+              !playerResources.value.includes(resourceId)
+            )
+          });
+        });
+        
+        // Add to game log
+        gameStore.addToGameLog(`You have ${playerResources.value.length} resources for crafting.`, false, 'crafting');
       } catch (error) {
         console.error('CraftingStation: Error initializing CraftingService:', error);
       }
@@ -127,13 +177,52 @@ export default defineComponent({
     });
     
     const availableRecipes = computed(() => {
+      // Log the computation
+      console.log('CraftingStation: Computing available recipes...');
+      
       // Filter craftable items based on resources the player has
-      return cardStore.craftedItems.filter(item => {
+      const recipes = cardStore.craftedItems.filter(item => {
         // Check if the player has ALL of the required resources
-        return item.requiredResources.every(resourceId => 
+        const hasAllResources = item.requiredResources.every(resourceId => 
           playerResources.value.includes(resourceId)
         );
+        
+        console.log(`CraftingStation: Recipe ${item.name} is ${hasAllResources ? 'available' : 'unavailable'}`);
+        
+        if (!hasAllResources) {
+          const missingResources = item.requiredResources.filter(resourceId => 
+            !playerResources.value.includes(resourceId)
+          );
+          console.log(`CraftingStation: Missing resources for ${item.name}:`, 
+            missingResources.map(id => getResourceName(id))
+          );
+        }
+        
+        return hasAllResources;
       });
+      
+      console.log(`CraftingStation: Found ${recipes.length} available recipes`);
+      
+      if (recipes.length === 0) {
+        gameStore.addToGameLog("You don't have the right combination of resources to craft any items.", false, 'crafting');
+        
+        // List all resources needed for crafting
+        const allRequiredResources = new Set();
+        cardStore.craftedItems.forEach(item => {
+          item.requiredResources.forEach(resource => allRequiredResources.add(resource));
+        });
+        
+        const resourcesList = Array.from(allRequiredResources).map(id => getResourceName(id as string)).join(', ');
+        gameStore.addToGameLog(`Crafting requires: ${resourcesList}`, false, 'crafting');
+        
+        // List what the player has
+        const playerResourcesList = playerResources.value.map(id => getResourceName(id)).join(', ');
+        gameStore.addToGameLog(`You have: ${playerResourcesList || 'no resources'}`, false, 'crafting');
+      } else {
+        gameStore.addToGameLog(`You can craft ${recipes.length} items.`, false, 'crafting');
+      }
+      
+      return recipes;
     });
     
     const canCraftSelectedRecipe = computed(() => {
@@ -198,6 +287,14 @@ export default defineComponent({
       gameStore.advancePhase();
     };
     
+    const continueJourney = () => {
+      // Log the action
+      gameStore.addToGameLog("You decided to continue your journey without crafting.", true, 'crafting');
+      
+      // Move to the next phase
+      gameStore.advancePhase();
+    };
+    
     return {
       currentPhase,
       availableRecipes,
@@ -208,6 +305,7 @@ export default defineComponent({
       selectRecipe,
       craftItem,
       cancelCrafting,
+      continueJourney,
       GamePhase
     };
   }
@@ -245,6 +343,12 @@ export default defineComponent({
     @media (max-width: $breakpoint-md) {
       grid-template-columns: 1fr;
     }
+  }
+  
+  &__tip {
+    font-size: $font-size-sm;
+    color: rgba($dark-color, 0.6);
+    margin-bottom: $spacing-md;
   }
   
   &__placeholder {

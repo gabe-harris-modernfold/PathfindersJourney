@@ -1,89 +1,121 @@
 <template>
   <div class="resource-management">
-    <h3 class="resource-management__title">Resource Management</h3>
-    
     <div v-if="currentPhase !== GamePhase.RESOURCE_MANAGEMENT" class="resource-management__inactive">
       <p>Resource management is not available during the current phase.</p>
     </div>
     
     <div v-else class="resource-management__active">
-      <div class="resource-management__inventory">
-        <h4>Your Resources ({{ playerResources.length }} / {{ resourceCapacity }})</h4>
-        <div v-if="playerResources.length === 0" class="empty-state">
-          You don't have any resources. Explore landscapes to gather resources.
-        </div>
-        <div v-else class="resource-grid">
-          <div 
-            v-for="resource in playerResources" 
-            :key="resource.id"
-            class="resource-grid__item"
-            :class="{ 'selected': selectedResourceId === resource.id }"
-            @click="selectResource(resource)"
+      <div class="resource-cards-row">
+        <!-- Resource Cards -->
+        <div 
+          v-for="resource in playerResources" 
+          :key="resource.id"
+          class="resource-card"
+          :class="{ 'selected': selectedResourceId === resource.id }"
+          @click="selectResource(resource)"
+        >
+          <GameCard 
+            :title="resource.name" 
+            :subtitle="'Resource'" 
+            :cardType="CardType.RESOURCE"
           >
+            <p>{{ resource.description }}</p>
+            
+            <div class="resource-type mt-3" v-if="resource.rarity">
+              <h5>Rarity: {{ resource.rarity }}</h5>
+              <p>{{ getRarityDescription(resource.rarity) }}</p>
+            </div>
+            
+            <div class="resource-seasons mt-3" v-if="resource.seasonalAbundance && resource.seasonalAbundance.length">
+              <h5>Seasonal Availability</h5>
+              <div class="season-tags">
+                <span 
+                  v-for="season in resource.seasonalAbundance" 
+                  :key="season"
+                  class="season-tag"
+                  :class="getSeasonClassName(season)"
+                >
+                  {{ formatSeasonName(season) }}
+                </span>
+              </div>
+            </div>
+            
+            <div class="resource-special-effect mt-3" v-if="resource.specialEffect">
+              <h5>Special Effect</h5>
+              <p>{{ resource.specialEffect.description }}</p>
+            </div>
+          </GameCard>
+        </div>
+        
+        <!-- Action Cards -->
+        <template v-if="selectedResourceId">
+          <div class="action-card">
             <GameCard 
-              :title="resource.name" 
-              :subtitle="'Resource'" 
-              :cardType="CardType.RESOURCE"
+              title="Use Resource" 
+              cardType="ACTION"
+              @click="useResource"
+              :class="{ 'disabled': !canUseSelectedResource }"
             >
-              <p>{{ resource.description }}</p>
-              
-              <div class="resource-type mt-3" v-if="resource.rarity">
-                <h5>Rarity: {{ resource.rarity }}</h5>
-                <p>{{ getRarityDescription(resource.rarity) }}</p>
-              </div>
-              
-              <div class="resource-seasons mt-3" v-if="resource.seasonalAbundance && resource.seasonalAbundance.length">
-                <h5>Seasonal Availability</h5>
-                <div class="season-tags">
-                  <span 
-                    v-for="season in resource.seasonalAbundance" 
-                    :key="season"
-                    class="season-tag"
-                    :class="getSeasonClassName(season)"
-                  >
-                    {{ formatSeasonName(season) }}
-                  </span>
-                </div>
-              </div>
-              
-              <div class="resource-special-effect mt-3" v-if="resource.specialEffect">
-                <h5>Special Effect</h5>
-                <p>{{ resource.specialEffect.description }}</p>
+              <div style="font-size: 0.9rem; padding: 5px; text-align: center;">
+                Apply the resource's special effect
               </div>
             </GameCard>
           </div>
-        </div>
+          
+          <div class="action-card">
+            <GameCard 
+              title="Discard Resource" 
+              cardType="ACTION"
+              @click="discardResource"
+            >
+              <div style="font-size: 0.9rem; padding: 5px; text-align: center;">
+                Remove this resource from inventory
+              </div>
+            </GameCard>
+          </div>
+          
+          <div class="action-card">
+            <GameCard 
+              title="Cancel" 
+              cardType="ACTION"
+              @click="cancelSelection"
+            >
+              <div style="font-size: 0.9rem; padding: 5px; text-align: center;">
+                Return to resource management
+              </div>
+            </GameCard>
+          </div>
+        </template>
+        
+        <template v-else>
+          <div class="action-card">
+            <GameCard 
+              title="Gather Resources" 
+              cardType="ACTION"
+              @click="gatherResources"
+            >
+              <div style="font-size: 0.9rem; padding: 5px; text-align: center;">
+                Collect resources from the environment
+              </div>
+            </GameCard>
+          </div>
+          
+          <div class="action-card">
+            <GameCard 
+              title="Continue Journey" 
+              cardType="ACTION"
+              @click="continueJourney"
+            >
+              <div style="font-size: 0.9rem; padding: 5px; text-align: center;">
+                Proceed to the next phase of your adventure
+              </div>
+            </GameCard>
+          </div>
+        </template>
       </div>
       
-      <div v-if="selectedResourceId" class="resource-management__actions mt-4">
-        <button 
-          class="btn btn--primary" 
-          @click="useResource"
-          :disabled="!canUseSelectedResource"
-        >
-          Use Resource
-        </button>
-        <button 
-          class="btn btn--secondary ml-2" 
-          @click="discardResource"
-        >
-          Discard Resource
-        </button>
-        <button 
-          class="btn btn--accent ml-2" 
-          @click="cancelSelection"
-        >
-          Cancel
-        </button>
-      </div>
-      
-      <div class="resource-management__continue mt-4">
-        <button 
-          class="btn btn--primary btn--lg" 
-          @click="continueJourney"
-        >
-          Continue Journey
-        </button>
+      <div v-if="playerResources.length === 0" class="empty-state mt-3">
+        You don't have any resources. Explore landscapes to gather resources.
       </div>
     </div>
   </div>
@@ -176,6 +208,11 @@ export default defineComponent({
       gameStore.advancePhase();
     };
     
+    const gatherResources = () => {
+      // Call the gatherResources method from gameStore
+      gameStore.gatherResources();
+    };
+    
     // Convert season value to a CSS class name
     const getSeasonClassName = (season: string): string => {
       // Always return lowercase values for CSS classes
@@ -238,6 +275,7 @@ export default defineComponent({
       discardResource,
       cancelSelection,
       continueJourney,
+      gatherResources,
       formatSeasonName,
       getSeasonClassName,
       getRarityDescription
@@ -252,12 +290,6 @@ export default defineComponent({
 .resource-management {
   padding: $spacing-md;
   
-  &__title {
-    font-family: $font-family-display;
-    margin-bottom: $spacing-md;
-    color: $primary-color;
-  }
-  
   &__inactive {
     background-color: rgba(0, 0, 0, 0.05);
     padding: $spacing-md;
@@ -268,44 +300,77 @@ export default defineComponent({
   &__active {
     display: flex;
     flex-direction: column;
-    gap: $spacing-md;
-  }
-  
-  &__inventory {
-    background-color: white;
-    border-radius: $border-radius-md;
-    box-shadow: $shadow-sm;
-    padding: $spacing-md;
-    
-    h4 {
-      margin-bottom: $spacing-md;
-      color: $secondary-color;
-    }
-  }
-  
-  &__actions, &__continue {
-    display: flex;
-    justify-content: center;
   }
 }
 
-.resource-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: $spacing-md;
+.resource-cards-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 15px;
+  justify-content: flex-start;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.resource-card, .action-card {
+  flex: 0 0 auto;
+  width: 185px;
+  cursor: pointer;
+  transition: transform $transition-normal;
   
-  &__item {
-    cursor: pointer;
-    transition: transform $transition-normal;
+  &:hover {
+    transform: translateY(-5px);
+  }
+  
+  &.selected {
+    transform: translateY(-5px);
+    box-shadow: 0 0 0 2px $accent-color;
+    border-radius: $border-radius-md;
+  }
+  
+  .game-card {
+    background-color: #f9eeda;
+    border: 1px solid #d3c7a7;
+    border-radius: $border-radius-md;
+    height: 100%;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: $spacing-md;
+  font-style: italic;
+  color: $secondary-color;
+}
+
+.season-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  
+  .season-tag {
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-size: 0.8rem;
     
-    &:hover {
-      transform: translateY(-5px);
+    &.imbolc {
+      background-color: #e6f7ff;
+      color: #0066cc;
     }
     
-    &.selected {
-      transform: translateY(-5px);
-      box-shadow: 0 0 0 2px $accent-color;
-      border-radius: $border-radius-md;
+    &.beltane {
+      background-color: #f0fff0;
+      color: #228b22;
+    }
+    
+    &.lughnasadh {
+      background-color: #fff0e0;
+      color: #b25900;
+    }
+    
+    &.samhain {
+      background-color: #f9e6ff;
+      color: #5a008a;
     }
   }
 }
@@ -321,51 +386,6 @@ export default defineComponent({
     font-size: $font-size-base;
     margin-bottom: $spacing-xs;
   }
-}
-
-.season-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-xs;
-  
-  .season-tag {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: $font-size-sm;
-    
-    &.samhain {
-      background-color: rgba($danger-color, 0.2);
-      color: $danger-color;
-    }
-    
-    &.winters-depth {
-      background-color: rgba($primary-color, 0.2);
-      color: $primary-color;
-    }
-    
-    &.imbolc {
-      background-color: rgba($success-color, 0.2);
-      color: $success-color;
-    }
-    
-    &.beltane {
-      background-color: rgba($warning-color, 0.2);
-      color: darken($warning-color, 10%);
-    }
-    
-    &.lughnasadh {
-      background-color: rgba($accent-color, 0.2);
-      color: $accent-color;
-    }
-  }
-}
-
-.empty-state {
-  text-align: center;
-  padding: $spacing-lg;
-  color: $secondary-color;
-  font-style: italic;
 }
 
 .mt-3 {

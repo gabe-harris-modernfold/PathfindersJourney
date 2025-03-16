@@ -11,6 +11,10 @@
           <span class="stat-label">XP:</span> 
           <span class="stat-value">{{ playerStore.experience }}</span>
         </div>
+        <div class="stat">
+          <span class="stat-label">Resources:</span> 
+          <span class="stat-value">{{ playerStore.resources.length }}/{{ playerStore.resourceCapacity }}</span>
+        </div>
       </div>
     </div>
   </div>

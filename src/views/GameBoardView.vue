@@ -222,34 +222,6 @@
           <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">ResourceManagementPhase</div>
           <h2 class="phase-title">RESOURCE MANAGEMENT</h2>
           <ResourceManagement />
-          <div class="resource-actions mt-4">
-            <GameCard 
-              title="Gather Resources" 
-              cardType="ACTION"
-              @click="gatherResources"
-              :class="{'disabled-card': playerStore.isResourceCapacityReached}"
-              :disabled="playerStore.isResourceCapacityReached"
-            >
-              <div style="font-size: 1rem; padding: 5px;">
-                Collect resources from the environment
-              </div>
-            </GameCard>
-            
-            <GameCard 
-              title="Continue Journey" 
-              cardType="ACTION"
-              @click="gameStore.advancePhase"
-              style="margin-left: 8px;"
-            >
-              <div style="font-size: 1rem; padding: 5px;">
-                Move to the next phase
-              </div>
-            </GameCard>
-          </div>
-          
-          <div v-if="playerStore.isResourceCapacityReached" class="resource-warning mt-2">
-            <p>You've reached your resource capacity!</p>
-          </div>
         </div>
         
         <!-- Animal Companion Phase -->
@@ -658,15 +630,21 @@ const resolveChallenge = () => {
         if (!resourceExists) {
           console.error(`Resource with ID ${resourceId} not found in cardStore`);
           gameStore.addToGameLog(`You attempted to gather a resource, but it was unidentifiable.`, true);
-        } else {
-          const addResult = playerStore.addResource(resourceId);
-          if (addResult) {
-            const resource = cardStore.getResourceById(resourceId);
-            if (resource) {
-              gameStore.addToGameLog(`You gathered ${resource.name}.`, true);
-              resourcesAwarded++;
-            }
+          continue;
+        }
+        
+        // Add resource to player inventory
+        const addResult = playerStore.addResource(resourceId);
+        
+        if (addResult) {
+          const resource = cardStore.getResourceById(resourceId);
+          if (resource) {
+            gameStore.addToGameLog(`You gathered ${resource.name}.`, true);
+            resourcesAwarded++;
           }
+        } else if (playerStore.isResourceCapacityReached) {
+          gameStore.addToGameLog(`Your resource capacity is reached. You cannot gather more resources.`, true);
+          break;
         }
       }
     }
