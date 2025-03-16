@@ -2,6 +2,7 @@ The application requirements are in AI\Game Architecture.md
 
 All tests are made in the @tests directory
 No mocking tests
+do not execute git commands
 Minimise starting and stopping the npm server
 do not create new files
 do not create new css styles
