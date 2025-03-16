@@ -101,8 +101,6 @@
       <section class="phase-content" style="border: 2px solid lightblue; position: relative; margin-top: 0; padding: 5px; background-color: rgba(240, 230, 210, 0.3); border-radius: 8px; border: 1px solid #8c7851;">
         <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">GameBoardView</div>
         <div style="position: absolute; top: -20px; left: 115px; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">PhaseContent</div>
-        <!-- Player Dashboard -->
-        <PlayerDashboard />
         
         <!-- Seasonal Assessment Phase -->
         <div v-if="gameStore.currentPhase === GamePhase.SEASONAL_ASSESSMENT" style="display: flex; flex-direction: column; align-items: center; width: 100%; position: relative; border: 2px solid lightblue; padding: 5px;">
@@ -375,6 +373,7 @@
     </main>
     
     <aside class="game-log">
+      <PlayerDashboard />
       <GameLog />
     </aside>
   </div>
