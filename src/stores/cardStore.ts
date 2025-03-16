@@ -10,6 +10,9 @@ import {
   SeasonCard,
   ChallengeCard
 } from '@/models/types/cards';
+import characters from '@/models/data/characters.js';
+import landscapes from '@/models/data/landscapes.js';
+import resources from '@/models/data/resources.js';
 
 interface CardStoreState {
   characters: CharacterCard[];
@@ -120,234 +123,111 @@ export const useCardStore = defineStore('card', {
     },
     
     initializeCharacters() {
-      this.characters = [
-        {
-          id: 'character_1',
-          name: 'The Druid',
-          description: 'A keeper of ancient wisdom with a deep connection to nature.',
+      try {
+        // Characters are exported as both a named export and default export
+        // Access the character data properly, matching the format in characters.js
+        this.characters = characters.map((char: any) => ({
+          id: char.id,
+          name: char.name,
+          description: char.description || '',
           type: CardType.CHARACTER,
-          healthPoints: 8,
-          strength: 6,
-          wisdom: 10,
-          agility: 6,
-          diplomacy: 8,
-          survival: 9,
-          resourceCapacity: 6,
-          image: '/images/characters/druid.jpg',
+          healthPoints: char.health || 5,
+          strength: char.stats?.physical || 0,
+          wisdom: char.stats?.mental || 0,
+          agility: char.stats?.physical || 0,
+          diplomacy: char.stats?.social || 0,
+          survival: char.stats?.spiritual || 0,
+          resourceCapacity: char.resourceCapacity || 5,
           specialAbility: {
-            name: 'Nature\'s Harmony',
-            description: 'Can communicate with animals to gain insights about the landscape.'
+            name: char.abilities?.[0]?.name || '',
+            description: char.abilities?.[0]?.description || ''
           },
-          startingResources: ['resource_1', 'resource_5'],
-          startingCompanion: 'companion_1'
-        },
-        {
-          id: 'character_2',
-          name: 'The Warrior',
-          description: 'A brave fighter skilled in combat and survival.',
-          type: CardType.CHARACTER,
-          healthPoints: 12,
-          strength: 10,
-          wisdom: 6,
-          agility: 8,
-          diplomacy: 5,
-          survival: 8,
-          resourceCapacity: 4,
-          image: '/images/characters/warrior.jpg',
-          specialAbility: {
-            name: 'Battle Prowess',
-            description: 'Years of training have honed combat skills to perfection.'
+          startingResources: char.startingItems || [],
+          startingCompanion: null,
+          image: `/images/characters/${char.image || 'default_character.jpg'}`
+        }));
+      } catch (error) {
+        console.error('Error loading characters:', error);
+        this.characters = [];
+      }
+      
+      // If characters weren't loaded properly, set default characters as fallback
+      if (!this.characters || this.characters.length === 0) {
+        this.characters = [
+          {
+            id: 'giant_beastfriend',
+            name: 'Giant Beastfriend',
+            description: 'A towering figure with a natural affinity for wild creatures.',
+            type: CardType.CHARACTER,
+            healthPoints: 6,
+            strength: 3,
+            wisdom: 2,
+            agility: 1,
+            diplomacy: 1,
+            survival: 2,
+            resourceCapacity: 5,
+            specialAbility: {
+              name: 'Animal Empathy',
+              description: 'Animal Companions cost -1 resource to bond with'
+            },
+            startingResources: ['leather_strips', 'animal_feed'],
+            startingCompanion: null,
+            image: '/images/characters/giant.jpg'
           },
-          startingResources: ['resource_2', 'resource_3']
-        },
-        {
-          id: 'character_3',
-          name: 'The Bard',
-          description: 'A storyteller who carries the history and legends of the Celtic people.',
-          type: CardType.CHARACTER,
-          healthPoints: 6,
-          strength: 5,
-          wisdom: 9,
-          agility: 7,
-          diplomacy: 10,
-          survival: 7,
-          resourceCapacity: 8,
-          image: '/images/characters/bard.jpg',
-          specialAbility: {
-            name: 'Ancient Tales',
-            description: 'Knowledge of old stories reveals secrets of the land.'
-          },
-          startingResources: ['resource_4', 'resource_7', 'resource_9']
-        },
-        {
-          id: 'giant_beastfriend',
-          name: 'Giant Beastfriend',
-          description: 'A towering figure with a natural affinity for wild creatures, able to form bonds with even the most ferocious beasts.',
-          type: CardType.CHARACTER,
-          healthPoints: 7,
-          strength: 8,
-          wisdom: 7,
-          agility: 5,
-          diplomacy: 4,
-          survival: 9,
-          resourceCapacity: 8,
-          image: '/images/characters/giant_beastfriend.jpg',
-          specialAbility: {
-            name: 'Animal Empathy',
-            description: 'Animal Companions cost -1 resource to bond with'
-          },
-          startingResources: ['resource_3', 'resource_6'],
-          challengeBonuses: {
-            'physical': 3,
-            'mental': 2,
-            'spiritual': 3,
-            'social': 1
+          {
+            id: 'forest_druid',
+            name: 'Forest Druid',
+            description: 'A wise keeper of ancient natural knowledge.',
+            type: CardType.CHARACTER,
+            healthPoints: 5,
+            strength: 1,
+            wisdom: 3,
+            agility: 2,
+            diplomacy: 2,
+            survival: 3,
+            resourceCapacity: 6,
+            specialAbility: {
+              name: 'Nature\'s Wisdom',
+              description: 'Healing herbs are twice as effective'
+            },
+            startingResources: ['healing_herbs', 'oak_staff'],
+            startingCompanion: null,
+            image: '/images/characters/druid.jpg'
           }
-        },
-        {
-          id: 'hedge_witch',
-          name: 'Hedge Witch/Warlock',
-          description: 'A practitioner of herbal magic and minor enchantments who dwells at the borderlands between civilization and wilderness.',
-          type: CardType.CHARACTER,
-          healthPoints: 5,
-          strength: 4,
-          wisdom: 10,
-          agility: 6,
-          diplomacy: 5,
-          survival: 8,
-          resourceCapacity: 7,
-          image: '/images/characters/hedge_witch.jpg',
-          specialAbility: {
-            name: 'Herbal Knowledge',
-            description: 'Can substitute one resource for another when crafting'
-          },
-          startingResources: ['resource_8', 'resource_10'],
-          challengeBonuses: {
-            'physical': 1,
-            'mental': 3,
-            'spiritual': 4,
-            'social': 1
-          }
-        },
-        {
-          id: 'iron_crafter',
-          name: 'Iron Crafter',
-          description: 'A master smith whose knowledge of metals and fire allows them to create items of remarkable power.',
-          type: CardType.CHARACTER,
-          healthPoints: 6,
-          strength: 7,
-          wisdom: 8,
-          agility: 5,
-          diplomacy: 6,
-          survival: 6,
-          resourceCapacity: 6,
-          image: '/images/characters/iron_crafter.jpg',
-          specialAbility: {
-            name: 'Master Smith',
-            description: 'Crafting requires one fewer resource'
-          },
-          startingResources: ['resource_2', 'resource_5'],
-          challengeBonuses: {
-            'physical': 3,
-            'mental': 3,
-            'spiritual': 1,
-            'social': 2
-          }
-        },
-        {
-          id: 'village_elder',
-          name: 'Village Elder',
-          description: 'A respected keeper of tradition and wisdom, whose connection to the community provides unique advantages.',
-          type: CardType.CHARACTER,
-          healthPoints: 5,
-          strength: 3,
-          wisdom: 12,
-          agility: 4,
-          diplomacy: 9,
-          survival: 7,
-          resourceCapacity: 5,
-          image: '/images/characters/village_elder.jpg',
-          specialAbility: {
-            name: 'Ancient Wisdom',
-            description: 'Start with knowledge of entire journey path (all landscapes revealed at beginning)'
-          },
-          startingResources: ['resource_7', 'resource_9'],
-          challengeBonuses: {
-            'physical': 1,
-            'mental': 4,
-            'spiritual': 3,
-            'social': 3
-          }
-        }
-      ];
+        ];
+      }
     },
     
     initializeLandscapes() {
-      this.landscapes = [
-        {
-          id: 'landscape_1',
-          name: 'The Misty Forest',
-          description: 'An ancient woodland shrouded in mist where spirits are said to dwell.',
-          type: CardType.LANDSCAPE,
-          challenges: [
-            {
-              id: 'challenge_1',
-              name: 'Lost Path',
-              description: 'The mist has obscured the path, making navigation difficult.',
-              type: ChallengeType.WISDOM,
-              difficulty: 2,
-              rewards: {
-                resources: ['resource_1', 'resource_5'],
-                experience: 1
-              }
+      try {
+        // Map landscapes from landscapes.js data file
+        this.landscapes = landscapes.map((landData) => {
+          const land: any = landData;
+          return {
+            id: land.id,
+            name: land.name,
+            description: land.description || '',
+            type: CardType.LANDSCAPE,
+            challenge: {
+              name: land.challenge || 'Unknown Challenge',
+              description: land.challengeDescription || '',
+              type: land.challengeType as ChallengeType || ChallengeType.WISDOM,
+              difficulty: land.difficulty || 5
             },
-            {
-              id: 'challenge_2',
-              name: 'Forest Guardian',
-              description: 'A mysterious entity blocks your path, demanding a tribute.',
-              type: ChallengeType.DIPLOMACY,
-              difficulty: 3,
-              rewards: {
-                resources: ['resource_7'],
-                experience: 2,
-                knowledge: 'The forest spirits value respect above all else.'
-              }
-            }
-          ],
-          availableResources: ['resource_1', 'resource_5', 'resource_8'],
-          specialFeature: {
-            name: 'Ancient Grove',
-            description: 'A sacred place where druids once gathered.',
-            effect: 'Heal 1 health if you spend a turn meditating here.'
-          }
-        },
-        {
-          id: 'landscape_2',
-          name: 'The Standing Stones',
-          description: 'A circle of megalithic stones humming with ancient power.',
-          type: CardType.LANDSCAPE,
-          challenges: [
-            {
-              id: 'challenge_3',
-              name: 'Ritual Alignment',
-              description: 'The stones must be aligned with the stars to unlock their power.',
-              type: ChallengeType.WISDOM,
-              difficulty: 4,
-              rewards: {
-                resources: ['resource_10'],
-                experience: 2,
-                knowledge: 'The stones align with the seasonal transitions.'
-              }
-            }
-          ],
-          availableResources: ['resource_2', 'resource_10'],
-          specialFeature: {
-            name: 'Ley Line Nexus',
-            description: 'A powerful convergence of earth energies.',
-            effect: 'Your special ability can be used twice in this location.'
-          }
-        }
-      ];
+            availableResources: land.availableResources || [],
+            craftingBonus: land.craftingBonus || [],
+            companions: land.companions || [],
+            healing: land.healing || 0,
+            image: `/images/landscapes/${land.image || 'default_landscape.jpg'}`
+          };
+        });
+        
+        console.log('Landscapes initialized:', this.landscapes.length);
+      } catch (error) {
+        console.error('Error initializing landscapes:', error);
+        // Set default landscapes if needed
+        this.landscapes = [];
+      }
     },
     
     initializeAnimalCompanions() {
@@ -392,58 +272,28 @@ export const useCardStore = defineStore('card', {
     },
     
     initializeResources() {
-      this.resources = [
-        {
-          id: 'resource_1',
-          name: 'Healing Herbs',
-          description: 'Plants with medicinal properties that can restore health.',
+      try {
+        // Map resources from resources.js to ResourceCard format
+        this.resources = resources.map((res: any) => ({
+          id: res.id,
+          name: res.name,
+          description: res.description || '',
           type: CardType.RESOURCE,
-          rarity: 'common',
-          seasonalAbundance: [Season.BELTANE, Season.LUGHNASADH],
-          specialEffect: {
-            name: 'Herbal Remedy',
-            description: 'A poultice made from these herbs can heal wounds.',
-            effect: 'Restore 1 health when used.'
-          }
-        },
-        {
-          id: 'resource_2',
-          name: 'Sacred Oak Wood',
-          description: 'Wood from the revered oak tree, imbued with strength.',
-          type: CardType.RESOURCE,
-          rarity: 'uncommon',
-          seasonalAbundance: [Season.LUGHNASADH]
-        },
-        {
-          id: 'resource_3',
-          name: 'Iron Ore',
-          description: 'Raw metal used for crafting tools and weapons.',
-          type: CardType.RESOURCE,
-          rarity: 'uncommon',
-          seasonalAbundance: [Season.IMBOLC, Season.BELTANE]
-        },
-        {
-          id: 'resource_4',
-          name: 'Mistletoe',
-          description: 'A parasitic plant considered sacred by the druids.',
-          type: CardType.RESOURCE,
-          rarity: 'rare',
-          seasonalAbundance: [Season.WINTERS_DEPTH],
-          specialEffect: {
-            name: 'Druidic Focus',
-            description: 'Enhances spiritual connection when used in rituals.',
-            effect: 'Add +1 to wisdom challenges when used.'
-          }
-        },
-        {
-          id: 'resource_5',
-          name: 'Wild Berries',
-          description: 'Nutritious forest fruits that provide sustenance.',
-          type: CardType.RESOURCE,
-          rarity: 'common',
-          seasonalAbundance: [Season.BELTANE, Season.LUGHNASADH]
-        }
-      ];
+          rarity: 'common', // Default rarity
+          seasonalAbundance: [], // Default seasonal abundance
+          specialEffect: res.useEffect ? {
+            name: res.effect || 'Special Effect',
+            description: res.description || '',
+            effect: res.useEffect || ''
+          } : undefined
+        }));
+        
+        console.log('Resources initialized:', this.resources.length);
+      } catch (error) {
+        console.error('Error initializing resources:', error);
+        // Set default resources if needed
+        this.resources = [];
+      }
     },
     
     initializeCraftedItems() {

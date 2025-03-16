@@ -16,6 +16,11 @@
       </p>
       
       <div class="character-selection">
+        <!-- Debug info to check character data -->
+        <div v-if="characters.length === 0" style="color: red; font-weight: bold;">
+          No characters found! Please check character data initialization.
+        </div>
+        
         <GameCard 
           v-for="character in characters" 
           :key="character.id" 
@@ -41,13 +46,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { usePlayerStore } from '@/stores/playerStore';
 import { useGameStore } from '@/stores/gameStore';
 import { useCardStore } from '@/stores/cardStore';
 import { GamePhase } from '@/models/enums/phases';
 import { Season } from '@/models/enums/seasons';
+import { CardType } from '@/models/enums/cardTypes';
 import type { CharacterCard } from '@/models/types/cards';
 import GameCard from '@/components/core/GameCard.vue'; // Import the GameCard component
 
@@ -63,10 +69,10 @@ const selectedCharacter = ref<CharacterCard | null>(null);
 
 // Load characters when component is mounted
 const loadCharacters = () => {
-  if (!cardStore.initialized) {
-    cardStore.initializeCards();
-  }
+  // Always initialize the cards to ensure we have the latest data
+  cardStore.initializeCards();
   characters.value = cardStore.characters;
+  console.log('Characters loaded:', characters.value.length);
 };
 
 // Select a character
@@ -127,7 +133,9 @@ const startGame = (character: CharacterCard) => {
 };
 
 // Load characters when component is mounted
-loadCharacters();
+onMounted(() => {
+  loadCharacters();
+});
 </script>
 
 <style lang="scss" scoped>

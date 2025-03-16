@@ -120,3 +120,5 @@ export const resources = [
     preferredBy: ['owl']
   }
 ]
+
+export default resources;

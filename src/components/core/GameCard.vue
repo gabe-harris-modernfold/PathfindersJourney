@@ -42,9 +42,10 @@ export default defineComponent({
       default: ''
     },
     cardType: {
-      type: String as PropType<CardType>,
+      type: [String, Object] as PropType<CardType>,
       required: true,
-      validator: (value: string) => {
+      validator: (value: string | CardType) => {
+        // Allow both string values and enum values to be passed
         return Object.values(CardType).includes(value as CardType);
       }
     },
