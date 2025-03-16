@@ -1,26 +1,25 @@
 <template>
   <div class="animal-companion-selection">
-    <h2 class="animal-companion-selection__title">Available Companions</h2>
-    
     <div class="animal-companion-selection__content">
       <div v-if="availableCompanions.length === 0" class="empty-state">
         <p>No animal companions are available in this area.</p>
         <p>Continue your journey to find potential companions.</p>
       </div>
       
-      <div v-else class="companion-grid">
+      <div v-else-if="availableCompanions.length > 0" class="companion-grid">
         <div 
           v-for="companion in availableCompanions" 
           :key="companion.id"
+          class="companion-card-wrapper"
+          @click="handleCompanionCardClick(companion)"
         >
           <GameCard
             :title="companion.name"
-            :subtitle="companion.seasonalAffinity.map(s => formatSeasonName(s)).join(', ')"
+            :subtitle="getCompanionSeasons(companion)"
             :cardType="CardType.ANIMAL_COMPANION"
-            @click="selectAndBondWithCompanion(companion.id)"
           >
             <div class="companion-card-content">
-              <p class="companion-description">{{ companion.abilityDescription }}</p>
+              <p class="companion-description">{{ companion.ability }}</p>
               <div class="companion-resources">
                 <p class="resources-label">Drawn to:</p>
                 <ul class="resources-list">
@@ -29,11 +28,10 @@
                   </li>
                 </ul>
               </div>
-              <div v-if="hasCompatibleResources(companion.id)" class="compatible-resources-notice">
-                You have compatible resources to bond with this companion.
-              </div>
-              <div v-else class="incompatible-resources-notice">
-                You need to gather compatible resources.
+              <div 
+                :class="hasCompatibleResources(companion.id) ? 'compatible-resources-notice' : 'incompatible-resources-notice'"
+              >
+                {{ hasCompatibleResources(companion.id) ? 'Click to form a sacred bond' : 'You need to gather compatible resources' }}
               </div>
             </div>
           </GameCard>
@@ -42,38 +40,29 @@
     </div>
     
     <!-- Bond Dialog -->
-    <div class="bond-dialog-overlay" v-if="showBondDialog">
+    <div v-if="showBondDialog" class="bond-dialog-overlay">
       <div class="bond-dialog">
         <div class="bond-dialog__header">
-          <h3>Bond with {{ selectedCompanionName }}</h3>
+          <h3>Form a Sacred Bond with the {{ selectedCompanion?.name }}</h3>
           <button class="close-btn" @click="closeBondDialog">&times;</button>
         </div>
         
         <div class="bond-dialog__content">
-          <p>Select a resource to form a bond:</p>
+          <p>Select a resource to form your sacred bond:</p>
           
           <div class="resource-list">
             <div 
-              v-for="resource in compatibleResources" 
-              :key="resource.id"
+              v-for="resourceId in compatiblePlayerResources" 
+              :key="resourceId"
               class="resource-item"
-              :class="{ 'selected': selectedResource === resource.id }"
-              @click="selectedResource = resource.id"
+              @click="completeBondingWithResource(resourceId)"
             >
-              <span>{{ resource.name }}</span>
-              <p class="resource-description">{{ resource.description }}</p>
+              <span>{{ getResourceName(resourceId) }}</span>
             </div>
           </div>
         </div>
         
         <div class="bond-dialog__footer">
-          <button 
-            class="btn btn--primary" 
-            @click="confirmBond"
-            :disabled="!selectedResource"
-          >
-            Bond
-          </button>
           <button class="btn btn--secondary" @click="closeBondDialog">
             Cancel
           </button>
@@ -83,410 +72,355 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, computed, onMounted } from 'vue';
-import { useCardStore, usePlayerStore, useGameStore } from '@/stores';
-import { companionService } from '@/services/companionService';
+<script setup lang="ts">
+import { computed, ref, onMounted, defineEmits } from 'vue';
+import { useCardStore } from '@/stores/cardStore';
+import { usePlayerStore } from '@/stores/playerStore';
+import { useGameStore } from '@/stores/gameStore';
 import { Season } from '@/models/enums/seasons';
 import { CardType } from '@/models/enums/cardTypes';
 import GameCard from '@/components/core/GameCard.vue';
+import companions, { AnimalCompanion } from '@/models/data/companions';
 
-export default defineComponent({
-  name: 'AnimalCompanionSelection',
-  components: {
-    GameCard
-  },
-  emits: ['select-companion'],
-  setup(props, { emit }) {
-    const cardStore = useCardStore();
-    const playerStore = usePlayerStore();
-    const gameStore = useGameStore();
-    
-    // Format season name for display
-    const formatSeasonName = (season: Season): string => {
-      return season.replace('_', ' ').split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join(' ');
-    };
-    
-    // Get available companions for current location
-    const availableCompanions = computed(() => {
-      // Get current location ID and season
-      const locationId = gameStore.currentLandscapeId;
-      
-      if (!locationId) {
-        return [];
-      }
-      
-      // Define which companions are available at which landscapes (based on game rules)
-      const landscapeCompanions: { [key: string]: string[] } = {
-        'ancient_stone_circle': ['raven'],
-        'sacred_oak_grove': ['wolf', 'deer', 'bear', 'boar'],
-        'faerie_knoll': ['fox', 'hare'],
-        'moonlit_loch': ['salmon', 'owl'],
-        'whispering_heath': ['raven'],
-        'wild_horse_plain': ['horse']
-      };
-      
-      // Check if current landscape has any companions available
-      if (!landscapeCompanions[locationId]) {
-        return []; // No companions available at this landscape
-      }
-      
-      // Get the companion IDs available at this landscape
-      const availableCompanionTypes = landscapeCompanions[locationId];
-      
-      // Get companions that match the location and the player doesn't already have
-      const companions = cardStore.animalCompanions.filter(companion => {
-        // Skip companions the player already has
-        if (playerStore.animalCompanions.includes(companion.id)) {
-          return false;
-        }
-        
-        // Check if companion type is available at this landscape
-        // Assuming companion IDs contain the animal type (e.g., "wolf_companion")
-        const companionType = companion.id.split('_')[0].toLowerCase();
-        return availableCompanionTypes.includes(companionType);
-      });
-      
-      // Add information about available companions to the journey log
-      if (companions.length > 0) {
-        companions.forEach(companion => {
-          // Get preferred resources for this companion
-          const preferredResources = companion.preferredResources || [];
-          const resourceNames = preferredResources.map(resourceId => {
-            const resource = cardStore.getResourceById(resourceId);
-            return resource ? resource.name : resourceId;
-          }).join(', ');
-          
-          // Check if player has compatible resources
-          const canBond = hasCompatibleResources(companion.id);
-          
-          // Add to journey log
-          gameStore.addToGameLog(
-            `The ${companion.name} can be found in this area. ${canBond ? 'You have compatible resources to bond with it.' : 'You need specific resources to bond with it.'}`,
-            false,
-            'companion',
-            {
-              companionId: companion.id,
-              companionName: companion.name,
-              preferredResources: preferredResources,
-              resourceNames: resourceNames,
-              canBond: canBond,
-              ability: companion.ability,
-              description: companion.description
-            }
-          );
-        });
-      }
-      
-      return companions;
-    });
-    
-    // Bond dialog state
-    const showBondDialog = ref(false);
-    const selectedCompanion = ref('');
-    const selectedResource = ref('');
-    
-    // Select a random companion on component mount
-    onMounted(() => {
-      const randomCompanionId = companionService.selectRandomCompanion();
-      if (randomCompanionId) {
-        selectedCompanion.value = randomCompanionId;
-        // Auto-open bond dialog if we have compatible resources
-        if (hasCompatibleResources(randomCompanionId)) {
-          bondWithCompanion(randomCompanionId);
-        }
-      }
-    });
-    
-    // Get companion name for display
-    const selectedCompanionName = computed(() => {
-      const companion = cardStore.getCompanionById(selectedCompanion.value);
-      return companion ? companion.name : '';
-    });
-    
-    // Get compatible resources for the selected companion
-    const compatibleResources = computed(() => {
-      if (!selectedCompanion.value) return [];
-      
-      return playerStore.resources
-        .filter(resourceId => 
-          companionService.isResourceSuitableForBonding(resourceId, selectedCompanion.value)
-        )
-        .map(resourceId => cardStore.getResourceById(resourceId))
-        .filter(resource => resource !== undefined) as any[];
-    });
-    
-    // Check if player has compatible resources for a companion
-    const hasCompatibleResources = (companionId: string): boolean => {
-      return playerStore.resources.some(resourceId => 
-        companionService.isResourceSuitableForBonding(resourceId, companionId)
-      );
-    };
-    
-    // Select a companion for detail view
-    const selectCompanion = (companionId: string) => {
-      emit('select-companion', companionId);
-      
-      // Add detailed information to journey log when a companion is selected
-      const companion = cardStore.getCompanionById(companionId);
-      if (companion) {
-        // Get preferred resources for this companion
-        const preferredResources = companion.preferredResources || [];
-        const resourceNames = preferredResources.map(resourceId => {
-          const resource = cardStore.getResourceById(resourceId);
-          return resource ? resource.name : resourceId;
-        }).join(', ');
-        
-        gameStore.addToGameLog(
-          `You examine the ${companion.name}. It is drawn to these resources: ${resourceNames}. ${companion.ability}`,
-          false,
-          'companion',
-          {
-            companionId: companionId,
-            companionName: companion.name,
-            preferredResources: preferredResources,
-            ability: companion.ability
-          }
-        );
-      }
-    };
-    
-    // Select and bond with a companion
-    const selectAndBondWithCompanion = (companionId: string) => {
-      selectCompanion(companionId);
-      bondWithCompanion(companionId);
-    };
-    
-    // Open bond dialog
-    const bondWithCompanion = (companionId: string) => {
-      selectedCompanion.value = companionId;
-      const resources = playerStore.resources.filter(resourceId => 
-        companionService.isResourceSuitableForBonding(resourceId, companionId)
-      );
-      
-      if (resources.length > 0) {
-        selectedResource.value = resources[0];
-        showBondDialog.value = true;
-      } else {
-        gameStore.addToGameLog('No compatible resources available for bonding with this companion.');
-      }
-    };
-    
-    // Close bond dialog
-    const closeBondDialog = () => {
-      showBondDialog.value = false;
-      selectedResource.value = '';
-    };
-    
-    // Confirm bonding with companion
-    const confirmBond = () => {
-      if (!selectedCompanion.value || !selectedResource.value) {
-        closeBondDialog();
-        return;
-      }
-      
-      const success = companionService.bondWithCompanion(
-        selectedCompanion.value,
-        selectedResource.value
-      );
-      
-      if (success) {
-        const companion = cardStore.getCompanionById(selectedCompanion.value);
-        gameStore.addToGameLog(
-          `You've bonded with ${companion?.name}!`,
-          true,
-          'companion'
-        );
-        
-        // After bonding, select this companion
-        selectCompanion(selectedCompanion.value);
-      } else {
-        gameStore.addToGameLog('Failed to bond with the companion.');
-      }
-      
-      closeBondDialog();
-    };
-    
-    // Get preferred resource names for a companion
-    const getPreferredResourceNames = (companion: any) => {
-      const preferredResources = companion.preferredResources || [];
-      return preferredResources.map(resourceId => {
-        const resource = cardStore.getResourceById(resourceId);
-        return resource ? resource.name : resourceId;
-      });
-    };
-    
-    return {
-      formatSeasonName,
-      availableCompanions,
-      showBondDialog,
-      selectedCompanion,
-      selectedResource,
-      selectedCompanionName,
-      compatibleResources,
-      hasCompatibleResources,
-      selectCompanion,
-      selectAndBondWithCompanion,
-      bondWithCompanion,
-      closeBondDialog,
-      confirmBond,
-      getPreferredResourceNames
-    };
+const emit = defineEmits(['select-companion']);
+
+// Component setup
+const cardStore = useCardStore();
+const playerStore = usePlayerStore();
+const gameStore = useGameStore();
+
+// State management
+const showBondDialog = ref(false);
+const selectedCompanion = ref<AnimalCompanion | null>(null);
+const compatiblePlayerResources = ref<string[]>([]);
+
+// Get available companions for current location
+const availableCompanions = computed<AnimalCompanion[]>(() => {
+  // Get current location ID
+  const locationId = gameStore.currentLandscapeId;
+  
+  if (!locationId) {
+    return [];
   }
+  
+  // Filter companions that can be found at the current location
+  return companions.filter(companion => {
+    // Skip companions the player already has
+    if (playerStore.animalCompanions.includes(companion.id)) {
+      return false;
+    }
+    
+    // Check if this landscape is where this companion can be found
+    return companion.findLocation === locationId;
+  });
 });
+
+// Format season name for display
+const formatSeasonName = (season: string): string => {
+  if (!season) return '';
+  return season.replace('_', ' ').split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
+
+// Get formatted seasons for a companion
+const getCompanionSeasons = (companion: AnimalCompanion): string => {
+  if (!companion.seasonalAffinity || !Array.isArray(companion.seasonalAffinity)) return '';
+  return companion.seasonalAffinity.map(formatSeasonName).join(', ');
+};
+
+// Get preferred resource names for a companion
+const getPreferredResourceNames = (companion: AnimalCompanion): string[] => {
+  const preferredResources = companion.preferredResources || [];
+  return preferredResources.map(resourceId => {
+    const resource = cardStore.getResourceById(resourceId);
+    return resource ? resource.name : resourceId;
+  });
+};
+
+// Check if player has compatible resources for a companion
+const hasCompatibleResources = (companionId: string): boolean => {
+  const companion = companions.find(c => c.id === companionId);
+  if (!companion) return false;
+  
+  const preferredResources = companion.preferredResources || [];
+  if (preferredResources.length === 0) return true;
+  
+  // Ensure resources are properly typed
+  const playerResourceIds = playerStore.resources.map((r: any) => r.id);
+  return preferredResources.some(resourceId => playerResourceIds.includes(resourceId));
+};
+
+// Get a resource name by ID
+const getResourceName = (resourceId: string): string => {
+  const resource = cardStore.getResourceById(resourceId);
+  return resource ? resource.name : resourceId;
+};
+
+// Handle clicking on a companion card
+const handleCompanionCardClick = (companion: AnimalCompanion): void => {
+  if (!companion) return;
+  
+  selectedCompanion.value = companion;
+  
+  // If player has compatible resources, show bond dialog
+  if (hasCompatibleResources(companion.id)) {
+    // Get all compatible resources player has
+    const preferredResources = companion.preferredResources || [];
+    const playerResourceIds = playerStore.resources.map((r: any) => r.id);
+    
+    compatiblePlayerResources.value = playerResourceIds.filter(resourceId => {
+      if (preferredResources.length === 0) return true;
+      return preferredResources.includes(resourceId);
+    });
+    
+    // Log companion information
+    gameStore.addToGameLog(`The ${companion.name} approaches you, sensing your connection to the ancient elements. You can form a sacred bond with this creature.`, true);
+    
+    // Show the bond dialog
+    showBondDialog.value = true;
+  } else {
+    // Log that player needs resources
+    gameStore.addToGameLog(`The ${companion.name} keeps its distance. To form a sacred bond, you'll need to gather resources it's drawn to.`, true);
+  }
+};
+
+// Close the bond dialog
+const closeBondDialog = (): void => {
+  showBondDialog.value = false;
+  selectedCompanion.value = null;
+  compatiblePlayerResources.value = [];
+};
+
+// Complete bonding with a specific resource
+const completeBondingWithResource = (resourceId: string): void => {
+  if (!selectedCompanion.value) return;
+  
+  // Add companion to player's collection
+  playerStore.addCompanion(selectedCompanion.value.id);
+  
+  // Remove the used resource from player's inventory
+  playerStore.removeResource(resourceId);
+  
+  // Log the bonding with Celtic-themed message
+  const resourceName = getResourceName(resourceId);
+  gameStore.addToGameLog(
+    `You offer the ${resourceName} and form a sacred bond with the ${selectedCompanion.value.name}. ` +
+    `The ${resourceName} glows with ancient energy as it is consumed in the ritual. ` +
+    `The ${selectedCompanion.value.name} will now accompany you on your journey.`, 
+    true
+  );
+  
+  // Close the dialog
+  closeBondDialog();
+  
+  // Emit event to parent component
+  emit('select-companion', selectedCompanion.value.id);
+};
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/scss/variables';
-
 .animal-companion-selection {
-  &__title {
-    margin-bottom: $spacing-md;
-    color: $primary-color;
-  }
-  
-  &__content {
-    margin-bottom: $spacing-lg;
-  }
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: relative;
 }
 
-.empty-state {
-  font-style: italic;
-  color: rgba($dark-color, 0.6);
-  padding: $spacing-md;
-  background-color: rgba($light-color, 0.5);
-  border-radius: $border-radius-md;
-  text-align: center;
+.animal-companion-selection__content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .companion-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: $spacing-md;
+  gap: 1rem;
+}
+
+.companion-card-wrapper {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 0.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.companion-card-wrapper:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .companion-card-content {
-  padding: $spacing-md;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .companion-description {
-  margin-bottom: $spacing-md;
+  font-style: italic;
+  color: #4a5568;
+  margin-bottom: 0.5rem;
 }
 
 .companion-resources {
-  margin-top: $spacing-md;
-  padding-top: $spacing-md;
-  border-top: 1px solid rgba($dark-color, 0.1);
+  margin-top: 0.5rem;
 }
 
 .resources-label {
   font-weight: bold;
-  margin-bottom: $spacing-xs;
+  margin-bottom: 0.25rem;
 }
 
 .resources-list {
-  list-style: none;
-  padding: 0;
+  list-style-type: none;
+  padding-left: 0;
   margin: 0;
+  font-size: 0.9rem;
+}
+
+.resources-list li {
+  display: inline-block;
+  background-color: #edf2f7;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .compatible-resources-notice {
-  color: $success-color;
-  font-size: $font-size-xs;
-  margin-top: $spacing-xs;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: rgba(72, 187, 120, 0.2);
+  color: #2f855a;
+  border-radius: 0.25rem;
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.9rem;
 }
 
 .incompatible-resources-notice {
-  color: $danger-color;
-  font-size: $font-size-xs;
-  margin-top: $spacing-xs;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: rgba(237, 137, 54, 0.2);
+  color: #c05621;
+  border-radius: 0.25rem;
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.9rem;
 }
 
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  background-color: #f7fafc;
+  border-radius: 0.5rem;
+  color: #4a5568;
+}
+
+/* Bond Dialog Styles */
 .bond-dialog-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba($dark-color, 0.5);
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 2000; /* Ensure dialog appears on top */
 }
 
 .bond-dialog {
   background-color: white;
-  padding: $spacing-lg;
-  border-radius: $border-radius-md;
+  border-radius: 0.5rem;
   width: 90%;
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
-  
-  &__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: $spacing-md;
-    
-    h3 {
-      margin-top: 0;
-    }
-    
-    .close-btn {
-      font-size: 1.5rem;
-      cursor: pointer;
-    }
-  }
-  
-  &__content {
-    margin-bottom: $spacing-md;
-  }
-  
-  &__footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: $spacing-sm;
-  }
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+              0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.bond-dialog__header {
+  padding: 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bond-dialog__header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #2d3748;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #a0aec0;
+}
+
+.close-btn:hover {
+  color: #2d3748;
+}
+
+.bond-dialog__content {
+  padding: 1.25rem;
+  flex-grow: 1;
 }
 
 .resource-list {
   display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
-  margin-top: $spacing-sm;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
 }
 
 .resource-item {
-  padding: $spacing-sm;
-  border: 1px solid $border-color;
-  border-radius: $border-radius-md;
+  background-color: #edf2f7;
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
   cursor: pointer;
-  transition: all $transition-normal;
-  
-  span {
-    display: block;
-    font-weight: bold;
-    margin-bottom: $spacing-xs;
-  }
-  
-  .resource-description {
-    font-size: $font-size-xs;
-    color: rgba($dark-color, 0.7);
-    margin: 0;
-  }
-  
-  &:hover {
-    border-color: $accent-color;
-    background-color: rgba($accent-color, 0.1);
-  }
-  
-  &.selected {
-    border-color: $accent-color;
-    background-color: rgba($accent-color, 0.2);
-  }
+  transition: background-color 0.2s ease;
+  font-weight: 500;
+}
+
+.resource-item:hover {
+  background-color: #e2e8f0;
+}
+
+.bond-dialog__footer {
+  padding: 1.25rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s ease;
+}
+
+.btn--secondary {
+  background-color: #e2e8f0;
+  color: #4a5568;
+}
+
+.btn--secondary:hover {
+  background-color: #cbd5e0;
 }
 </style>

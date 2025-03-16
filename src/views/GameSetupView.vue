@@ -109,14 +109,31 @@ const startGame = (character: CharacterCard) => {
     if (!gameStore.currentLandscapeId) {
       const landscapes = cardStore.landscapes;
       if (landscapes.length > 0) {
-        const firstLandscape = landscapes[0];
-        gameStore.setCurrentLandscape(firstLandscape.id);
+        // Find the Ancient Stone Circle landscape
+        const ancientStoneCircle = landscapes.find(landscape => landscape.id === 'ancient_stone_circle');
         
-        // Set a challenge from this landscape
-        if (firstLandscape.challenges && firstLandscape.challenges.length > 0) {
-          const firstChallenge = firstLandscape.challenges[0];
-          gameStore.setCurrentChallenge(firstChallenge.id);
-          console.log('Set initial challenge:', firstChallenge.name);
+        if (ancientStoneCircle) {
+          // Start at the Ancient Stone Circle
+          gameStore.setCurrentLandscape(ancientStoneCircle.id);
+          gameStore.addToGameLog(`You begin your journey at the Ancient Stone Circle.`, true, 'system');
+          
+          // Set a challenge from this landscape
+          if (ancientStoneCircle.challenges && ancientStoneCircle.challenges.length > 0) {
+            const firstChallenge = ancientStoneCircle.challenges[0];
+            gameStore.setCurrentChallenge(firstChallenge.id);
+            console.log('Set initial challenge:', firstChallenge.name);
+          }
+        } else {
+          // Fallback to first landscape if Ancient Stone Circle is not found
+          const firstLandscape = landscapes[0];
+          gameStore.setCurrentLandscape(firstLandscape.id);
+          
+          // Set a challenge from this landscape
+          if (firstLandscape.challenges && firstLandscape.challenges.length > 0) {
+            const firstChallenge = firstLandscape.challenges[0];
+            gameStore.setCurrentChallenge(firstChallenge.id);
+            console.log('Set initial challenge:', firstChallenge.name);
+          }
         }
       }
     }
@@ -134,6 +151,11 @@ const startGame = (character: CharacterCard) => {
 
 // Load characters when component is mounted
 onMounted(() => {
+  // Reset game state when setup view is loaded (handles browser refresh)
+  gameStore.resetGame();
+  playerStore.resetPlayer();
+  
+  // Then load characters
   loadCharacters();
 });
 </script>

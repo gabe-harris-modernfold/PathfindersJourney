@@ -16,7 +16,7 @@
           <div class="mt-4">
             <GameCard 
               title="Continue Journey" 
-              cardType="ACTION"
+              :cardType="CardType.ACTION"
               @click="continueJourney"
             >
               <div style="font-size: 1.1rem; padding: 10px;">
@@ -102,7 +102,7 @@
         <div class="mt-4">
           <GameCard 
             title="Continue Journey" 
-            cardType="ACTION"
+            :cardType="CardType.ACTION"
             @click="continueJourney"
           >
             <div style="font-size: 1.1rem; padding: 10px;">
@@ -118,10 +118,10 @@
 <script lang="ts">
 import { defineComponent, computed, ref, onMounted } from 'vue';
 import { GamePhase } from '@/models/enums/phases';
+import { CardType } from '@/models/enums/cardTypes';
 import { useCardStore, usePlayerStore, useGameStore } from '@/stores';
 import { CraftedItemCard } from '@/models/types/cards';
 import { CraftingService } from '@/services/craftingService';
-import { CardType } from '@/models/enums/cardTypes';
 import GameCard from '@/components/core/GameCard.vue';
 
 export default defineComponent({
@@ -306,7 +306,8 @@ export default defineComponent({
       craftItem,
       cancelCrafting,
       continueJourney,
-      GamePhase
+      GamePhase,
+      CardType // Make CardType available in the template
     };
   }
 });

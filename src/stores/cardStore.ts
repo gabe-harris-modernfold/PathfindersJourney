@@ -14,6 +14,7 @@ import characters from '@/models/data/characters.js';
 import landscapes from '@/models/data/landscapes.js';
 import resources from '@/models/data/resources.js';
 import companions from '@/models/data/companions.js';
+import { seasons } from '@/models/data/seasons.js';
 
 interface CardStoreState {
   characters: CharacterCard[];
@@ -67,23 +68,20 @@ export const useCardStore = defineStore('card', {
     
     getChallengeById: (state) => (id: string) => {
       const allChallenges = state.landscapes.reduce((challenges, landscape) => {
-        if (landscape.challenges) {
-          // Convert landscape challenges to full challenge cards for compatibility
-          const landscapeChallenges = landscape.challenges.map(challenge => ({
-            id: `${landscape.id}_${challenge.type.toLowerCase()}`,
-            name: `${landscape.name} ${challenge.type}`,
-            description: `A ${challenge.type} challenge at ${landscape.name}`,
-            type: challenge.type as ChallengeType,
-            difficulty: challenge.difficulty,
-            rewards: {
-              resources: [],
-              experience: 10,
-              knowledge: landscape.id
-            }
-          }));
-          return [...challenges, ...landscapeChallenges];
-        }
-        return challenges;
+        // Convert single challenge to a challenge card format for compatibility
+        const landscapeChallenge = {
+          id: `${landscape.id}_${landscape.challengeType?.toLowerCase() || 'challenge'}`,
+          name: `${landscape.name} ${landscape.challenge || 'Challenge'}`,
+          description: `A ${landscape.challengeType || 'unknown'} challenge at ${landscape.name}`,
+          type: landscape.challengeType as ChallengeType || ChallengeType.WISDOM,
+          difficulty: landscape.difficulty || 5,
+          rewards: {
+            resources: [],
+            experience: 10,
+            knowledge: landscape.id
+          }
+        };
+        return [...challenges, landscapeChallenge];
       }, [] as ChallengeCard[]);
       
       return allChallenges.find(challenge => challenge.id === id);
@@ -211,7 +209,7 @@ export const useCardStore = defineStore('card', {
             type: CardType.LANDSCAPE,
             challenge: {
               name: land.challenge || 'Unknown Challenge',
-              description: land.challengeDescription || '',
+              description: land.challenge || '',
               type: land.challengeType as ChallengeType || ChallengeType.WISDOM,
               difficulty: land.difficulty || 5
             },
@@ -235,7 +233,7 @@ export const useCardStore = defineStore('card', {
       try {
         // Convert the companions data to the AnimalCompanionCard format
         this.animalCompanions = companions.map((comp: any) => ({
-          id: `${comp.id}_companion`, // Ensure ID format matches what AnimalCompanionSelection expects
+          id: comp.id, // Use the ID directly from companions.js without adding a suffix
           name: comp.name,
           description: comp.abilityDescription || '',
           type: CardType.ANIMAL_COMPANION,
@@ -264,7 +262,7 @@ export const useCardStore = defineStore('card', {
         // Fallback to hardcoded companions if there's an error
         this.animalCompanions = [
           {
-            id: 'raven_companion',
+            id: 'raven',
             name: 'Raven',
             description: 'A wise bird associated with prophecy and insight.',
             type: CardType.ANIMAL_COMPANION,
@@ -277,7 +275,7 @@ export const useCardStore = defineStore('card', {
             affinitySeasons: [Season.SAMHAIN, Season.WINTERS_DEPTH]
           },
           {
-            id: 'wolf_companion',
+            id: 'wolf',
             name: 'Wolf',
             description: 'A loyal pack animal with keen senses.',
             type: CardType.ANIMAL_COMPANION,
@@ -290,7 +288,7 @@ export const useCardStore = defineStore('card', {
             affinitySeasons: [Season.WINTERS_DEPTH, Season.IMBOLC]
           },
           {
-            id: 'deer_companion',
+            id: 'deer',
             name: 'Stag',
             description: 'A majestic forest dweller representing renewal and abundance.',
             type: CardType.ANIMAL_COMPANION,
@@ -419,93 +417,54 @@ export const useCardStore = defineStore('card', {
     },
     
     initializeSeasons() {
-      this.seasons = [
-        {
-          id: 'season_1',
-          name: 'Samhain',
-          description: 'The Celtic new year, when the veil between worlds is thinnest.',
-          type: CardType.SEASON,
-          season: Season.SAMHAIN,
-          abundantResources: ['resource_4'],
-          scarceResources: ['resource_1', 'resource_5'],
-          animalAffinities: ['raven_companion'],
-          effects: [
-            {
-              name: 'Thin Veil',
-              description: 'The boundary between the mortal world and the Otherworld weakens.',
-              effect: 'Wisdom challenges are easier, but unexpected spirits may appear.'
-            }
-          ]
-        },
-        {
-          id: 'season_2',
-          name: 'Winter\'s Depth',
-          description: 'The coldest time of year, when survival is most challenging.',
-          type: CardType.SEASON,
-          season: Season.WINTERS_DEPTH,
-          abundantResources: [],
-          scarceResources: ['resource_1', 'resource_2', 'resource_5'],
-          animalAffinities: ['raven_companion', 'wolf_companion'],
-          effects: [
-            {
-              name: 'Bitter Cold',
-              description: 'The harsh weather tests endurance and resourcefulness.',
-              effect: 'Lose 1 health at the end of each turn unless sheltered.'
-            }
-          ]
-        },
-        {
-          id: 'season_3',
-          name: 'Imbolc',
-          description: 'The first stirrings of spring, a time of purification and renewal.',
-          type: CardType.SEASON,
-          season: Season.IMBOLC,
-          abundantResources: ['resource_3'],
-          scarceResources: [],
-          animalAffinities: ['wolf_companion'],
-          effects: [
-            {
-              name: 'Renewal',
-              description: 'The land begins to awaken from winter\'s slumber.',
-              effect: 'Heal 1 health at the start of each turn.'
-            }
-          ]
-        },
-        {
-          id: 'season_4',
-          name: 'Beltane',
-          description: 'The height of spring, celebrating fertility and growth.',
-          type: CardType.SEASON,
-          season: Season.BELTANE,
-          abundantResources: ['resource_1', 'resource_3', 'resource_5'],
-          scarceResources: ['resource_4'],
-          animalAffinities: ['deer_companion'],
-          effects: [
-            {
-              name: 'Abundant Growth',
-              description: 'The land is lush with new life and energy.',
-              effect: 'Gather one additional resource per turn.'
-            }
-          ]
-        },
-        {
-          id: 'season_5',
-          name: 'Lughnasadh',
-          description: 'The harvest festival, celebrating the first fruits of the season.',
-          type: CardType.SEASON,
-          season: Season.LUGHNASADH,
-          abundantResources: ['resource_1', 'resource_2', 'resource_5'],
-          scarceResources: [],
-          animalAffinities: ['deer_companion'],
-          effects: [
-            {
-              name: 'Harvest Bounty',
-              description: 'The land provides abundant resources before winter.',
-              effect: 'Resource capacity is increased by 2 during this season.'
-            }
-          ]
-        }
-      ];
+      try {
+        this.seasons = seasons.map((seasonData: any) => {
+          // Map the ID to the corresponding Season enum value
+          let seasonEnum: Season;
+          switch(seasonData.id) {
+            case 'samhain':
+              seasonEnum = Season.SAMHAIN;
+              break;
+            case 'wintersDepth':
+              seasonEnum = Season.WINTERS_DEPTH;
+              break;
+            case 'imbolc':
+              seasonEnum = Season.IMBOLC;
+              break;
+            case 'beltane':
+              seasonEnum = Season.BELTANE;
+              break;
+            case 'lughnasadh':
+              seasonEnum = Season.LUGHNASADH;
+              break;
+            default:
+              seasonEnum = Season.SAMHAIN; // Default fallback
+          }
+          
+          return {
+            id: seasonData.id,
+            name: seasonData.name,
+            description: seasonData.description || '',
+            type: CardType.SEASON,
+            season: seasonEnum,
+            abundantResources: seasonData.resourceAbundance || [],
+            scarceResources: seasonData.resourceScarcity || [],
+            animalAffinities: seasonData.animalAffinity || [],
+            effects: [
+              {
+                name: seasonData.quest?.name || '',
+                description: seasonData.effect || '',
+                effect: seasonData.benefit || ''
+              }
+            ]
+          };
+        });
+        
+        console.log('Seasons initialized:', this.seasons.length);
+      } catch (error) {
+        console.error('Error initializing seasons:', error);
+        this.seasons = [];
+      }
     }
   }
 });

@@ -52,7 +52,7 @@
           <div class="action-card">
             <GameCard 
               title="Use Resource" 
-              cardType="ACTION"
+              :cardType="CardType.ACTION"
               @click="useResource"
               :class="{ 'disabled': !canUseSelectedResource }"
             >
@@ -65,7 +65,7 @@
           <div class="action-card">
             <GameCard 
               title="Discard Resource" 
-              cardType="ACTION"
+              :cardType="CardType.ACTION"
               @click="discardResource"
             >
               <div style="font-size: 0.9rem; padding: 5px; text-align: center;">
@@ -77,7 +77,7 @@
           <div class="action-card">
             <GameCard 
               title="Cancel" 
-              cardType="ACTION"
+              :cardType="CardType.ACTION"
               @click="cancelSelection"
             >
               <div style="font-size: 0.9rem; padding: 5px; text-align: center;">
@@ -91,7 +91,7 @@
           <div class="action-card">
             <GameCard 
               title="Gather Resources" 
-              cardType="ACTION"
+              :cardType="CardType.ACTION"
               @click="gatherResources"
             >
               <div style="font-size: 0.9rem; padding: 5px; text-align: center;">
@@ -103,7 +103,7 @@
           <div class="action-card">
             <GameCard 
               title="Continue Journey" 
-              cardType="ACTION"
+              :cardType="CardType.ACTION"
               @click="continueJourney"
             >
               <div style="font-size: 0.9rem; padding: 5px; text-align: center;">
@@ -126,7 +126,9 @@ import { defineComponent, computed, ref } from 'vue';
 import { GamePhase } from '@/models/enums/phases';
 import { CardType } from '@/models/enums/cardTypes';
 import { Season } from '@/models/enums/seasons';
-import { useCardStore, usePlayerStore, useGameStore } from '@/stores';
+import { useCardStore } from '@/stores/cardStore';
+import { usePlayerStore } from '@/stores/playerStore';
+import { useGameStore } from '@/stores/gameStore';
 import { ResourceCard } from '@/models/types/cards';
 import GameCard from '@/components/core/GameCard.vue';
 
@@ -222,11 +224,9 @@ export default defineComponent({
       return '';
     };
     
-    const formatSeasonName = (season: string): string => {
-      // Handle various season formats
-      if (typeof season !== 'string') {
-        return 'Unknown Season';
-      }
+    // Format season name for display
+    const formatSeasonName = (season: string | null): string => {
+      if (!season) return '';
       
       // Try to match with Season enum values
       switch (season) {
@@ -242,9 +242,10 @@ export default defineComponent({
           return 'Lughnasadh';
         default:
           // For legacy string values that aren't enum values
-          return season.replace(/_/g, ' ')
-            .replace(/\b\w/g, l => l.toUpperCase())
-            .replace('Winters Depth', 'Winter\'s Depth');
+          return season.replace('_', ' ')
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
       }
     };
     
@@ -263,12 +264,10 @@ export default defineComponent({
     
     return {
       currentPhase,
-      GamePhase,
-      CardType,
       playerResources,
+      selectedResourceId,
       resourceCapacity,
       selectedResource,
-      selectedResourceId,
       canUseSelectedResource,
       selectResource,
       useResource,
@@ -278,7 +277,9 @@ export default defineComponent({
       gatherResources,
       formatSeasonName,
       getSeasonClassName,
-      getRarityDescription
+      getRarityDescription,
+      GamePhase,
+      CardType
     };
   }
 });

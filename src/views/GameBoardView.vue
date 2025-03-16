@@ -221,8 +221,6 @@
         
         <!-- Animal Companion Phase -->
         <div v-else-if="gameStore.currentPhase === GamePhase.ANIMAL_COMPANION" style="position: relative; border: 2px solid lightblue; padding: 10px;">
-          <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">AnimalCompanionPhase</div>
-          <h2 class="phase-title">ANIMAL COMPANION</h2>
           <div v-if="playerStore.animalCompanions.length === 0">
             <AnimalCompanionSelection
               @select-companion="selectCompanion"
