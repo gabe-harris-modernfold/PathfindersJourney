@@ -125,18 +125,3 @@ Cascade directly integrates with the game's core data models:
 - Each resource has specific seasonal abundance patterns
 
 Cascade's implementation maintains strict adherence to these data models, ensuring consistent game behavior while providing insight across all game phases.
-
-Important Restrictions
-
-All tests are made in the @tests directory
-No mocking tests
-do not run or build the application
-do not execute git commands
-Minimise starting and stopping the npm server
-do not create new files
-do not create new css styles
-work with the existing design
-use exisinting componets
-do not run tests
-minial descricptions of work performed back to the user
-maintain consistancy when naming
