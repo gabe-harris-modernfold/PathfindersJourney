@@ -9,36 +9,25 @@
     
     <div v-else class="crafting-station__active">
       <p class="crafting-station__tip">Crafted items don't count against your resource capacity.</p>
-      <div class="crafting-station__recipes">
-        <h4>Available Recipes</h4>
-        <div v-if="availableRecipes.length === 0" class="empty-state">
-          You don't have enough resources to craft any items.
-          <div class="mt-4">
-            <GameCard 
-              title="Continue Journey" 
-              :cardType="CardType.ACTION"
-              @click="continueJourney"
-            >
-              <div style="font-size: 1.1rem; padding: 10px;">
-                Proceed to the next phase of your adventure
-              </div>
-            </GameCard>
-          </div>
-        </div>
-        <div v-else class="recipe-list">
-          <div 
-            v-for="item in availableRecipes" 
-            :key="item.id"
-            class="recipe-list__item"
-            :class="{ 'selected': selectedRecipe?.id === item.id }"
-            @click="selectRecipe(item)"
+      <div class="resource-cards-row">
+        <!-- Recipe Cards -->
+        <div 
+          v-for="recipe in availableRecipes" 
+          :key="recipe.id"
+          class="recipe-card"
+          :class="{ 'selected': selectedRecipe?.id === recipe.id }"
+          @click="selectRecipe(recipe)"
+        >
+          <GameCard 
+            :title="recipe.name" 
+            :subtitle="'Recipe'" 
+            :cardType="CardType.CRAFTED_ITEM"
           >
-            <h5>{{ item.name }}</h5>
-            <div class="recipe-complexity">Complexity: {{ item.complexity }}</div>
+            <div class="recipe-complexity">Complexity: {{ recipe.complexity }}</div>
             <div class="recipe-resources">
               <div>Required Resources:</div>
               <ul>
-                <li v-for="resourceId in item.requiredResources" :key="resourceId">
+                <li v-for="resourceId in recipe.requiredResources" :key="resourceId">
                   {{ getResourceName(resourceId) }}
                   <span 
                     class="resource-status"
@@ -49,11 +38,57 @@
                 </li>
               </ul>
             </div>
-          </div>
+          </GameCard>
         </div>
+        
+        <!-- Action Cards -->
+        <template v-if="selectedRecipe">
+          <div class="action-card">
+            <GameCard 
+              title="Craft Item" 
+              :cardType="CardType.ACTION"
+              @click="craftItem"
+              :class="{ 'disabled': !canCraftSelectedRecipe }"
+            >
+              <div style="font-size: 0.9rem; padding: 5px; text-align: center;">
+                Create {{ selectedRecipe.name }}
+              </div>
+            </GameCard>
+          </div>
+          
+          <div class="action-card">
+            <GameCard 
+              title="Cancel" 
+              :cardType="CardType.ACTION"
+              @click="cancelCrafting"
+            >
+              <div style="font-size: 0.9rem; padding: 5px; text-align: center;">
+                Return to crafting
+              </div>
+            </GameCard>
+          </div>
+        </template>
+        
+        <template v-if="!selectedRecipe || availableRecipes.length === 0">
+          <div class="action-card">
+            <GameCard 
+              title="Continue Journey" 
+              :cardType="CardType.ACTION"
+              @click="continueJourney"
+            >
+              <div style="font-size: 0.9rem; padding: 5px; text-align: center;">
+                Proceed to the next phase of your adventure
+              </div>
+            </GameCard>
+          </div>
+        </template>
       </div>
       
-      <div v-if="selectedRecipe" class="crafting-station__details">
+      <div v-if="availableRecipes.length === 0" class="empty-state mt-3">
+        You don't have enough resources to craft any items.
+      </div>
+      
+      <div v-if="selectedRecipe" class="crafting-station__details mt-3">
         <h4>{{ selectedRecipe.name }}</h4>
         <p>{{ selectedRecipe.description }}</p>
         
@@ -81,34 +116,6 @@
               </span>
             </li>
           </ul>
-        </div>
-        
-        <div class="crafting-actions mt-4">
-          <button 
-            class="btn btn--primary" 
-            @click="craftItem"
-            :disabled="!canCraftSelectedRecipe"
-          >
-            Craft Item
-          </button>
-          <button class="btn btn--secondary ml-2" @click="cancelCrafting">
-            Cancel
-          </button>
-        </div>
-      </div>
-      
-      <div v-else class="crafting-station__placeholder">
-        <p>Select a recipe to view details and craft an item.</p>
-        <div class="mt-4">
-          <GameCard 
-            title="Continue Journey" 
-            :cardType="CardType.ACTION"
-            @click="continueJourney"
-          >
-            <div style="font-size: 1.1rem; padding: 10px;">
-              Proceed to the next phase of your adventure
-            </div>
-          </GameCard>
         </div>
       </div>
     </div>
@@ -337,13 +344,9 @@ export default defineComponent({
   }
   
   &__active {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-gap: $spacing-lg;
-    
-    @media (max-width: $breakpoint-md) {
-      grid-template-columns: 1fr;
-    }
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
   }
   
   &__tip {
@@ -365,51 +368,59 @@ export default defineComponent({
   }
 }
 
-.recipe-list {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-gap: $spacing-md;
-  max-height: 400px;
-  overflow-y: auto;
+.resource-cards-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
   
-  &__item {
-    background-color: rgba(0, 0, 0, 0.02);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: $border-radius-md;
-    padding: $spacing-md;
-    cursor: pointer;
-    transition: all $transition-fast;
+  .recipe-card, .action-card {
+    flex: 1 0 250px;
+    max-width: 300px;
+    min-width: 200px;
+    margin-bottom: $spacing-sm;
     
-    &:hover {
-      background-color: rgba(0, 0, 0, 0.05);
-      transform: translateY(-2px);
-    }
-    
-    &.selected {
+    &.selected ::v-deep(.game-card) {
       border-color: $accent-color;
       background-color: rgba($accent-color, 0.05);
     }
+  }
+  
+  .action-card ::v-deep(.game-card) {
+    height: 100%;
     
-    h5 {
-      margin-top: 0;
-      margin-bottom: $spacing-xs;
+    &.disabled {
+      opacity: 0.6;
+      pointer-events: none;
     }
   }
 }
 
 .recipe-complexity {
-  font-size: $font-size-sm;
-  color: $accent-color;
+  font-size: 0.85rem;
+  color: rgba($dark-color, 0.8);
   margin-bottom: $spacing-xs;
 }
 
 .recipe-resources {
-  font-size: $font-size-sm;
+  font-size: 0.85rem;
+  margin-top: $spacing-xs;
   
   ul {
-    list-style-type: none;
-    padding-left: $spacing-md;
     margin-top: $spacing-xs;
+    padding-left: $spacing-md;
+  }
+  
+  .resource-status {
+    margin-left: $spacing-xs;
+    
+    &.available {
+      color: $success-color;
+    }
+    
+    &.missing {
+      color: $danger-color;
+    }
   }
 }
 
@@ -448,8 +459,9 @@ export default defineComponent({
 
 .empty-state {
   text-align: center;
-  padding: $spacing-lg;
+  padding: $spacing-md;
   color: rgba($dark-color, 0.6);
-  font-style: italic;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: $border-radius-md;
 }
 </style>
