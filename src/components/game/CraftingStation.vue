@@ -1,8 +1,5 @@
 <template>
-  <div class="crafting-station" style="border: 2px solid rgba(173, 216, 230, 0.3); position: relative;">
-    <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">CraftingStation</div>
-    <h3 class="crafting-station__title">Crafting Station</h3>
-    
+  <div class="crafting-station">
     <div v-if="currentPhase !== GamePhase.CRAFTING" class="crafting-station__inactive">
       <p>Crafting is not available during the current phase.</p>
     </div>
@@ -324,17 +321,7 @@ export default defineComponent({
 @import '@/assets/scss/variables';
 
 .crafting-station {
-  background-color: white;
-  border-radius: $border-radius-md;
-  box-shadow: $shadow-md;
   padding: $spacing-md;
-  
-  &__title {
-    margin-top: 0;
-    margin-bottom: $spacing-md;
-    padding-bottom: $spacing-sm;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  }
   
   &__inactive {
     text-align: center;

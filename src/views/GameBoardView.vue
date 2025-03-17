@@ -180,7 +180,6 @@
             'failure': !lastChallengeResult.success && !lastChallengeResult.partialSuccess
           }">
             <h3>{{ lastChallengeResult.success ? 'Success!' : lastChallengeResult.partialSuccess ? 'Partial Success' : 'Failure' }}</h3>
-            <p>{{ lastChallengeResult.message }}</p>
           </div>
           
           <GameCard 
@@ -254,9 +253,7 @@
         </div>
         
         <!-- Crafting Phase -->
-        <div v-else-if="gameStore.currentPhase === GamePhase.CRAFTING" style="position: relative; border: 2px solid lightblue; padding: 10px;">
-          <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">CraftingPhase</div>
-          <h2 class="phase-title">CRAFTING</h2>
+        <div v-else-if="gameStore.currentPhase === GamePhase.CRAFTING">
           <CraftingStation />
         </div>
         
