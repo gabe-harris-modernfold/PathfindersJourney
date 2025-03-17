@@ -1,5 +1,5 @@
 <template>
-  <div class="status-area">
+  <div class="status-area debug-component" data-component-name="StatusArea">
     <h2 class="status-area__title">Game Status</h2>
     
     <div class="status-area__content">

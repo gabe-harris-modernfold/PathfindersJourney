@@ -1,5 +1,4 @@
 mportant Restrictions
-
 All tests are made in the @tests directory
 No mocking tests
 do not run or build the application
@@ -11,4 +10,4 @@ work with the existing design
 use existing componets
 do not run tests
 minial descricptions of work performed back to the user
-maintain consistancy when naming
+maintain consistancy with models in src\models\data use using properites

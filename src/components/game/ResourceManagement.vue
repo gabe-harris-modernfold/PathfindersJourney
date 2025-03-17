@@ -1,5 +1,5 @@
 <template>
-  <div class="resource-management">
+  <div class="resource-management debug-component" data-component-name="ResourceManagement">
     <div v-if="currentPhase !== GamePhase.RESOURCE_MANAGEMENT" class="resource-management__inactive">
       <p>Resource management is not available during the current phase.</p>
     </div>

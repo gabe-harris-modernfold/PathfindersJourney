@@ -99,12 +99,12 @@
       
       <!-- Phase-specific content -->
       <section class="phase-content" style="border: 2px solid lightblue; position: relative; margin-top: 0; padding: 5px; background-color: rgba(240, 230, 210, 0.3); border-radius: 8px; border: 1px solid #8c7851;">
-        <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">GameBoardView</div>
-        <div style="position: absolute; top: -20px; left: 115px; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">PhaseContent</div>
+        <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">GameBoardView</div>
+        <div style="position: absolute; top: -20px; left: 115px; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">PhaseContent</div>
         
         <!-- Seasonal Assessment Phase -->
-        <div v-if="gameStore.currentPhase === GamePhase.SEASONAL_ASSESSMENT" style="display: flex; flex-direction: column; align-items: center; width: 100%; position: relative; border: 2px solid lightblue; padding: 5px;">
-          <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">SeasonalAssessmentPhase</div>
+        <div v-if="gameStore.currentPhase === GamePhase.SEASONAL_ASSESSMENT" style="display: flex; flex-direction: column; align-items: center; width: 100%; position: relative; border: 2px solid rgba(173, 216, 230, 0.3); padding: 5px;">
+          <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">SeasonalAssessmentPhase</div>
           <GameCard 
             title="Continue Journey" 
             cardType="ACTION"
@@ -196,7 +196,7 @@
         
         <!-- Threat Level Check Phase -->
         <div v-else-if="gameStore.currentPhase === GamePhase.THREAT_LEVEL_CHECK" style="position: relative; border: 2px solid lightblue; padding: 10px;">
-          <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">ThreatLevelCheckPhase</div>
+          <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">ThreatLevelCheckPhase</div>
           <div class="phase-description">
             <div>
               <!-- Threat meter removed -->
@@ -215,7 +215,7 @@
         
         <!-- Resource Management Phase -->
         <div v-else-if="gameStore.currentPhase === GamePhase.RESOURCE_MANAGEMENT" style="position: relative; border: 2px solid lightblue; padding: 10px;">
-          <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">ResourceManagementPhase</div>
+          <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">ResourceManagementPhase</div>
           <ResourceManagement />
         </div>
         
@@ -255,7 +255,7 @@
         
         <!-- Crafting Phase -->
         <div v-else-if="gameStore.currentPhase === GamePhase.CRAFTING" style="position: relative; border: 2px solid lightblue; padding: 10px;">
-          <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">CraftingPhase</div>
+          <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">CraftingPhase</div>
           <h2 class="phase-title">CRAFTING</h2>
           <CraftingStation />
         </div>
@@ -279,7 +279,7 @@
         
         <!-- Journey Progression Phase -->
         <div v-else-if="gameStore.currentPhase === GamePhase.JOURNEY_PROGRESSION" style="position: relative; border: 2px solid lightblue; padding: 10px;">
-          <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">JourneyProgressionPhase</div>
+          <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">JourneyProgressionPhase</div>
           <h2 class="phase-title">JOURNEY PROGRESSION</h2>
           <div class="phase-description">
             <p>You are ready to journey to the next landscape.</p>
@@ -312,7 +312,7 @@
         
         <!-- Landscape Challenge Phase -->
         <div v-else-if="gameStore.currentPhase === GamePhase.LANDSCAPE_CHALLENGE" style="position: relative; border: 2px solid lightblue; padding: 10px;">
-          <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">LandscapeChallengePhase</div>
+          <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">LandscapeChallengePhase</div>
           <div class="challenge-actions" style="margin-top: 20px; display: flex; gap: 10px;">
             <GameCard 
               title="Roll D8 and Resolve Challenge" 
@@ -338,7 +338,7 @@
         
         <!-- Challenge Resolution Phase -->
         <div v-else-if="gameStore.currentPhase === GamePhase.CHALLENGE_RESOLUTION" style="position: relative; border: 2px solid lightblue; padding: 10px;">
-          <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">ChallengeResolutionPhase</div>
+          <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">ChallengeResolutionPhase</div>
           <h2 class="phase-title">CHALLENGE RESOLUTION</h2>
           <div class="phase-description">
             <p>Resolve the current challenge with your skills and resources.</p>

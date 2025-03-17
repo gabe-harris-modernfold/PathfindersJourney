@@ -1,5 +1,5 @@
 <template>
-  <div class="animal-companion-selection">
+  <div class="animal-companion-selection debug-component" data-component-name="AnimalCompanionSelection">
     <div class="animal-companion-selection__content">
       <div v-if="availableCompanions.length === 0" class="empty-state">
         <p>No animal companions are available in this area.</p>

@@ -1,5 +1,5 @@
 <template>
-  <div class="companion-management">
+  <div class="companion-management debug-component" data-component-name="CompanionManagement">
     <div class="companion-management__header">
       <h2 class="companion-management__title">Animal Companions</h2>
     </div>

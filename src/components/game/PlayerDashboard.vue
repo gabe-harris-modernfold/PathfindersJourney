@@ -1,6 +1,6 @@
 <template>
-  <div class="player-dashboard" style="border: 2px solid lightblue; position: relative; height: auto; min-height: 50px; display: flex; flex-direction: column; align-items: flex-start; padding: 10px;">
-    <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">PlayerDashboard</div>
+  <div class="player-dashboard" style="border: 2px solid rgba(173, 216, 230, 0.3); position: relative; height: auto; min-height: 50px; display: flex; flex-direction: column; align-items: flex-start; padding: 10px;">
+    <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">PlayerDashboard</div>
     <div class="player-info" style="width: 100%;">
       <div class="player-stats" style="display: flex; gap: 20px; margin-bottom: 10px;">
         <div class="stat">

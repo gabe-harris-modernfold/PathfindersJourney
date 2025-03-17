@@ -1,6 +1,6 @@
 <template>
-  <div class="game-log" style="border: 2px solid lightblue; position: relative;">
-    <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">GameLog</div>
+  <div class="game-log" style="border: 2px solid rgba(173, 216, 230, 0.3); position: relative;">
+    <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">GameLog</div>
     <h3 class="game-log__title">Journey Log</h3>
     <div class="game-log__entries" ref="logContainer">
       <div v-if="gameLog.length === 0" class="game-log__empty">

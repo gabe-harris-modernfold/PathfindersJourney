@@ -1,6 +1,6 @@
 <template>
-  <div class="crafting-station" style="border: 2px solid lightblue; position: relative;">
-    <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">CraftingStation</div>
+  <div class="crafting-station" style="border: 2px solid rgba(173, 216, 230, 0.3); position: relative;">
+    <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">CraftingStation</div>
     <h3 class="crafting-station__title">Crafting Station</h3>
     
     <div v-if="currentPhase !== GamePhase.CRAFTING" class="crafting-station__inactive">

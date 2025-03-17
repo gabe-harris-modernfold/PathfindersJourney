@@ -5,7 +5,7 @@
     @click="$emit('click', $event)"
     style="position: relative; border-radius: 12px; aspect-ratio: 2.5/3.5; max-width: 220px; width: 100%; display: flex; flex-direction: column; box-shadow: 3px 3px 8px rgba(0,0,0,0.2); overflow: hidden; background: linear-gradient(to bottom, #f0e6d2 0%, #e6d7b9 100%); border: 2px solid #8c7851;"
   >
-    <div style="position: absolute; top: -20px; left: 0; background-color: #f0e6d2; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">GameCard</div>
+    <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">GameCard</div>
     
     <div class="game-card__header" style="border-top-left-radius: 12px; border-top-right-radius: 12px; padding: 10px; text-align: center; background-color: rgba(140, 120, 81, 0.25);">
       <h3 style="margin: 0; font-size: 1.1rem; text-transform: capitalize; color: #5a3e2b; font-weight: bold; letter-spacing: 0.5px;">{{ title }}</h3>
