@@ -1,0 +1,59 @@
+This is a card game and has a card game layout. Ui interaction are represernted as a card. Example a button would be a card. If user is present several options to choose from then keep the option card the user clicked the rest of the option choice cards disappear.I need this UI simplified. into less componets. The card should have a heading, a body text and an image.
+
+
+
+I need you to simplfy the componets used in this card game project.
+# Card Game UI Framework
+
+## Core Card Component
+Each interactive element in the game is represented as a card with:
+- Header: Bold, clear title (12-20 characters)
+- Body: Concise description or instructions (max 100 characters)
+- Image: Relevant visual (16:9 ratio, centered)
+- [Optional] Action button or interactive element
+
+## Interaction Model
+- Cards function as both display and interactive elements
+- Clicking a card triggers its associated action
+- When presenting choices, display 2-5 option cards in a horizontal/grid layout
+- Upon selection, non-selected cards gracefully fade out (300ms animation)
+- Selected card expands slightly (110% scale) and centers in view
+
+## Card States
+- Default: Neutral appearance
+- Hover: Subtle glow effect
+- Selected: Highlighted border/background
+- Disabled: Desaturated appearance with "locked" indicator
+
+## Layout Guidelines
+- Cards flow horizontally next to each other in a word-wrap style
+- New cards automatically wrap to next row when space is filled
+- Group related cards in contextual sections
+- Maintain consistent spacing (16px between cards)
+- Ensure touch-friendly tap targets (minimum 44x44px)
+- Responsive design: Cards reflow based on screen size
+
+## Animation Guidelines
+- Card transitions: Smooth easing (300ms)
+- Card appearance: Subtle fade-in (200ms)
+- Card removal: Fade-out with slight rotation (250ms)
+
+## Component Hierarchy
+1. GameBoard: Main container
+2. CardSection: Contextual grouping
+3. Card: Individual interactive element
+
+## Best Practices
+- Use consistent visual language across all cards
+- Prioritize readability (18px+ body text)
+- Maintain clear affordances for interactive elements
+- Implement accessibility features (screen reader support)
+- Keep card content focused on single purpose/action
+
+Do not add new css. 
+do not add to exisintg datamodels
+No more than 5 components
+only make changes to components in the components folder.
+think carefully about reducing the amount of code.
+
+I am upgrading components to be more consistent and easier to use. I am moving from component to componentsv2.

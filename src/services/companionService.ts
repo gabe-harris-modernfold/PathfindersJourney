@@ -313,6 +313,69 @@ class CompanionService {
       effect(playerStore);
     }
   }
+
+  /**
+   * Get the loyalty bar style for UI display
+   * @param companionId The ID of the companion or a loyalty value
+   * @returns CSS style object for the loyalty bar
+   */
+  getLoyaltyBarStyle(companionIdOrValue: string | number): Record<string, string> {
+    let loyaltyValue: number;
+    
+    // If a companionId is provided, get the loyalty value
+    if (typeof companionIdOrValue === 'string') {
+      loyaltyValue = this.getLoyalty(companionIdOrValue);
+    } else {
+      loyaltyValue = companionIdOrValue;
+    }
+    
+    const percentage = (loyaltyValue / 5) * 100;
+    return {
+      width: `${percentage}%`,
+      backgroundColor: this.getLoyaltyColor(loyaltyValue)
+    };
+  }
+  
+  /**
+   * Get color based on loyalty level
+   * @param loyalty The loyalty level
+   * @returns CSS color value
+   */
+  getLoyaltyColor(loyalty: number): string {
+    if (loyalty <= 1) return '#FF5252'; // Danger - Red
+    if (loyalty <= 3) return '#FFC107'; // Warning - Yellow
+    return '#4CAF50'; // Success - Green
+  }
+  
+  /**
+   * Format season name for display
+   * @param season The season name/id
+   * @returns Formatted season name
+   */
+  formatSeasonName(season: string): string {
+    return season.replace('_', ' ').split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
+  
+  /**
+   * Get compatible resources for feeding a companion
+   * @param companionId The ID of the companion
+   * @returns Array of resource objects suitable for the companion
+   */
+  getCompatibleResources(companionId: string): any[] {
+    const cardStore = useCardStore();
+    const playerStore = usePlayerStore();
+    
+    // Get all player resources
+    const playerResourceIds = cardStore.getPlayerResources();
+    
+    // Filter resources that are suitable for the companion
+    return playerResourceIds
+      .map(id => cardStore.getResourceById(id))
+      .filter(resource => resource && 
+        this.isResourceSuitableForBonding(resource.id, companionId));
+  }
 }
 
 export const companionService = new CompanionService();

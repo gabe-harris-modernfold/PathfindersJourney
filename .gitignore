@@ -1,2 +1,4 @@
 /node_modules
 /cypress
+src/repomix-output.xml
+src/components/repomix-output.xml

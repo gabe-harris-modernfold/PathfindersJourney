@@ -165,6 +165,45 @@ class ResourceService {
     
     return adjusted;
   }
+
+  /**
+   * Format season name for display
+   * @param season The season name/id
+   * @returns Formatted season name
+   */
+  formatSeasonName(season: string | null): string {
+    if (!season) return '';
+    
+    return season.replace('_', ' ')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
+  
+  /**
+   * Convert season value to a CSS class name
+   * @param season The season name/id
+   * @returns CSS class name
+   */
+  getSeasonClassName(season: string): string {
+    if (typeof season === 'string') {
+      return season.toLowerCase().replace(/_/g, '-');
+    }
+    return '';
+  }
+  
+  /**
+   * Truncate description to keep card content concise
+   * @param text The text to truncate
+   * @param maxLength Maximum length before truncation
+   * @returns Truncated text
+   */
+  truncateDescription(text: string, maxLength = 60): string {
+    if (!text) return '';
+    return text.length > maxLength 
+      ? text.substring(0, maxLength) + '...' 
+      : text;
+  }
 }
 
 export const resourceService = new ResourceService();

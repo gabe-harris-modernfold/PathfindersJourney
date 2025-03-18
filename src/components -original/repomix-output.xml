@@ -1,0 +1,3401 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+<additional_info>
+
+</additional_info>
+
+</file_summary>
+
+<directory_structure>
+core/GameCard.vue
+game/AnimalCompanionSelection.vue
+game/CompanionCard.vue
+game/CompanionManagement.vue
+game/CraftingStation.vue
+game/GameLog.vue
+game/GameMap.vue
+game/PlayerDashboard.vue
+game/ResourceManagement.vue
+game/StatusArea.vue
+layout/GameLayout.vue
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="core/GameCard.vue">
+<template>
+  <div 
+    class="game-card" 
+    :class="cardTypeClass"
+    @click="$emit('click', $event)"
+    style="position: relative; border-radius: 12px; aspect-ratio: 2.5/3.5; max-width: 220px; width: 100%; display: flex; flex-direction: column; box-shadow: 3px 3px 8px rgba(0,0,0,0.2); overflow: hidden; background: linear-gradient(to bottom, #f0e6d2 0%, #e6d7b9 100%); border: 2px solid #8c7851;"
+  >
+    <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">GameCard</div>
+    
+    <div class="game-card__header" style="border-top-left-radius: 12px; border-top-right-radius: 12px; padding: 10px; text-align: center; background-color: rgba(140, 120, 81, 0.25);">
+      <h3 style="margin: 0; font-size: 1.1rem; text-transform: capitalize; color: #5a3e2b; font-weight: bold; letter-spacing: 0.5px;">{{ title }}</h3>
+      <div v-if="subtitle" class="game-card__subtitle" style="font-size: 0.8rem; opacity: 0.8; color: #5a3e2b;">{{ subtitle }}</div>
+    </div>
+    
+    <!-- Center suit symbol -->
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 4rem; opacity: 0.07; pointer-events: none; color: #5a3e2b;">{{ getSuitSymbol() }}</div>
+    
+    <div class="game-card__body" style="flex-grow: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 15px; z-index: 1; color: #5a3e2b;">
+      <slot></slot>
+    </div>
+    
+    <div v-if="$slots.footer" class="game-card__footer" style="border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; padding: 10px; text-align: center; background-color: rgba(140, 120, 81, 0.15);">
+      <slot name="footer"></slot>
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent, PropType } from 'vue';
+import { CardType } from '@/models/enums/cardTypes';
+import { Season } from '@/models/enums/seasons';
+
+export default defineComponent({
+  name: 'GameCard',
+  props: {
+    title: {
+      type: String,
+      required: true
+    },
+    subtitle: {
+      type: String,
+      default: ''
+    },
+    cardType: {
+      type: [String, Object] as PropType<CardType>,
+      required: true,
+      validator: (value: string | CardType) => {
+        // Allow both string values and enum values to be passed
+        return Object.values(CardType).includes(value as CardType);
+      }
+    },
+    season: {
+      type: String as PropType<Season | null>,
+      default: null,
+      validator: (value: string) => {
+        return value === null || Object.values(Season).includes(value as Season);
+      }
+    }
+  },
+  computed: {
+    cardTypeClass() {
+      if (!this.cardType) return {};
+      
+      const cardTypeValue = this.cardType.toLowerCase();
+      const classes = {
+        [`game-card--${cardTypeValue.replace(/_/g, '-')}`]: true
+      };
+      
+      if (this.cardType === CardType.SEASON && this.season) {
+        classes[this.season.toLowerCase()] = true;
+      }
+      
+      return classes;
+    },
+    
+    cardTypeIdentifierClass() {
+      if (!this.cardType) return '';
+      
+      switch(this.cardType) {
+        case CardType.LANDSCAPE:
+          return 'stone-arch-border';
+        case CardType.ANIMAL_COMPANION:
+          return 'paw-print-corner';
+        case CardType.RESOURCE:
+          return 'woven-basket';
+        case CardType.CRAFTED_ITEM:
+          return 'anvil-symbol';
+        case CardType.SEASON:
+          return 'wheel-symbol';
+        case CardType.CHARACTER:
+          return 'silhouette-symbol';
+        case CardType.ACTION:
+          return 'arrow-symbol';
+        default:
+          return '';
+      }
+    }
+  },
+  methods: {
+    getSuitSymbol() {
+      // Return different suit symbols based on card type
+      switch(this.cardType) {
+        case CardType.LANDSCAPE:
+          return '♣'; // clubs
+        case CardType.ANIMAL_COMPANION:
+          return '♥'; // hearts
+        case CardType.RESOURCE:
+          return '♦'; // diamonds
+        case CardType.CRAFTED_ITEM:
+          return '♠'; // spades
+        case CardType.SEASON:
+          return '★'; // star
+        case CardType.CHARACTER:
+          return '✦'; // diamond star
+        case CardType.ACTION:
+          return '➜'; // arrow
+        default:
+          return '•'; // bullet
+      }
+    }
+  },
+  emits: ['click']
+});
+</script>
+
+<style lang="scss" scoped>
+// Card styles
+.game-card {
+  font-family: 'Cinzel', serif;
+  
+  // Season-specific styling
+  &.game-card--season {
+    &.samhain {
+      background: linear-gradient(to bottom, #f0e6d2 0%, #d2a679 100%);
+    }
+    
+    &.winters_depth {
+      background: linear-gradient(to bottom, #f0e6d2 0%, #b3c7d6 100%);
+    }
+    
+    &.imbolc {
+      background: linear-gradient(to bottom, #f0e6d2 0%, #c6d8c6 100%);
+    }
+    
+    &.beltane {
+      background: linear-gradient(to bottom, #f0e6d2 0%, #f7c9a9 100%);
+    }
+    
+    &.lughnasadh {
+      background: linear-gradient(to bottom, #f0e6d2 0%, #f0d9a0 100%);
+    }
+  }
+  
+  // Card type styling
+  &.game-card--landscape {
+    border-top: 4px solid #6c4f30;
+  }
+  
+  &.game-card--animal-companion {
+    border-top: 4px solid #8a4444;
+  }
+  
+  &.game-card--resource {
+    border-top: 4px solid #4c6c42;
+  }
+  
+  &.game-card--crafted-item {
+    border-top: 4px solid #444b69;
+  }
+  
+  &.game-card--character {
+    border: 2px solid #82632b;
+    border-top-width: 4px;
+  }
+  
+  &.game-card--action {
+    border: 2px solid #5a3e2b;
+    border-top-width: 4px;
+    background: linear-gradient(to bottom, #f0c8a0 0%, #8c7851 100%);
+  }
+  
+  .game-card__body p {
+    font-size: 11px;
+  }
+  
+  &__header {
+    padding: 10px;
+    font-family: 'Cinzel', serif;
+    position: relative;
+    z-index: 1;
+  }
+  
+  &__title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+  }
+  
+  &__subtitle {
+    margin: 5px 0 0;
+    font-size: 12px;
+    opacity: 0.8;
+  }
+
+  &__body {
+    padding: 15px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    
+    p {
+      font-size: 11px;
+      line-height: 1.4;
+      margin-bottom: 10px;
+    }
+  }
+}
+</style>
+</file>
+
+<file path="game/AnimalCompanionSelection.vue">
+<template>
+  <div class="animal-companion-selection debug-component" data-component-name="AnimalCompanionSelection">
+    <div class="animal-companion-selection__content">
+      <div v-if="availableCompanions.length === 0" class="empty-state">
+        <p>No animal companions are available in this area.</p>
+        <p>Continue your journey to find potential companions.</p>
+      </div>
+      
+      <div v-else-if="availableCompanions.length > 0" class="companion-grid">
+        <div 
+          v-for="companion in availableCompanions" 
+          :key="companion.id"
+          class="companion-card-wrapper"
+          @click="handleCompanionCardClick(companion)"
+        >
+          <GameCard
+            :title="companion.name"
+            :subtitle="getCompanionSeasons(companion)"
+            :cardType="CardType.ANIMAL_COMPANION"
+          >
+            <div class="companion-card-content">
+              <p class="companion-description">{{ companion.ability }}</p>
+              <div class="companion-resources">
+                <p class="resources-label">Drawn to:</p>
+                <ul class="resources-list">
+                  <li v-for="(resource, index) in getPreferredResourceNames(companion)" :key="index">
+                    {{ resource }}
+                  </li>
+                </ul>
+              </div>
+              <div 
+                :class="hasCompatibleResources(companion.id) ? 'compatible-resources-notice' : 'incompatible-resources-notice'"
+              >
+                {{ hasCompatibleResources(companion.id) ? 'Click to form a sacred bond' : 'You need to gather compatible resources' }}
+              </div>
+            </div>
+          </GameCard>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Bond Dialog -->
+    <div v-if="showBondDialog" class="bond-dialog-overlay">
+      <div class="bond-dialog">
+        <div class="bond-dialog__header">
+          <h3>Form a Sacred Bond with the {{ selectedCompanion?.name }}</h3>
+          <button class="close-btn" @click="closeBondDialog">&times;</button>
+        </div>
+        
+        <div class="bond-dialog__content">
+          <p>Select a resource to form your sacred bond:</p>
+          
+          <div class="resource-list">
+            <div 
+              v-for="resourceId in compatiblePlayerResources" 
+              :key="resourceId"
+              class="resource-item"
+              @click="completeBondingWithResource(resourceId)"
+            >
+              <span>{{ getResourceName(resourceId) }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bond-dialog__footer">
+          <button class="btn btn--secondary" @click="closeBondDialog">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, ref, onMounted, defineEmits } from 'vue';
+import { useCardStore } from '@/stores/cardStore';
+import { usePlayerStore } from '@/stores/playerStore';
+import { useGameStore } from '@/stores/gameStore';
+import { Season } from '@/models/enums/seasons';
+import { CardType } from '@/models/enums/cardTypes';
+import GameCard from '@/components/core/GameCard.vue';
+import companions, { AnimalCompanion } from '@/models/data/companions';
+
+const emit = defineEmits(['select-companion']);
+
+// Component setup
+const cardStore = useCardStore();
+const playerStore = usePlayerStore();
+const gameStore = useGameStore();
+
+// State management
+const showBondDialog = ref(false);
+const selectedCompanion = ref<AnimalCompanion | null>(null);
+const compatiblePlayerResources = ref<string[]>([]);
+
+// Get available companions for current location
+const availableCompanions = computed<AnimalCompanion[]>(() => {
+  // Get current location ID
+  const locationId = gameStore.currentLandscapeId;
+  
+  if (!locationId) {
+    return [];
+  }
+  
+  // Filter companions that can be found at the current location
+  return companions.filter(companion => {
+    // Skip companions the player already has
+    if (playerStore.animalCompanions.includes(companion.id)) {
+      return false;
+    }
+    
+    // Check if this landscape is where this companion can be found
+    return companion.findLocation === locationId;
+  });
+});
+
+// Format season name for display
+const formatSeasonName = (season: string): string => {
+  if (!season) return '';
+  return season.replace('_', ' ').split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
+
+// Get formatted seasons for a companion
+const getCompanionSeasons = (companion: AnimalCompanion): string => {
+  if (!companion.seasonalAffinity || !Array.isArray(companion.seasonalAffinity)) return '';
+  return companion.seasonalAffinity.map(formatSeasonName).join(', ');
+};
+
+// Get preferred resource names for a companion
+const getPreferredResourceNames = (companion: AnimalCompanion): string[] => {
+  const preferredResources = companion.preferredResources || [];
+  return preferredResources.map(resourceId => {
+    const resource = cardStore.getResourceById(resourceId);
+    return resource ? resource.name : resourceId;
+  });
+};
+
+// Check if player has compatible resources for a companion
+const hasCompatibleResources = (companionId: string): boolean => {
+  const companion = companions.find(c => c.id === companionId);
+  if (!companion) return false;
+  
+  const preferredResources = companion.preferredResources || [];
+  if (preferredResources.length === 0) return true;
+  
+  // Ensure resources are properly typed
+  const playerResourceIds = playerStore.resources.map((r: any) => r.id);
+  return preferredResources.some(resourceId => playerResourceIds.includes(resourceId));
+};
+
+// Get a resource name by ID
+const getResourceName = (resourceId: string): string => {
+  const resource = cardStore.getResourceById(resourceId);
+  return resource ? resource.name : resourceId;
+};
+
+// Handle clicking on a companion card
+const handleCompanionCardClick = (companion: AnimalCompanion): void => {
+  if (!companion) return;
+  
+  selectedCompanion.value = companion;
+  
+  // If player has compatible resources, show bond dialog
+  if (hasCompatibleResources(companion.id)) {
+    // Get all compatible resources player has
+    const preferredResources = companion.preferredResources || [];
+    const playerResourceIds = playerStore.resources.map((r: any) => r.id);
+    
+    compatiblePlayerResources.value = playerResourceIds.filter(resourceId => {
+      if (preferredResources.length === 0) return true;
+      return preferredResources.includes(resourceId);
+    });
+    
+    // Log companion information
+    gameStore.addToGameLog(`The ${companion.name} approaches you, sensing your connection to the ancient elements. You can form a sacred bond with this creature.`, true);
+    
+    // Show the bond dialog
+    showBondDialog.value = true;
+  } else {
+    // Log that player needs resources
+    gameStore.addToGameLog(`The ${companion.name} keeps its distance. To form a sacred bond, you'll need to gather resources it's drawn to.`, true);
+  }
+};
+
+// Close the bond dialog
+const closeBondDialog = (): void => {
+  showBondDialog.value = false;
+  selectedCompanion.value = null;
+  compatiblePlayerResources.value = [];
+};
+
+// Complete bonding with a specific resource
+const completeBondingWithResource = (resourceId: string): void => {
+  if (!selectedCompanion.value) return;
+  
+  // Add companion to player's collection
+  playerStore.addCompanion(selectedCompanion.value.id);
+  
+  // Remove the used resource from player's inventory
+  playerStore.removeResource(resourceId);
+  
+  // Log the bonding with Celtic-themed message
+  const resourceName = getResourceName(resourceId);
+  gameStore.addToGameLog(
+    `You offer the ${resourceName} and form a sacred bond with the ${selectedCompanion.value.name}. ` +
+    `The ${resourceName} glows with ancient energy as it is consumed in the ritual. ` +
+    `The ${selectedCompanion.value.name} will now accompany you on your journey.`, 
+    true
+  );
+  
+  // Close the dialog
+  closeBondDialog();
+  
+  // Emit event to parent component
+  emit('select-companion', selectedCompanion.value.id);
+};
+</script>
+
+<style lang="scss" scoped>
+.animal-companion-selection {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: relative;
+}
+
+.animal-companion-selection__content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.companion-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.companion-card-wrapper {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 0.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.companion-card-wrapper:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.companion-card-content {
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.companion-description {
+  font-style: italic;
+  color: #4a5568;
+  margin-bottom: 0.5rem;
+}
+
+.companion-resources {
+  margin-top: 0.5rem;
+}
+
+.resources-label {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.resources-list {
+  list-style-type: none;
+  padding-left: 0;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.resources-list li {
+  display: inline-block;
+  background-color: #edf2f7;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.compatible-resources-notice {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: rgba(72, 187, 120, 0.2);
+  color: #2f855a;
+  border-radius: 0.25rem;
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.incompatible-resources-notice {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: rgba(237, 137, 54, 0.2);
+  color: #c05621;
+  border-radius: 0.25rem;
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  background-color: #f7fafc;
+  border-radius: 0.5rem;
+  color: #4a5568;
+}
+
+/* Bond Dialog Styles */
+.bond-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000; /* Ensure dialog appears on top */
+}
+
+.bond-dialog {
+  background-color: white;
+  border-radius: 0.5rem;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+              0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.bond-dialog__header {
+  padding: 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bond-dialog__header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #2d3748;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #a0aec0;
+}
+
+.close-btn:hover {
+  color: #2d3748;
+}
+
+.bond-dialog__content {
+  padding: 1.25rem;
+  flex-grow: 1;
+}
+
+.resource-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.resource-item {
+  background-color: #edf2f7;
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-weight: 500;
+}
+
+.resource-item:hover {
+  background-color: #e2e8f0;
+}
+
+.bond-dialog__footer {
+  padding: 1.25rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s ease;
+}
+
+.btn--secondary {
+  background-color: #e2e8f0;
+  color: #4a5568;
+}
+
+.btn--secondary:hover {
+  background-color: #cbd5e0;
+}
+</style>
+</file>
+
+<file path="game/CompanionCard.vue">
+<template>
+  <GameCard 
+    :title="companion?.name || 'Unknown Companion'" 
+    :subtitle="'Animal Companion'" 
+    :cardType="CardType.ANIMAL_COMPANION"
+    class="companion-card"
+    :class="{ 'wary': isCompanionWary }"
+    @click="selectCompanion"
+    style="border: 2px solid rgba(173, 216, 230, 0.3); position: relative;"
+  >
+    <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">CompanionCard</div>
+    <div class="companion-card__content">
+      <p>{{ companion?.description || 'No description available' }}</p>
+      
+      <div class="companion-loyalty mt-3">
+        <h5>Loyalty Level: {{ loyalty }}</h5>
+        <div class="loyalty-meter">
+          <div class="loyalty-bar" :style="loyaltyBarStyle"></div>
+        </div>
+      </div>
+      
+      <div class="companion-ability mt-3" v-if="companion?.ability">
+        <h5>{{ companion.ability.name }}</h5>
+        <p>{{ companion.ability.description }}</p>
+      </div>
+      
+      <div class="companion-seasons mt-3" v-if="companion?.affinitySeasons">
+        <h5>Seasonal Affinity</h5>
+        <div class="season-tags">
+          <span 
+            v-for="season in companion.affinitySeasons" 
+            :key="season"
+            class="season-tag"
+            :class="season.toLowerCase()"
+          >
+            {{ formatSeasonName(season) }}
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    <template #footer>
+      <div class="companion-card__actions">
+        <button 
+          v-if="canFeed"
+          class="btn btn--primary"
+          @click.stop="openFeedDialog"
+        >
+          Feed Companion
+        </button>
+        <button 
+          class="btn btn--secondary"
+          @click.stop="useAbility"
+          :disabled="abilityUsed || isCompanionWary"
+        >
+          {{ isCompanionWary ? 'Wary' : (abilityUsed ? 'Ability Used' : 'Use Ability') }}
+        </button>
+      </div>
+    </template>
+  </GameCard>
+
+  <!-- Feed Dialog -->
+  <div class="feed-dialog-overlay" v-if="showFeedDialog">
+    <div class="feed-dialog">
+      <div class="feed-dialog__header">
+        <h3>Feed {{ companion?.name }}</h3>
+        <button class="close-btn" @click="closeFeedDialog">&times;</button>
+      </div>
+      
+      <div class="feed-dialog__content">
+        <p>Select a resource to feed your companion:</p>
+        
+        <div class="resource-list">
+          <div 
+            v-for="resource in compatibleResources" 
+            :key="resource.id"
+            class="resource-item"
+            :class="{ 'selected': selectedResource === resource.id }"
+            @click="selectedResource = resource.id"
+          >
+            <span>{{ resource.name }}</span>
+          </div>
+          <div v-if="compatibleResources.length === 0" class="empty-state">
+            No compatible resources available.
+          </div>
+        </div>
+      </div>
+      
+      <div class="feed-dialog__footer">
+        <button 
+          class="btn btn--primary" 
+          @click="feedCompanion"
+          :disabled="!selectedResource || compatibleResources.length === 0"
+        >
+          Feed
+        </button>
+        <button class="btn btn--secondary" @click="closeFeedDialog">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent, computed, ref, PropType } from 'vue';
+import { CardType } from '@/models/enums/cardTypes';
+import { Season } from '@/models/enums/seasons';
+import GameCard from '@/components/core/GameCard.vue';
+import { useCardStore, usePlayerStore, useGameStore } from '@/stores';
+import { companionService } from '@/services/companionService';
+import { AnimalCompanionCard, ResourceCard } from '@/models/types/cards';
+
+export default defineComponent({
+  name: 'CompanionCard',
+  components: {
+    GameCard
+  },
+  props: {
+    companionId: {
+      type: String,
+      required: true
+    },
+    selected: {
+      type: Boolean,
+      default: false
+    },
+    abilityUsed: {
+      type: Boolean,
+      default: false
+    }
+  },
+  emits: ['select', 'use-ability', 'feed'],
+  setup(props, { emit }) {
+    const cardStore = useCardStore();
+    const playerStore = usePlayerStore();
+    const gameStore = useGameStore();
+    
+    const showFeedDialog = ref(false);
+    const selectedResource = ref('');
+    
+    // Get companion data
+    const companion = computed(() => {
+      return cardStore.getCompanionById(props.companionId);
+    });
+    
+    // Get companion loyalty
+    const loyalty = computed(() => {
+      return companionService.getLoyalty(props.companionId);
+    });
+    
+    // Loyalty bar style
+    const loyaltyBarStyle = computed(() => {
+      const percentage = (loyalty.value / 5) * 100;
+      return {
+        width: `${percentage}%`,
+        backgroundColor: getLoyaltyColor(loyalty.value)
+      };
+    });
+    
+    // Compatible resources for feeding
+    const compatibleResources = computed(() => {
+      // Get all player resources
+      const playerResourceIds = playerStore.resources;
+      
+      // Filter resources that are suitable for the companion
+      return playerResourceIds
+        .map(id => cardStore.getResourceById(id))
+        .filter(resource => resource && companionService.isResourceSuitableForBonding(resource.id, props.companionId)) as ResourceCard[];
+    });
+    
+    // Check if player has resources to feed companion
+    const canFeed = computed(() => {
+      return compatibleResources.value.length > 0;
+    });
+    
+    // Check if companion is wary
+    const isCompanionWary = computed(() => {
+      return companionService.isCompanionWary(props.companionId);
+    });
+    
+    // Format season name for display
+    const formatSeasonName = (season: Season) => {
+      return season.replace('_', ' ').split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+    };
+    
+    // Get color based on loyalty level
+    const getLoyaltyColor = (loyalty: number) => {
+      if (loyalty <= 1) return '#FF5252'; // Danger - Red
+      if (loyalty <= 3) return '#FFC107'; // Warning - Yellow
+      return '#4CAF50'; // Success - Green
+    };
+    
+    // Select this companion
+    const selectCompanion = () => {
+      emit('select', props.companionId);
+    };
+    
+    // Open feed dialog
+    const openFeedDialog = () => {
+      showFeedDialog.value = true;
+      selectedResource.value = compatibleResources.value.length > 0 ? 
+        compatibleResources.value[0].id : '';
+    };
+    
+    // Close feed dialog
+    const closeFeedDialog = () => {
+      showFeedDialog.value = false;
+      selectedResource.value = '';
+    };
+    
+    // Feed companion with selected resource
+    const feedCompanion = () => {
+      if (!selectedResource.value) return;
+      
+      const success = companionService.feedCompanion(
+        props.companionId,
+        selectedResource.value
+      );
+      
+      if (success) {
+        const resource = cardStore.getResourceById(selectedResource.value);
+        gameStore.addToGameLog(
+          `You fed your ${companion.value?.name} with ${resource?.name}.`, 
+          true, 
+          'companion'
+        );
+        emit('feed', props.companionId);
+      } else {
+        gameStore.addToGameLog('Failed to feed your companion.');
+      }
+      
+      closeFeedDialog();
+    };
+    
+    // Use companion ability
+    const useAbility = () => {
+      if (props.abilityUsed || isCompanionWary.value) return;
+      emit('use-ability', props.companionId);
+    };
+    
+    return {
+      companion,
+      loyalty,
+      loyaltyBarStyle,
+      compatibleResources,
+      canFeed,
+      showFeedDialog,
+      selectedResource,
+      selectCompanion,
+      openFeedDialog,
+      closeFeedDialog,
+      feedCompanion,
+      useAbility,
+      formatSeasonName,
+      CardType,
+      isCompanionWary
+    };
+  }
+});
+</script>
+
+<style lang="scss" scoped>
+@import '@/assets/scss/variables';
+
+.companion-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  }
+  
+  &__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  &__actions {
+    display: flex;
+    justify-content: space-between;
+    
+    button {
+      flex: 1;
+      margin: 0 $spacing-xs;
+      
+      &:first-child {
+        margin-left: 0;
+      }
+      
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+  
+  &.wary {
+    background-color: rgba($warning-color, 0.1);
+    border: 1px solid $warning-color;
+  }
+}
+
+.companion-loyalty {
+  margin-bottom: $spacing-md;
+  
+  h5 {
+    margin-bottom: $spacing-sm;
+  }
+}
+
+.loyalty-meter {
+  height: 10px;
+  background-color: #eee;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.loyalty-bar {
+  height: 100%;
+  transition: width 0.3s, background-color 0.3s;
+}
+
+.companion-ability {
+  margin-bottom: $spacing-md;
+  
+  h5 {
+    margin-bottom: $spacing-xs;
+  }
+}
+
+.season-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  
+  .season-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    color: white;
+    
+    &.samhain {
+      background-color: $samhain-color;
+    }
+    
+    &.winters_depth {
+      background-color: $winter-color;
+    }
+    
+    &.imbolc {
+      background-color: $imbolc-color;
+    }
+    
+    &.beltane {
+      background-color: $beltane-color;
+    }
+    
+    &.lughnasadh {
+      background-color: $lughnasadh-color;
+    }
+  }
+}
+
+// Feed Dialog
+.feed-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.feed-dialog {
+  background-color: white;
+  padding: $spacing-lg;
+  border-radius: $border-radius-md;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $spacing-md;
+    
+    h3 {
+      margin-top: 0;
+    }
+    
+    .close-btn {
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+  }
+  
+  &__content {
+    margin-bottom: $spacing-md;
+  }
+  
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: $spacing-sm;
+  }
+}
+
+.resource-list {
+  margin: $spacing-md 0;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  border-radius: $border-radius-sm;
+}
+
+.resource-item {
+  padding: $spacing-sm;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &:hover {
+    background-color: rgba($primary-color, 0.1);
+  }
+  
+  &.selected {
+    background-color: rgba($primary-color, 0.2);
+  }
+}
+
+.empty-state {
+  padding: $spacing-md;
+  text-align: center;
+  color: rgba($dark-color, 0.6);
+  font-style: italic;
+}
+</style>
+</file>
+
+<file path="game/CompanionManagement.vue">
+<template>
+  <div class="companion-management debug-component" data-component-name="CompanionManagement">
+    <div class="companion-management__header">
+      <h2 class="companion-management__title">Animal Companions</h2>
+    </div>
+    
+    <div class="companion-management__content">
+      <div v-if="playerCompanions.length === 0" class="empty-state">
+        <p>You haven't bonded with any animal companions yet.</p>
+        <p>Find a suitable companion and use a resource to form a bond.</p>
+      </div>
+      
+      <div v-else class="companion-cards">
+        <CompanionCard
+          v-for="companionId in playerCompanions"
+          :key="companionId"
+          :companionId="companionId"
+          :abilityUsed="usedCompanionAbilities.includes(companionId)"
+          :canFeed="hasCompatibleResources(companionId)"
+          @select="selectCompanion"
+          @feed="openFeedDialog"
+          @use-ability="useCompanionAbility"
+        />
+      </div>
+    </div>
+    
+    <h3 class="mt-4">Available Companions</h3>
+    <div class="available-companions">
+      <div v-if="availableCompanions.length === 0" class="empty-state">
+        <p>No companions are available in this area.</p>
+        <p>Continue exploring to find potential companions.</p>
+      </div>
+      
+      <div v-else class="companion-cards">
+        <div
+          v-for="companion in availableCompanions"
+          :key="companion.id"
+          class="available-companion-card"
+          @click="selectAvailableCompanion(companion.id)"
+        >
+          <div class="available-companion-card__header">
+            <h4>{{ companion.name }}</h4>
+          </div>
+          <div class="available-companion-card__content">
+            <p>{{ companion.description }}</p>
+            <div class="companion-ability mt-2">
+              <h5>{{ companion.ability.name }}</h5>
+              <p class="ability-description">{{ companion.ability.description }}</p>
+            </div>
+            <div class="companion-seasons mt-2">
+              <h5>Seasonal Affinity</h5>
+              <div class="season-tags">
+                <span
+                  v-for="season in companion.affinitySeasons"
+                  :key="season"
+                  class="season-tag"
+                  :class="season.toLowerCase()"
+                >
+                  {{ formatSeasonName(season) }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="available-companion-card__footer">
+            <button 
+              class="btn btn--primary"
+              @click.stop="openBondDialog(companion.id)"
+              :disabled="!hasResourcesForBonding(companion.id)"
+            >
+              Bond
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Bond Dialog -->
+    <div class="feed-dialog-overlay" v-if="showBondDialog">
+      <div class="feed-dialog">
+        <div class="feed-dialog__header">
+          <h3>Bond with {{ selectedCompanionName }}</h3>
+          <button class="close-btn" @click="closeBondDialog">&times;</button>
+        </div>
+        
+        <div class="feed-dialog__content">
+          <p>Select a resource to form a bond:</p>
+          
+          <div class="resource-list">
+            <div 
+              v-for="resource in compatibleResources" 
+              :key="resource.id"
+              class="resource-item"
+              :class="{ 'selected': selectedResource === resource.id }"
+              @click="selectedResource = resource.id"
+            >
+              <span>{{ resource.name }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="feed-dialog__footer">
+          <button 
+            class="btn btn--primary" 
+            @click="bondWithCompanion"
+            :disabled="!selectedResource"
+          >
+            Bond
+          </button>
+          <button class="btn btn--secondary" @click="closeBondDialog">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent, computed, ref } from 'vue';
+import { useCardStore, usePlayerStore, useGameStore } from '@/stores';
+import { companionService } from '@/services/companionService';
+import CompanionCard from './CompanionCard.vue';
+import { Season } from '@/models/enums/seasons';
+
+export default defineComponent({
+  name: 'CompanionManagement',
+  components: {
+    CompanionCard
+  },
+  emits: ['close'],
+  setup(props, { emit }) {
+    const cardStore = useCardStore();
+    const playerStore = usePlayerStore();
+    const gameStore = useGameStore();
+    
+    // Player companions
+    const playerCompanions = computed(() => playerStore.animalCompanions);
+    
+    // Available companions for bonding
+    const availableCompanions = computed(() => {
+      const allCompanions = cardStore.animalCompanions;
+      return allCompanions.filter(companion => 
+        !playerCompanions.value.includes(companion.id) &&
+        isCompanionAvailableInSeason(companion)
+      );
+    });
+    
+    // Check if companion is available in current season
+    const isCompanionAvailableInSeason = (companion: any) => {
+      const currentSeason = gameStore.currentSeason;
+      return companion.affinitySeasons && companion.affinitySeasons.includes(currentSeason);
+    };
+    
+    // Format season name for display
+    const formatSeasonName = (season: Season) => {
+      return season.replace('_', ' ').split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+    };
+    
+    // Tracking used abilities
+    const usedCompanionAbilities = ref<string[]>([]);
+    
+    // Selection state
+    const selectedCompanion = ref('');
+    const selectedAvailableCompanion = ref('');
+    
+    // Bond dialog state
+    const showBondDialog = ref(false);
+    const selectedResource = ref('');
+    
+    // Get resources compatible with a companion
+    const getCompatibleResources = (companionId: string) => {
+      return playerStore.resources.filter(resourceId => 
+        companionService.isResourceSuitableForBonding(resourceId, companionId)
+      );
+    };
+    
+    // Check if player has compatible resources for a companion
+    const hasCompatibleResources = (companionId: string) => {
+      return getCompatibleResources(companionId).length > 0;
+    };
+    
+    // Check if player has resources for bonding with a companion
+    const hasResourcesForBonding = (companionId: string) => {
+      return playerStore.resources.some(resourceId => 
+        companionService.isResourceSuitableForBonding(resourceId, companionId)
+      );
+    };
+    
+    // Get companion name
+    const selectedCompanionName = computed(() => {
+      const companion = cardStore.getCompanionById(selectedAvailableCompanion.value);
+      return companion ? companion.name : '';
+    });
+    
+    // Get compatible resources for the selected companion
+    const compatibleResources = computed(() => {
+      if (!selectedAvailableCompanion.value) return [];
+      
+      return playerStore.resources
+        .filter(resourceId => 
+          companionService.isResourceSuitableForBonding(resourceId, selectedAvailableCompanion.value)
+        )
+        .map(resourceId => cardStore.getResourceById(resourceId))
+        .filter(resource => resource !== undefined) as any[];
+    });
+    
+    // Select a companion
+    const selectCompanion = (companionId: string) => {
+      selectedCompanion.value = companionId;
+    };
+    
+    // Select an available companion
+    const selectAvailableCompanion = (companionId: string) => {
+      selectedAvailableCompanion.value = companionId;
+    };
+    
+    // Open bond dialog
+    const openBondDialog = (companionId: string) => {
+      selectedAvailableCompanion.value = companionId;
+      const resources = getCompatibleResources(companionId);
+      
+      if (resources.length > 0) {
+        selectedResource.value = resources[0];
+        showBondDialog.value = true;
+      } else {
+        gameStore.addToGameLog('No compatible resources for bonding with this companion.');
+      }
+    };
+    
+    // Close bond dialog
+    const closeBondDialog = () => {
+      showBondDialog.value = false;
+      selectedResource.value = '';
+    };
+    
+    // Bond with a companion
+    const bondWithCompanion = () => {
+      if (!selectedAvailableCompanion.value || !selectedResource.value) {
+        closeBondDialog();
+        return;
+      }
+      
+      const success = companionService.bondWithCompanion(
+        selectedAvailableCompanion.value,
+        selectedResource.value
+      );
+      
+      if (success) {
+        const companion = cardStore.getCompanionById(selectedAvailableCompanion.value);
+        gameStore.addToGameLog(
+          `You've formed a bond with ${companion?.name}!`,
+          true,
+          'companion'
+        );
+      } else {
+        gameStore.addToGameLog('Failed to bond with the companion.');
+      }
+      
+      closeBondDialog();
+    };
+    
+    // Use companion ability
+    const useCompanionAbility = (companionId: string) => {
+      if (usedCompanionAbilities.value.includes(companionId)) {
+        return;
+      }
+      
+      const success = playerStore.useCompanionAbility(companionId);
+      
+      if (success) {
+        usedCompanionAbilities.value.push(companionId);
+        
+        const companion = cardStore.getCompanionById(companionId);
+        gameStore.addToGameLog(
+          `You used ${companion?.name}'s ability: ${companion?.ability.name}`,
+          true,
+          'companion'
+        );
+      } else {
+        gameStore.addToGameLog('You cannot use this companion\'s ability right now.');
+      }
+    };
+    
+    // Reset used abilities when turn changes
+    gameStore.$subscribe((_, state) => {
+      if (state.currentTurn > 0) {
+        usedCompanionAbilities.value = [];
+      }
+    });
+    
+    // Open feed dialog - passes to CompanionCard
+    const openFeedDialog = (companionId: string) => {
+      console.log(`Open feed dialog for companion ${companionId}`);
+      // Handled by CompanionCard component
+    };
+    
+    // Emit close event to parent
+    const emitClose = () => {
+      emit('close');
+    };
+    
+    return {
+      playerCompanions,
+      availableCompanions,
+      usedCompanionAbilities,
+      selectedCompanion,
+      showBondDialog,
+      selectedResource,
+      selectedCompanionName,
+      compatibleResources,
+      selectCompanion,
+      selectAvailableCompanion,
+      openBondDialog,
+      closeBondDialog,
+      bondWithCompanion,
+      useCompanionAbility,
+      hasCompatibleResources,
+      hasResourcesForBonding,
+      formatSeasonName,
+      openFeedDialog,
+      emitClose
+    };
+  }
+});
+</script>
+
+<style lang="scss" scoped>
+@import '@/assets/scss/variables';
+
+.companion-management {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $spacing-md;
+  }
+  
+  &__title {
+    margin: 0;
+    color: $primary-color;
+  }
+  
+  &__content {
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.empty-state {
+  font-style: italic;
+  color: rgba($dark-color, 0.6);
+  padding: $spacing-md;
+  background-color: rgba($light-color, 0.5);
+  border-radius: $border-radius-md;
+  text-align: center;
+}
+
+.companion-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: $spacing-md;
+  margin-top: $spacing-sm;
+}
+
+.available-companion-card {
+  background-color: $light-color;
+  border: 2px solid $border-color;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-sm;
+  padding: $spacing-sm;
+  cursor: pointer;
+  transition: all $transition-normal;
+  position: relative;
+  min-height: 180px;
+  
+  // Card appearance
+  background-image: linear-gradient(to bottom, rgba(255,255,255,0.8) 0%, rgba(240,240,240,0.2) 100%);
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    right: 3px;
+    bottom: 3px;
+    border: 1px solid rgba(255,255,255,0.6);
+    border-radius: calc($border-radius-md - 3px);
+    pointer-events: none;
+  }
+  
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: $shadow-md;
+  }
+  
+  &__header {
+    margin-bottom: $spacing-sm;
+    
+    h4 {
+      font-weight: bold;
+      margin: 0;
+      color: $primary-color;
+    }
+  }
+  
+  &__content {
+    font-size: $font-size-sm;
+    margin-bottom: $spacing-md;
+    
+    p {
+      margin-bottom: $spacing-sm;
+    }
+    
+    .companion-ability {
+      margin-top: $spacing-sm;
+      
+      h5 {
+        margin: 0 0 $spacing-xs 0;
+        font-size: $font-size-sm;
+      }
+      
+      .ability-description {
+        font-size: $font-size-xs;
+        color: rgba($dark-color, 0.7);
+      }
+    }
+    
+    .companion-seasons {
+      margin-top: $spacing-sm;
+      
+      h5 {
+        margin: 0 0 $spacing-xs 0;
+        font-size: $font-size-sm;
+      }
+    }
+  }
+  
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+.season-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-top: $spacing-xs;
+}
+
+.season-tag {
+  font-size: $font-size-xs;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-md;
+  color: $light-color;
+  
+  &.spring {
+    background-color: #7cb342;
+  }
+  
+  &.summer {
+    background-color: #f9a825;
+  }
+  
+  &.fall, &.autumn {
+    background-color: #ef6c00;
+  }
+  
+  &.winter {
+    background-color: #42a5f5;
+  }
+}
+
+// Feed/Bond Dialog styling from CompanionCard to maintain consistency
+.feed-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba($dark-color, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.feed-dialog {
+  background-color: white;
+  padding: $spacing-lg;
+  border-radius: $border-radius-md;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $spacing-md;
+    
+    h3 {
+      margin-top: 0;
+    }
+    
+    .close-btn {
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+  }
+  
+  &__content {
+    margin-bottom: $spacing-md;
+  }
+  
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: $spacing-sm;
+  }
+}
+
+.resource-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+}
+
+.resource-item {
+  padding: $spacing-sm;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  transition: all $transition-normal;
+  
+  &:hover {
+    border-color: $accent-color;
+    background-color: rgba($accent-color, 0.1);
+  }
+  
+  &.selected {
+    border-color: $accent-color;
+    background-color: rgba($accent-color, 0.2);
+  }
+}
+</style>
+</file>
+
+<file path="game/CraftingStation.vue">
+<template>
+  <div class="crafting-station">
+    <div v-if="currentPhase !== GamePhase.CRAFTING" class="crafting-station__inactive">
+      <p>Crafting is not available during the current phase.</p>
+    </div>
+    
+    <div v-else class="crafting-station__active">
+      <p class="crafting-station__tip">Crafted items don't count against your resource capacity.</p>
+      <div class="resource-cards-row">
+        <!-- Recipe Cards -->
+        <div 
+          v-for="recipe in availableRecipes" 
+          :key="recipe.id"
+          class="recipe-card"
+          :class="{ 'selected': selectedRecipe?.id === recipe.id }"
+          @click="selectRecipe(recipe)"
+        >
+          <GameCard 
+            :title="recipe.name" 
+            :subtitle="'Recipe'" 
+            :cardType="CardType.CRAFTED_ITEM"
+          >
+            <div class="recipe-complexity">Complexity: {{ recipe.complexity }}</div>
+            <div class="recipe-resources">
+              <div>Required Resources:</div>
+              <ul>
+                <li v-for="resourceId in recipe.requiredResources" :key="resourceId">
+                  {{ getResourceName(resourceId) }}
+                  <span 
+                    class="resource-status"
+                    :class="{ 'available': hasResource(resourceId), 'missing': !hasResource(resourceId) }"
+                  >
+                    {{ hasResource(resourceId) ? '✓' : '✗' }}
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </GameCard>
+        </div>
+        
+        <!-- Action Cards -->
+        <template v-if="selectedRecipe">
+          <div class="action-card">
+            <GameCard 
+              title="Craft Item" 
+              :cardType="CardType.ACTION"
+              @click="craftItem"
+              :class="{ 'disabled': !canCraftSelectedRecipe }"
+            >
+              <div style="font-size: 0.9rem; padding: 5px; text-align: center;">
+                Create {{ selectedRecipe.name }}
+              </div>
+            </GameCard>
+          </div>
+          
+          <div class="action-card">
+            <GameCard 
+              title="Cancel" 
+              :cardType="CardType.ACTION"
+              @click="cancelCrafting"
+            >
+              <div style="font-size: 0.9rem; padding: 5px; text-align: center;">
+                Return to crafting
+              </div>
+            </GameCard>
+          </div>
+        </template>
+        
+        <template v-if="!selectedRecipe || availableRecipes.length === 0">
+          <div class="action-card">
+            <GameCard 
+              title="Continue Journey" 
+              :cardType="CardType.ACTION"
+              @click="continueJourney"
+            >
+              <div style="font-size: 0.9rem; padding: 5px; text-align: center;">
+                Proceed to the next phase of your adventure
+              </div>
+            </GameCard>
+          </div>
+        </template>
+      </div>
+      
+      <div v-if="availableRecipes.length === 0" class="empty-state mt-3">
+        You don't have enough resources to craft any items.
+      </div>
+      
+      <div v-if="selectedRecipe" class="crafting-station__details mt-3">
+        <h4>{{ selectedRecipe.name }}</h4>
+        <p>{{ selectedRecipe.description }}</p>
+        
+        <div class="item-ability mt-3">
+          <h5>Ability: {{ selectedRecipe.ability.name }}</h5>
+          <p class="ability-description">{{ selectedRecipe.ability.description }}</p>
+        </div>
+        
+        <div v-if="selectedRecipe.drawback" class="item-drawback mt-3">
+          <h5>Drawback</h5>
+          <p class="drawback-description">{{ selectedRecipe.drawback.description }}</p>
+        </div>
+        
+        <div class="item-resources mt-3">
+          <h5>Required Resources</h5>
+          <ul class="resource-requirements">
+            <li 
+              v-for="resourceId in selectedRecipe.requiredResources" 
+              :key="resourceId"
+              :class="{ 'available': hasResource(resourceId), 'missing': !hasResource(resourceId) }"
+            >
+              {{ getResourceName(resourceId) }}
+              <span class="resource-status">
+                {{ hasResource(resourceId) ? '✓' : '✗' }}
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent, computed, ref, onMounted } from 'vue';
+import { GamePhase } from '@/models/enums/phases';
+import { CardType } from '@/models/enums/cardTypes';
+import { useCardStore, usePlayerStore, useGameStore } from '@/stores';
+import { CraftedItemCard } from '@/models/types/cards';
+import { CraftingService } from '@/services/craftingService';
+import GameCard from '@/components/core/GameCard.vue';
+
+export default defineComponent({
+  name: 'CraftingStation',
+  components: {
+    GameCard
+  },
+  setup() {
+    const cardStore = useCardStore();
+    const playerStore = usePlayerStore();
+    const gameStore = useGameStore();
+    
+    const craftingService = ref<CraftingService | null>(null);
+    const selectedRecipe = ref<CraftedItemCard | null>(null);
+    
+    onMounted(() => {
+      try {
+        craftingService.value = new CraftingService();
+        console.log('CraftingStation: CraftingService initialized successfully');
+        
+        // Log player resources
+        console.log('CraftingStation: Player resources:', playerResources.value);
+        
+        // Log crafted items and their requirements
+        console.log('CraftingStation: Available crafted items:', cardStore.craftedItems);
+        
+        // Log each crafted item with a check if player has the required resources
+        cardStore.craftedItems.forEach(item => {
+          console.log(`CraftingStation: Checking recipe ${item.name}:`, {
+            requiredResources: item.requiredResources,
+            playerHasAllResources: item.requiredResources.every(resourceId => 
+              playerResources.value.includes(resourceId)
+            ),
+            missingResources: item.requiredResources.filter(resourceId => 
+              !playerResources.value.includes(resourceId)
+            )
+          });
+        });
+        
+        // Add to game log
+        gameStore.addToGameLog(`You have ${playerResources.value.length} resources for crafting.`, false, 'crafting');
+      } catch (error) {
+        console.error('CraftingStation: Error initializing CraftingService:', error);
+      }
+    });
+    
+    const currentPhase = computed(() => {
+      return gameStore.currentPhase;
+    });
+    
+    const playerResources = computed(() => {
+      return playerStore.resources;
+    });
+    
+    const availableRecipes = computed(() => {
+      // Log the computation
+      console.log('CraftingStation: Computing available recipes...');
+      
+      // Filter craftable items based on resources the player has
+      const recipes = cardStore.craftedItems.filter(item => {
+        // Check if the player has ALL of the required resources
+        const hasAllResources = item.requiredResources.every(resourceId => 
+          playerResources.value.includes(resourceId)
+        );
+        
+        console.log(`CraftingStation: Recipe ${item.name} is ${hasAllResources ? 'available' : 'unavailable'}`);
+        
+        if (!hasAllResources) {
+          const missingResources = item.requiredResources.filter(resourceId => 
+            !playerResources.value.includes(resourceId)
+          );
+          console.log(`CraftingStation: Missing resources for ${item.name}:`, 
+            missingResources.map(id => getResourceName(id))
+          );
+        }
+        
+        return hasAllResources;
+      });
+      
+      console.log(`CraftingStation: Found ${recipes.length} available recipes`);
+      
+      if (recipes.length === 0) {
+        gameStore.addToGameLog("You don't have the right combination of resources to craft any items.", false, 'crafting');
+        
+        // List all resources needed for crafting
+        const allRequiredResources = new Set();
+        cardStore.craftedItems.forEach(item => {
+          item.requiredResources.forEach(resource => allRequiredResources.add(resource));
+        });
+        
+        const resourcesList = Array.from(allRequiredResources).map(id => getResourceName(id as string)).join(', ');
+        gameStore.addToGameLog(`Crafting requires: ${resourcesList}`, false, 'crafting');
+        
+        // List what the player has
+        const playerResourcesList = playerResources.value.map(id => getResourceName(id)).join(', ');
+        gameStore.addToGameLog(`You have: ${playerResourcesList || 'no resources'}`, false, 'crafting');
+      } else {
+        gameStore.addToGameLog(`You can craft ${recipes.length} items.`, false, 'crafting');
+      }
+      
+      return recipes;
+    });
+    
+    const canCraftSelectedRecipe = computed(() => {
+      if (!selectedRecipe.value) return false;
+      
+      // Just check if player has all required resources
+      return selectedRecipe.value.requiredResources.every(resourceId => 
+        playerResources.value.includes(resourceId)
+      );
+    });
+    
+    const getResourceName = (resourceId: string) => {
+      const resource = cardStore.getResourceById(resourceId);
+      return resource ? resource.name : 'Unknown Resource';
+    };
+    
+    const hasResource = (resourceId: string) => {
+      return playerResources.value.includes(resourceId);
+    };
+    
+    const selectRecipe = (recipe: CraftedItemCard) => {
+      selectedRecipe.value = recipe;
+    };
+    
+    const craftItem = () => {
+      if (!selectedRecipe.value || !canCraftSelectedRecipe.value) return;
+      
+      if (craftingService.value) {
+        // Use the crafting service if available
+        const result = craftingService.value.craftItem(selectedRecipe.value.id);
+        if (!result) {
+          console.error('Failed to craft item');
+          return;
+        }
+      } else {
+        // Fallback: Remove resources used for crafting
+        selectedRecipe.value.requiredResources.forEach(resourceId => {
+          playerStore.removeResource(resourceId);
+        });
+      }
+      
+      // Add the crafted item to the player's inventory
+      playerStore.addCraftedItem(selectedRecipe.value.id);
+      
+      // Add experience for crafting
+      playerStore.gainExperience(1);
+      
+      // Log the crafting
+      gameStore.addToGameLog(`You crafted a ${selectedRecipe.value.name}!`);
+      
+      // Reset selection
+      selectedRecipe.value = null;
+      
+      // Move to the next phase
+      gameStore.advancePhase();
+    };
+    
+    const cancelCrafting = () => {
+      selectedRecipe.value = null;
+      
+      // Skip crafting and move to the next phase
+      gameStore.advancePhase();
+    };
+    
+    const continueJourney = () => {
+      // Log the action
+      gameStore.addToGameLog("You decided to continue your journey without crafting.", true, 'crafting');
+      
+      // Move to the next phase
+      gameStore.advancePhase();
+    };
+    
+    return {
+      currentPhase,
+      availableRecipes,
+      selectedRecipe,
+      canCraftSelectedRecipe,
+      getResourceName,
+      hasResource,
+      selectRecipe,
+      craftItem,
+      cancelCrafting,
+      continueJourney,
+      GamePhase,
+      CardType // Make CardType available in the template
+    };
+  }
+});
+</script>
+
+<style lang="scss" scoped>
+@import '@/assets/scss/variables';
+
+.crafting-station {
+  padding: $spacing-md;
+  
+  &__inactive {
+    text-align: center;
+    padding: $spacing-lg;
+    color: rgba($dark-color, 0.6);
+    font-style: italic;
+  }
+  
+  &__active {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+  
+  &__tip {
+    font-size: $font-size-sm;
+    color: rgba($dark-color, 0.6);
+    margin-bottom: $spacing-md;
+  }
+  
+  &__placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    background-color: rgba(0, 0, 0, 0.02);
+    border-radius: $border-radius-md;
+    padding: $spacing-md;
+    text-align: center;
+    color: rgba($dark-color, 0.6);
+  }
+}
+
+.resource-cards-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+  
+  .recipe-card, .action-card {
+    flex: 1 0 250px;
+    max-width: 300px;
+    min-width: 200px;
+    margin-bottom: $spacing-sm;
+    
+    &.selected ::v-deep(.game-card) {
+      border-color: $accent-color;
+      background-color: rgba($accent-color, 0.05);
+    }
+  }
+  
+  .action-card ::v-deep(.game-card) {
+    height: 100%;
+    
+    &.disabled {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+  }
+}
+
+.recipe-complexity {
+  font-size: 0.85rem;
+  color: rgba($dark-color, 0.8);
+  margin-bottom: $spacing-xs;
+}
+
+.recipe-resources {
+  font-size: 0.85rem;
+  margin-top: $spacing-xs;
+  
+  ul {
+    margin-top: $spacing-xs;
+    padding-left: $spacing-md;
+  }
+  
+  .resource-status {
+    margin-left: $spacing-xs;
+    
+    &.available {
+      color: $success-color;
+    }
+    
+    &.missing {
+      color: $danger-color;
+    }
+  }
+}
+
+.resource-requirements {
+  list-style-type: none;
+  padding-left: 0;
+  
+  li {
+    padding: $spacing-xs $spacing-sm;
+    margin-bottom: $spacing-xs;
+    border-radius: $border-radius-sm;
+    display: flex;
+    justify-content: space-between;
+    
+    &.available {
+      background-color: rgba($success-color, 0.1);
+    }
+    
+    &.missing {
+      background-color: rgba($danger-color, 0.1);
+    }
+  }
+}
+
+.resource-status {
+  font-weight: bold;
+  
+  &.available {
+    color: $success-color;
+  }
+  
+  &.missing {
+    color: $danger-color;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: $spacing-md;
+  color: rgba($dark-color, 0.6);
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: $border-radius-md;
+}
+</style>
+</file>
+
+<file path="game/GameLog.vue">
+<template>
+  <div class="game-log" style="border: 2px solid rgba(173, 216, 230, 0.3); position: relative;">
+    <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">GameLog</div>
+    <h3 class="game-log__title">Journey Log</h3>
+    <div class="game-log__entries" ref="logContainer">
+      <div v-if="gameLog.length === 0" class="game-log__empty">
+        Your journey has just begun. Events will be recorded here.
+      </div>
+      <p v-else class="game-log__paragraph">
+        <template v-for="(entry, index) in gameLog" :key="index">
+          <span 
+            class="log-sentence" 
+            :class="{ 'log-sentence--highlight': entry.highlight }"
+          >
+            <span class="first-letter">{{ entry.message.charAt(0) }}</span>{{ entry.message.substring(1) }}
+            <span class="log-sentence__separator" v-if="index < gameLog.length - 1">. </span>
+          </span>
+        </template>
+      </p>
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent, computed, ref, watch, nextTick } from 'vue';
+import { useGameStore } from '@/stores';
+
+export default defineComponent({
+  name: 'GameLog',
+  setup() {
+    const gameStore = useGameStore();
+    const logContainer = ref<HTMLElement | null>(null);
+    
+    const gameLog = computed(() => {
+      return gameStore.gameLog;
+    });
+    
+    const formatTimestamp = (timestamp: number) => {
+      const date = new Date(timestamp);
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      const seconds = date.getSeconds().toString().padStart(2, '0');
+      
+      return `${hours}:${minutes}:${seconds}`;
+    };
+    
+    // Auto-scroll to the bottom when new log entries are added
+    watch(() => gameLog.value.length, () => {
+      nextTick(() => {
+        if (logContainer.value) {
+          logContainer.value.scrollTop = logContainer.value.scrollHeight;
+        }
+      });
+    });
+    
+    return {
+      gameLog,
+      logContainer,
+      formatTimestamp
+    };
+  }
+});
+</script>
+
+<style lang="scss" scoped>
+.game-log {
+  background-color: rgba(240, 230, 210, 0.2);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  width: 100%;
+  max-height: 300px;
+  overflow-y: auto;
+  
+  &__title {
+    background: linear-gradient(to right, #8c7851, #5a3e2b);
+    color: #fff;
+    margin: 0;
+    padding: 10px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    font-family: 'Cinzel', serif;
+    text-align: center;
+    font-size: 26px;
+  }
+  
+  &__entries {
+    padding: 10px;
+    overflow-y: auto;
+    max-height: 250px;
+  }
+  
+  &__paragraph {
+    margin: 10px;
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 4px;
+    font-size: 26px;
+    line-height: 1.6;
+    color: #333;
+    text-align: justify;
+    font-family: 'Cinzel', serif;
+    letter-spacing: 0.5px;
+    word-spacing: 2px;
+  }
+  
+  &__empty {
+    padding: 15px;
+    text-align: center;
+    font-style: italic;
+    color: #777;
+    font-size: 22px;
+  }
+}
+
+.log-sentence {
+  display: inline;
+  position: relative;
+  margin-bottom: 8px;
+  
+  .first-letter {
+    font-size: 250%;
+    font-weight: bold;
+    color: #5a3e2b;
+    line-height: 0.7;
+    vertical-align: bottom;
+    font-family: 'Tangerine', cursive;
+    display: inline-block;
+    margin-right: 2px;
+    position: relative;
+    top: 5px;
+  }
+  
+  &--highlight {
+    font-weight: bold;
+    
+    .first-letter {
+      color: #8c7851;
+    }
+  }
+  
+  &__separator {
+    margin: 0 5px;
+    display: inline-block;
+    position: relative;
+  }
+}
+
+@media (max-width: 768px) {
+  .game-log {
+    max-height: 200px;
+    
+    &__entries {
+      max-height: 150px;
+    }
+  }
+}
+</style>
+</file>
+
+<file path="game/GameMap.vue">
+<template>
+  <div class="game-map" style="border: 2px solid rgba(173, 216, 230, 0.3); position: relative;">
+    <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">GameMap</div>
+    <h3 class="game-map__title">Journey Map</h3>
+    <div class="game-map__content">
+      <div class="map-container">
+        <div class="map-grid">
+          <div 
+            v-for="(location, index) in journeyLocations" 
+            :key="index"
+            class="map-location"
+            :class="{ 
+              'map-location--active': index === currentLocationIndex,
+              'map-location--visited': index < currentLocationIndex
+            }"
+          >
+            <div class="location-marker">{{ index + 1 }}</div>
+            <div class="location-name">{{ location.name }}</div>
+          </div>
+        </div>
+        <div class="map-path"></div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent, ref, computed } from 'vue';
+import { useGameStore } from '@/stores/gameStore';
+
+export default defineComponent({
+  name: 'GameMap',
+  
+  setup() {
+    const gameStore = useGameStore();
+    
+    const journeyLocations = ref([
+      { name: 'Forest Edge', type: 'forest' },
+      { name: 'River Crossing', type: 'river' },
+      { name: 'Mountain Pass', type: 'mountain' },
+      { name: 'Ancient Ruins', type: 'ruins' },
+      { name: 'Valley Settlement', type: 'settlement' }
+    ]);
+    
+    const currentLocationIndex = computed(() => {
+      return gameStore.journeyProgress || 0;
+    });
+    
+    return {
+      journeyLocations,
+      currentLocationIndex
+    };
+  }
+});
+</script>
+
+<style lang="scss" scoped>
+@import '@/assets/scss/variables';
+
+.game-map {
+  width: 100%;
+  margin-bottom: $spacing-lg;
+  
+  &__title {
+    margin-bottom: $spacing-md;
+    text-align: center;
+  }
+  
+  &__content {
+    background-color: rgba($light-color, 0.9);
+    border-radius: $border-radius-md;
+    padding: $spacing-md;
+    box-shadow: 0 2px 4px rgba($dark-color, 0.2);
+  }
+}
+
+.map-container {
+  position: relative;
+  min-height: 200px;
+}
+
+.map-grid {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+}
+
+.map-path {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: $border-color;
+  z-index: 1;
+  transform: translateY(-50%);
+}
+
+.map-location {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  
+  .location-marker {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: $light-color;
+    border: 2px solid $border-color;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: $spacing-xs;
+    font-weight: bold;
+    z-index: 2;
+  }
+  
+  .location-name {
+    font-size: $font-size-sm;
+    text-align: center;
+    max-width: 100px;
+  }
+  
+  &--active {
+    .location-marker {
+      background-color: $primary-color;
+      color: $light-color;
+      border-color: darken($primary-color, 10%);
+    }
+    
+    .location-name {
+      font-weight: bold;
+    }
+  }
+  
+  &--visited {
+    .location-marker {
+      background-color: $success-color;
+      color: $light-color;
+      border-color: darken($success-color, 10%);
+    }
+  }
+}
+</style>
+</file>
+
+<file path="game/PlayerDashboard.vue">
+<template>
+  <div class="player-dashboard" style="border: 2px solid rgba(173, 216, 230, 0.3); position: relative; height: auto; min-height: 50px; display: flex; flex-direction: column; align-items: flex-start; padding: 10px;">
+    <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">PlayerDashboard</div>
+    <div class="player-info" style="width: 100%;">
+      <div class="player-stats" style="display: flex; gap: 20px; margin-bottom: 10px;">
+        <div class="stat">
+          <span class="stat-label">{{ character ? character.name : 'Character' }}:</span> 
+          <span class="stat-value">{{ playerStore.health }}/{{ playerStore.maxHealth }} HP</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">XP:</span> 
+          <span class="stat-value">{{ playerStore.experience }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Resources:</span> 
+          <span class="stat-value">{{ playerStore.resources.length }}/{{ playerStore.resourceCapacity }}</span>
+        </div>
+      </div>
+      
+      <!-- Crafted Items Section -->
+      <div v-if="playerStore.craftedItems.length > 0" class="crafted-items-section">
+        <div class="section-label">Crafted Items:</div>
+        <div class="crafted-items-list">
+          <div v-for="itemId in playerStore.craftedItems" :key="itemId" class="crafted-item stat">
+            <span class="stat-value">{{ getCraftedItemName(itemId) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent, computed } from 'vue';
+import { usePlayerStore } from '@/stores/playerStore';
+import { useCardStore } from '@/stores/cardStore';
+
+export default defineComponent({
+  name: 'PlayerDashboard',
+  
+  setup() {
+    const playerStore = usePlayerStore();
+    const cardStore = useCardStore();
+    
+    const character = computed(() => {
+      if (!playerStore.characterId) return null;
+      return cardStore.getCharacterById(playerStore.characterId);
+    });
+    
+    const getCraftedItemName = (itemId: string): string => {
+      const item = cardStore.getCraftedItemById(itemId);
+      return item ? item.name : 'Unknown Item';
+    };
+    
+    return {
+      playerStore,
+      character,
+      getCraftedItemName
+    };
+  }
+});
+</script>
+
+<style lang="scss" scoped>
+@import '@/assets/scss/variables';
+
+.player-dashboard {
+  width: 100%;
+  padding: $spacing-xs;
+  background-color: rgba($light-color, 0.8);
+  border-radius: $border-radius-md;
+  box-shadow: 0 2px 4px rgba($dark-color, 0.2);
+  
+  .player-info {
+    width: 100%;
+    
+    .player-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: $spacing-xs;
+      margin-bottom: $spacing-xs;
+      
+      .stat {
+        padding: $spacing-xs $spacing-sm;
+        background-color: rgba($dark-color, 0.1);
+        border-radius: $border-radius-md;
+        
+        .stat-label {
+          font-weight: bold;
+          margin-right: $spacing-xs;
+        }
+      }
+    }
+    
+    .crafted-items-section {
+      margin-top: 5px;
+      
+      .section-label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        font-family: 'Cinzel', serif;
+      }
+      
+      .crafted-items-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        
+        .crafted-item {
+          padding: 4px 8px;
+          background-color: rgba($dark-color, 0.1);
+          border-radius: $border-radius-md;
+          font-family: 'Cinzel', serif;
+        }
+      }
+    }
+  }
+}
+</style>
+</file>
+
+<file path="game/ResourceManagement.vue">
+<template>
+  <div class="resource-management debug-component" data-component-name="ResourceManagement">
+    <div v-if="currentPhase !== GamePhase.RESOURCE_MANAGEMENT" class="resource-management__inactive">
+      <p>Resource management is not available during the current phase.</p>
+    </div>
+    
+    <div v-else class="resource-management__active">
+      <div class="resource-cards-row">
+        <!-- Resource Cards -->
+        <div 
+          v-for="resource in playerResources" 
+          :key="resource.id"
+          class="resource-card"
+          :class="{ 'selected': selectedResourceId === resource.id }"
+          @click="selectResource(resource)"
+        >
+          <GameCard 
+            :title="resource.name" 
+            :subtitle="'Resource'" 
+            :cardType="CardType.RESOURCE"
+          >
+            <p>{{ resource.description }}</p>
+            
+            <div class="resource-type mt-3" v-if="resource.rarity">
+              <h5>Rarity: {{ resource.rarity }}</h5>
+              <p>{{ getRarityDescription(resource.rarity) }}</p>
+            </div>
+            
+            <div class="resource-seasons mt-3" v-if="resource.seasonalAbundance && resource.seasonalAbundance.length">
+              <h5>Seasonal Availability</h5>
+              <div class="season-tags">
+                <span 
+                  v-for="season in resource.seasonalAbundance" 
+                  :key="season"
+                  class="season-tag"
+                  :class="getSeasonClassName(season)"
+                >
+                  {{ formatSeasonName(season) }}
+                </span>
+              </div>
+            </div>
+            
+            <div class="resource-special-effect mt-3" v-if="resource.specialEffect">
+              <h5>Special Effect</h5>
+              <p>{{ resource.specialEffect.description }}</p>
+            </div>
+          </GameCard>
+        </div>
+        
+        <!-- Action Cards -->
+        <template v-if="selectedResourceId">
+          <div class="action-card">
+            <GameCard 
+              title="Use Resource" 
+              :cardType="CardType.ACTION"
+              @click="useResource"
+              :class="{ 'disabled': !canUseSelectedResource }"
+            >
+              <div style="font-size: 0.9rem; padding: 5px; text-align: center;">
+                Apply the resource's special effect
+              </div>
+            </GameCard>
+          </div>
+          
+          <div class="action-card">
+            <GameCard 
+              title="Discard Resource" 
+              :cardType="CardType.ACTION"
+              @click="discardResource"
+            >
+              <div style="font-size: 0.9rem; padding: 5px; text-align: center;">
+                Remove this resource from inventory
+              </div>
+            </GameCard>
+          </div>
+          
+          <div class="action-card">
+            <GameCard 
+              title="Cancel" 
+              :cardType="CardType.ACTION"
+              @click="cancelSelection"
+            >
+              <div style="font-size: 0.9rem; padding: 5px; text-align: center;">
+                Return to resource management
+              </div>
+            </GameCard>
+          </div>
+        </template>
+        
+        <template v-else>
+          <div class="action-card">
+            <GameCard 
+              title="Gather Resources" 
+              :cardType="CardType.ACTION"
+              @click="gatherResources"
+            >
+              <div style="font-size: 0.9rem; padding: 5px; text-align: center;">
+                Collect resources from the environment
+              </div>
+            </GameCard>
+          </div>
+          
+          <div class="action-card">
+            <GameCard 
+              title="Continue Journey" 
+              :cardType="CardType.ACTION"
+              @click="continueJourney"
+            >
+              <div style="font-size: 0.9rem; padding: 5px; text-align: center;">
+                Proceed to the next phase of your adventure
+              </div>
+            </GameCard>
+          </div>
+        </template>
+      </div>
+      
+      <div v-if="playerResources.length === 0" class="empty-state mt-3">
+        You don't have any resources. Explore landscapes to gather resources.
+      </div>
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent, computed, ref } from 'vue';
+import { GamePhase } from '@/models/enums/phases';
+import { CardType } from '@/models/enums/cardTypes';
+import { Season } from '@/models/enums/seasons';
+import { useCardStore } from '@/stores/cardStore';
+import { usePlayerStore } from '@/stores/playerStore';
+import { useGameStore } from '@/stores/gameStore';
+import { ResourceCard } from '@/models/types/cards';
+import GameCard from '@/components/core/GameCard.vue';
+
+export default defineComponent({
+  name: 'ResourceManagement',
+  components: {
+    GameCard
+  },
+  setup() {
+    const cardStore = useCardStore();
+    const playerStore = usePlayerStore();
+    const gameStore = useGameStore();
+    
+    const selectedResourceId = ref<string | null>(null);
+    
+    const currentPhase = computed(() => {
+      return gameStore.currentPhase;
+    });
+    
+    const playerResources = computed(() => {
+      const resourceIds = playerStore.resources;
+      return resourceIds.map(id => cardStore.getResourceById(id)).filter(Boolean) as ResourceCard[];
+    });
+    
+    const resourceCapacity = computed(() => {
+      return playerStore.resourceCapacity;
+    });
+    
+    const selectedResource = computed(() => {
+      if (!selectedResourceId.value) return null;
+      return playerResources.value.find(r => r.id === selectedResourceId.value) || null;
+    });
+    
+    const canUseSelectedResource = computed(() => {
+      if (!selectedResource.value) return false;
+      
+      // Check if the resource has a special effect
+      return !!selectedResource.value.specialEffect;
+    });
+    
+    const selectResource = (resource: ResourceCard) => {
+      selectedResourceId.value = resource.id;
+    };
+    
+    const useResource = () => {
+      if (!selectedResource.value) return;
+      
+      // Apply the resource effect
+      const resource = selectedResource.value;
+      
+      if (resource.specialEffect) {
+        // Apply the effect based on the resource type
+        gameStore.addToGameLog(`Used ${resource.name}: ${resource.specialEffect.description}`);
+        
+        // Remove the resource after use
+        playerStore.removeResource(resource.id);
+        
+        // Reset selection
+        selectedResourceId.value = null;
+      }
+    };
+    
+    const discardResource = () => {
+      if (!selectedResource.value) return;
+      
+      // Remove the resource
+      playerStore.removeResource(selectedResource.value.id);
+      gameStore.addToGameLog(`Discarded ${selectedResource.value.name}`);
+      
+      // Reset selection
+      selectedResourceId.value = null;
+    };
+    
+    const cancelSelection = () => {
+      selectedResourceId.value = null;
+    };
+    
+    const continueJourney = () => {
+      gameStore.advancePhase();
+    };
+    
+    const gatherResources = () => {
+      // Call the gatherResources method from gameStore
+      gameStore.gatherResources();
+    };
+    
+    // Convert season value to a CSS class name
+    const getSeasonClassName = (season: string): string => {
+      // Always return lowercase values for CSS classes
+      if (typeof season === 'string') {
+        return season.toLowerCase().replace(/_/g, '-');
+      }
+      return '';
+    };
+    
+    // Format season name for display
+    const formatSeasonName = (season: string | null): string => {
+      if (!season) return '';
+      
+      // Try to match with Season enum values
+      switch (season) {
+        case Season.SAMHAIN:
+          return 'Samhain';
+        case Season.WINTERS_DEPTH:
+          return 'Winter\'s Depth';
+        case Season.IMBOLC:
+          return 'Imbolc';
+        case Season.BELTANE:
+          return 'Beltane';
+        case Season.LUGHNASADH:
+          return 'Lughnasadh';
+        default:
+          // For legacy string values that aren't enum values
+          return season.replace('_', ' ')
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
+      }
+    };
+    
+    const getRarityDescription = (rarity: string) => {
+      switch (rarity) {
+        case 'common':
+          return 'Commonly found throughout the Celtic Realm.';
+        case 'uncommon':
+          return 'Somewhat rare, but can be found in specific locations.';
+        case 'rare':
+          return 'Very rare and valuable, found only in special circumstances.';
+        default:
+          return 'Unknown rarity.';
+      }
+    };
+    
+    return {
+      currentPhase,
+      playerResources,
+      selectedResourceId,
+      resourceCapacity,
+      selectedResource,
+      canUseSelectedResource,
+      selectResource,
+      useResource,
+      discardResource,
+      cancelSelection,
+      continueJourney,
+      gatherResources,
+      formatSeasonName,
+      getSeasonClassName,
+      getRarityDescription,
+      GamePhase,
+      CardType
+    };
+  }
+});
+</script>
+
+<style lang="scss" scoped>
+@import '@/assets/scss/variables';
+
+.resource-management {
+  padding: $spacing-md;
+  
+  &__inactive {
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: $spacing-md;
+    border-radius: $border-radius-md;
+    text-align: center;
+  }
+  
+  &__active {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.resource-cards-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 15px;
+  justify-content: flex-start;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.resource-card, .action-card {
+  flex: 0 0 auto;
+  width: 185px;
+  cursor: pointer;
+  transition: transform $transition-normal;
+  
+  &:hover {
+    transform: translateY(-5px);
+  }
+  
+  &.selected {
+    transform: translateY(-5px);
+    box-shadow: 0 0 0 2px $accent-color;
+    border-radius: $border-radius-md;
+  }
+  
+  .game-card {
+    background-color: #f9eeda;
+    border: 1px solid #d3c7a7;
+    border-radius: $border-radius-md;
+    height: 100%;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: $spacing-md;
+  font-style: italic;
+  color: $secondary-color;
+}
+
+.season-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  
+  .season-tag {
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    
+    &.imbolc {
+      background-color: #e6f7ff;
+      color: #0066cc;
+    }
+    
+    &.beltane {
+      background-color: #f0fff0;
+      color: #228b22;
+    }
+    
+    &.lughnasadh {
+      background-color: #fff0e0;
+      color: #b25900;
+    }
+    
+    &.samhain {
+      background-color: #f9e6ff;
+      color: #5a008a;
+    }
+  }
+}
+
+.resource-type, .resource-affinity, .resource-seasons, .resource-special-effect {
+  margin-top: $spacing-sm;
+  padding: $spacing-xs $spacing-sm;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: $border-radius-sm;
+  
+  h5 {
+    color: $secondary-color;
+    font-size: $font-size-base;
+    margin-bottom: $spacing-xs;
+  }
+}
+
+.mt-3 {
+  margin-top: $spacing-md;
+}
+
+.mt-4 {
+  margin-top: $spacing-lg;
+}
+
+.ml-2 {
+  margin-left: $spacing-sm;
+}
+</style>
+</file>
+
+<file path="game/StatusArea.vue">
+<template>
+  <div class="status-area debug-component" data-component-name="StatusArea">
+    <h2 class="status-area__title">Game Status</h2>
+    
+    <div class="status-area__content">
+      <div class="status-area__tokens">
+        <div class="status-area__token-group">
+          <div class="status-area__token-label">Threat Tokens:</div>
+          <div class="status-area__token-display">
+            <div 
+              v-for="i in threatTokens" 
+              :key="`threat-${i}`" 
+              class="status-area__token status-area__token--threat"
+            ></div>
+            <div 
+              v-for="i in (15 - threatTokens)" 
+              :key="`empty-threat-${i}`" 
+              class="status-area__token status-area__token--empty"
+            ></div>
+          </div>
+          <div class="status-area__token-count">{{ threatTokens }} / 15</div>
+        </div>
+        
+        <div class="status-area__token-group">
+          <div class="status-area__token-label">Blessing Tokens:</div>
+          <div class="status-area__token-display">
+            <div 
+              v-for="i in blessingTokens" 
+              :key="`blessing-${i}`" 
+              class="status-area__token status-area__token--blessing"
+            ></div>
+            <div 
+              v-for="i in (5 - blessingTokens)" 
+              :key="`empty-blessing-${i}`" 
+              class="status-area__token status-area__token--empty"
+            ></div>
+          </div>
+          <div class="status-area__token-count">{{ blessingTokens }} / 5</div>
+        </div>
+      </div>
+      
+      <div class="status-area__info">
+        <div class="status-area__info-item">
+          <span class="status-area__info-label">Turn:</span>
+          <span class="status-area__info-value">{{ turn }}</span>
+        </div>
+        
+        <div class="status-area__info-item">
+          <span class="status-area__info-label">Threat Level:</span>
+          <span class="status-area__info-value">{{ threatLevel }}</span>
+        </div>
+        
+        <div class="status-area__info-item">
+          <span class="status-area__info-label">Landscapes Visited:</span>
+          <span class="status-area__info-value">{{ visitedLandscapes }} / 15</span>
+        </div>
+      </div>
+      
+      <div v-if="activeEffects.length > 0" class="status-area__effects">
+        <h3 class="status-area__effects-title">Active Effects</h3>
+        <div 
+          v-for="effect in activeEffects" 
+          :key="effect.id"
+          class="status-area__effect"
+        >
+          <div class="status-area__effect-name">{{ effect.name }}</div>
+          <div class="status-area__effect-duration">
+            <span v-if="effect.duration > 0">{{ effect.duration }} turns</span>
+            <span v-else>Permanent</span>
+          </div>
+          <div class="status-area__effect-description">{{ effect.description }}</div>
+        </div>
+      </div>
+      
+      <div class="status-area__victory-conditions">
+        <h3 class="status-area__victory-title">Victory Conditions</h3>
+        <div class="status-area__condition-list">
+          <div class="status-area__condition">
+            <div class="status-area__condition-check" :class="{ 'completed': victoryConditions.journeyCompleted }"></div>
+            <div class="status-area__condition-text">Complete the Journey</div>
+          </div>
+          <div class="status-area__condition">
+            <div class="status-area__condition-check" :class="{ 'completed': victoryConditions.balanceMaintained }"></div>
+            <div class="status-area__condition-text">Maintain Balance (< 6 Threat)</div>
+          </div>
+          <div class="status-area__condition">
+            <div class="status-area__condition-check" :class="{ 'completed': victoryConditions.knowledgeAcquired }"></div>
+            <div class="status-area__condition-text">Acquire Knowledge (2+ Items)</div>
+          </div>
+          <div class="status-area__condition">
+            <div class="status-area__condition-check" :class="{ 'completed': victoryConditions.bondsFormed }"></div>
+            <div class="status-area__condition-text">Form Bonds (1+ Companion)</div>
+          </div>
+          <div class="status-area__condition">
+            <div class="status-area__condition-check" :class="{ 'completed': victoryConditions.questFulfilled }"></div>
+            <div class="status-area__condition-text">Fulfill Personal Quest</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useGameStore } from '@/stores/gameStore';
+
+const props = defineProps<{
+  threatTokens: number;
+  blessingTokens: number;
+  turn: number;
+}>();
+
+const gameStore = useGameStore();
+
+const threatLevel = computed(() => Math.floor(props.threatTokens / 3));
+
+const visitedLandscapes = computed(() => gameStore.visitedLandscapes.length);
+
+const activeEffects = computed(() => {
+  // Combine game and player effects
+  const tempEffects = gameStore.tempEffects || [];
+  return tempEffects;
+});
+
+const victoryConditions = computed(() => gameStore.victoryConditions || {
+  journeyCompleted: false,
+  balanceMaintained: false,
+  knowledgeAcquired: false,
+  bondsFormed: false,
+  questFulfilled: false
+});
+</script>
+
+<style lang="scss" scoped>
+.status-area {
+  background: rgba(240, 230, 210, 0.5);
+  border-radius: 8px;
+  padding: 1rem;
+  
+  &__title {
+    margin-top: 0;
+    color: #5c4d3c;
+    border-bottom: 2px solid #8c7851;
+    padding-bottom: 0.5rem;
+  }
+  
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  &__tokens {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  &__token-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  &__token-label {
+    font-weight: bold;
+    color: #5c4d3c;
+  }
+  
+  &__token-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  
+  &__token {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    
+    &--threat {
+      background: #8b0000;
+    }
+    
+    &--blessing {
+      background: #6b8e23;
+    }
+    
+    &--empty {
+      background: #d4c8a8;
+      opacity: 0.3;
+    }
+  }
+  
+  &__token-count {
+    font-size: 0.8rem;
+    color: #5c4d3c;
+    text-align: right;
+  }
+  
+  &__info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
+  }
+  
+  &__info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  &__info-label {
+    font-weight: bold;
+    color: #5c4d3c;
+  }
+  
+  &__info-value {
+    color: #333;
+  }
+  
+  &__effects {
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
+  }
+  
+  &__effects-title {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+    color: #5c4d3c;
+  }
+  
+  &__effect {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background: rgba(140, 120, 81, 0.1);
+    border-radius: 4px;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  
+  &__effect-name {
+    font-weight: bold;
+    color: #5c4d3c;
+  }
+  
+  &__effect-duration {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 0.25rem;
+  }
+  
+  &__effect-description {
+    font-size: 0.9rem;
+  }
+  
+  &__victory-conditions {
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
+  }
+  
+  &__victory-title {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+    color: #5c4d3c;
+  }
+  
+  &__condition-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  &__condition {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  &__condition-check {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #8c7851;
+    border-radius: 3px;
+    position: relative;
+    
+    &.completed {
+      background: #6b8e23;
+      border-color: #6b8e23;
+      
+      &:after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 6px;
+        width: 5px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+      }
+    }
+  }
+  
+  &__condition-text {
+    font-size: 0.9rem;
+    color: #333;
+  }
+}
+
+@media (max-width: 768px) {
+  .status-area {
+    &__tokens {
+      flex-direction: row;
+      justify-content: space-between;
+    }
+    
+    &__token-group {
+      width: 48%;
+    }
+  }
+}
+</style>
+</file>
+
+<file path="layout/GameLayout.vue">
+<template>
+  <div class="game-layout" style="border: 2px solid lightblue; position: relative;">
+    <div style="position: absolute; top: -20px; left: 0; background-color: lightblue; padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070;">GameLayout</div>
+    <main class="game-layout__content">
+      <slot></slot>
+    </main>
+    
+    <footer class="game-layout__footer">
+      <p>&copy; 2025 Pathfinder's Journey</p>
+    </footer>
+  </div>
+</template>
+
+<script setup lang="ts">
+// No props or special logic needed for this basic layout component
+</script>
+
+<style lang="scss" scoped>
+.game-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-image: url('@/assets/images/celtic-background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  
+  &__content {
+    flex: 1;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  
+  &__footer {
+    padding: 1rem;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    text-align: center;
+    font-size: 0.8rem;
+  }
+}
+</style>
+</file>
+
+</files>

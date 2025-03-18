@@ -470,6 +470,41 @@ class CraftingService {
     
     playerStore.uniqueCraftedItemsCount = uniqueItemTypes.size;
   }
+
+  /**
+   * Check if player has a specific resource
+   * @param resourceId The ID of the resource
+   * @returns True if the player has the resource
+   */
+  hasResource(resourceId: string): boolean {
+    const playerStore = usePlayerStore();
+    return playerStore.resources.includes(resourceId);
+  }
+
+  /**
+   * Get resource name by ID
+   * @param resourceId The ID of the resource
+   * @returns The name of the resource or 'Unknown' if not found
+   */
+  getResourceName(resourceId: string): string {
+    const cardStore = useCardStore();
+    const resource = cardStore.getResourceById(resourceId);
+    return resource ? resource.name : 'Unknown';
+  }
+
+  /**
+   * Truncate description to keep card content concise
+   * @param text The text to truncate
+   * @param maxLength Maximum length before truncation
+   * @returns Truncated text
+   */
+  truncateDescription(text: string, maxLength = 60): string {
+    if (!text) return '';
+    return text.length > maxLength 
+      ? text.substring(0, maxLength) + '...' 
+      : text;
+  }
 }
 
-export { CraftingService };
+// Create a singleton instance for use throughout the application
+export const craftingService = new CraftingService();
