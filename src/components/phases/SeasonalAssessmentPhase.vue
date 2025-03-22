@@ -27,10 +27,16 @@ const gameStore = useGameStore();
 const { phaseService } = useServices();
 
 // Format season for display
-const formatSeason = (season: Season): string => {
-  return season.split('_').map(word => 
-    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-  ).join(' ');
+const formatSeason = (season: Season | string): string => {
+  if (typeof season === 'string') {
+    return season.split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join(' ');
+  } else {
+    return String(season).split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join(' ');
+  }
 };
 
 // Advance to the next phase

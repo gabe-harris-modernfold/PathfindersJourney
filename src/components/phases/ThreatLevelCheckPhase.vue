@@ -18,16 +18,23 @@
 
 <script setup lang="ts">
 import { useGameStore } from '@/stores/gameStore';
+import { useLogStore } from '@/stores/logStore';
 import { useServices } from '@/composables/useServices';
 import GameCard from '@/components/GameCard.vue';
 
 const gameStore = useGameStore();
+const logStore = useLogStore();
 const { phaseService, threatService } = useServices();
 
 // Handle threat check
 const handleThreatCheck = () => {
   // This would call logic in the threatService
-  threatService.checkThreatLevel();
+  const threatLevel = threatService.getThreatLevel();
+  
+  // You could add additional logic here based on the threat level
+  if (threatLevel > 0) {
+    logStore.addToGameLog(`Threat Level: ${threatLevel}. Be cautious!`, false);
+  }
 };
 
 // Advance to the next phase

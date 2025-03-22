@@ -55,7 +55,7 @@ import { GamePhase } from '@/models/enums/phases';
 import { Season } from '@/models/enums/seasons';
 import { CardType } from '@/models/enums/cardTypes';
 import type { CharacterCard } from '@/models/types/cards';
-import GameCard from '@/components/core/GameCard.vue'; // Import the GameCard component
+import GameCard from '@/components/GameCard.vue'; // Import the GameCard component
 
 // Initialize stores and router
 const router = useRouter();
@@ -120,8 +120,10 @@ const startGame = (character: CharacterCard) => {
           // Set a challenge from this landscape
           if (ancientStoneCircle.challenges && ancientStoneCircle.challenges.length > 0) {
             const firstChallenge = ancientStoneCircle.challenges[0];
-            gameStore.setCurrentChallenge(firstChallenge.id);
-            console.log('Set initial challenge:', firstChallenge.name);
+            // Create a unique challenge ID based on the challenge type
+            const challengeId = `${ancientStoneCircle.id}_${firstChallenge.type.toLowerCase()}_${firstChallenge.difficulty}`;
+            gameStore.setCurrentChallenge(challengeId);
+            console.log('Set initial challenge:', firstChallenge.type, 'difficulty:', firstChallenge.difficulty);
           }
         } else {
           // Fallback to first landscape if Ancient Stone Circle is not found
@@ -131,8 +133,10 @@ const startGame = (character: CharacterCard) => {
           // Set a challenge from this landscape
           if (firstLandscape.challenges && firstLandscape.challenges.length > 0) {
             const firstChallenge = firstLandscape.challenges[0];
-            gameStore.setCurrentChallenge(firstChallenge.id);
-            console.log('Set initial challenge:', firstChallenge.name);
+            // Create a unique challenge ID based on the challenge type
+            const challengeId = `${firstLandscape.id}_${firstChallenge.type.toLowerCase()}_${firstChallenge.difficulty}`;
+            gameStore.setCurrentChallenge(challengeId);
+            console.log('Set initial challenge:', firstChallenge.type, 'difficulty:', firstChallenge.difficulty);
           }
         }
       }

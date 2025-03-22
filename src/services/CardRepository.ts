@@ -16,7 +16,7 @@ import characters from '@/models/data/characters';
 import landscapes from '@/models/data/landscapes';
 import resources from '@/models/data/resources';
 import companions from '@/models/data/companions';
-import craftedItems from '@/models/data/crafted-items';
+import { craftedItems } from '@/models/data/crafted-items';
 import { seasons } from '@/models/data/seasons';
 
 /**
@@ -130,17 +130,25 @@ export class CardRepository {
    */
   private _initializeAnimalCompanions(): AnimalCompanionCard[] {
     return companions.map(comp => ({
-      ...this._createBaseCard<AnimalCompanionCard>(comp, CardType.ANIMAL_COMPANION, 'default_companion.jpg'),
+      ...this._createBaseCard<AnimalCompanionCard>(comp, CardType.ANIMAL_COMPANION, comp.image || 'default_companion.jpg'),
       ability: {
-        name: comp.ability?.name || '',
-        description: comp.ability?.description || ''
+        name: comp.ability || '',
+        description: comp.abilityDescription || ''
       },
-      affinitySeasons: comp.affinitySeasons || [],
+      affinitySeasons: (comp.seasonalAffinity || []).map(season => {
+        // Convert string season to Season enum
+        if (season === 'samhain') return Season.SAMHAIN;
+        if (season === 'winters_depth') return Season.WINTERS_DEPTH;
+        if (season === 'imbolc') return Season.IMBOLC;
+        if (season === 'beltane') return Season.BELTANE;
+        if (season === 'lughnasadh') return Season.LUGHNASADH;
+        return Season.SAMHAIN; // Default
+      }),
       preferredResources: comp.preferredResources || [],
-      challengeBonuses: comp.challengeBonuses,
-      seasonalBonuses: comp.seasonalBonuses,
-      bondingEffect: comp.bondingEffect,
-      loyaltyEffects: comp.loyaltyEffects
+      challengeBonuses: {},  // Default empty object
+      seasonalBonuses: {},   // Default empty object
+      bondingEffect: undefined,   // Default undefined
+      loyaltyEffects: {}     // Default empty object
     }));
   }
 
@@ -318,15 +326,23 @@ export class CardRepository {
     return {
       ...this._createBaseCard<AnimalCompanionCard>(data, CardType.ANIMAL_COMPANION, 'default_companion.jpg'),
       ability: {
-        name: data.ability?.name || '',
-        description: data.ability?.description || ''
+        name: data.ability || '',
+        description: data.abilityDescription || ''
       },
-      affinitySeasons: data.affinitySeasons || [],
+      affinitySeasons: (data.seasonalAffinity || []).map(season => {
+        // Convert string season to Season enum
+        if (season === 'samhain') return Season.SAMHAIN;
+        if (season === 'winters_depth') return Season.WINTERS_DEPTH;
+        if (season === 'imbolc') return Season.IMBOLC;
+        if (season === 'beltane') return Season.BELTANE;
+        if (season === 'lughnasadh') return Season.LUGHNASADH;
+        return Season.SAMHAIN; // Default
+      }),
       preferredResources: data.preferredResources || [],
-      challengeBonuses: data.challengeBonuses,
-      seasonalBonuses: data.seasonalBonuses,
-      bondingEffect: data.bondingEffect,
-      loyaltyEffects: data.loyaltyEffects
+      challengeBonuses: {},  // Default empty object
+      seasonalBonuses: {},   // Default empty object
+      bondingEffect: undefined,   // Default undefined
+      loyaltyEffects: {}     // Default empty object
     };
   }
 

@@ -7,6 +7,7 @@ import { usePlayerStore } from '@/stores/playerStore';
 import { useLogStore } from '@/stores/logStore';
 import { GamePhase } from '@/models/enums/phases';
 import { BaseService } from '@/services/core/BaseService';
+import { StoreRegistry } from '@/services/core/StoreRegistry'; // Import StoreRegistry
 
 class PhaseService extends BaseService {
   private _gameStore = useGameStore();
@@ -138,7 +139,12 @@ class PhaseService extends BaseService {
   public reset(): void {
     // Reset any service state here
   }
+  
+  // Add constructor to accept StoreRegistry instance
+  constructor(storeRegistry: StoreRegistry) {
+    super(storeRegistry);
+  }
 }
 
 // Create singleton instance
-export const phaseService = new PhaseService();
+export const phaseService = new PhaseService(new StoreRegistry());

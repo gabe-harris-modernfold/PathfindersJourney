@@ -7,7 +7,7 @@
 export { challengeService } from './ChallengeService';
 
 // Export the strategy interface for extensions
-export { ChallengeStrategy } from './ChallengeStrategy';
+export type { ChallengeStrategy } from './ChallengeStrategy';
 
 // Export individual strategies for direct access if needed
 export { PhysicalChallengeStrategy } from './strategies/PhysicalChallengeStrategy';

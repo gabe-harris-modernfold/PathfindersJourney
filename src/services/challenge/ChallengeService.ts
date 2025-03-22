@@ -232,6 +232,88 @@ class ChallengeService {
   }
   
   /**
+   * Get the last challenge result - alias for getLastOutcome for backwards compatibility
+   * @returns The last challenge outcome or null if no challenge has been resolved
+   */
+  getLastChallengeResult(): ChallengeOutcome | null {
+    return this.getLastOutcome();
+  }
+
+  /**
+   * Resolve a challenge in the current landscape
+   * This is a convenience method that handles all the steps for landscape challenges
+   */
+  resolveChallengeLandscape(): void {
+    const gameStore = useGameStore();
+    const cardStore = useCardStore();
+    const logStore = useLogStore();
+    
+    // Get the current landscape's challenge
+    const currentLandscape = gameStore.currentLandscape;
+    if (!currentLandscape || !currentLandscape.challenges || currentLandscape.challenges.length === 0) {
+      logStore.addToGameLog('No challenge found for the current landscape', true);
+      return;
+    }
+    
+    // Use the first challenge for simplicity
+    const challenge = currentLandscape.challenges[0];
+    
+    // Resolve the challenge
+    const outcome = this.resolveChallenge(challenge);
+    
+    // Handle landscape-specific outcomes
+    if (outcome.success === true) {
+      logStore.addToGameLog(`You successfully navigated through ${currentLandscape.name}!`, false);
+      gameStore.currentTurn++;
+    } else {
+      logStore.addToGameLog(`You struggled with the challenges of ${currentLandscape.name}.`, true);
+      
+      // Apply penalties based on challenge type
+      const playerStore = usePlayerStore();
+      
+      if (challenge.type === ChallengeType.STRENGTH || challenge.type === ChallengeType.AGILITY) {
+        playerStore.health--;
+        logStore.addToGameLog('You lost 1 Health from the physical strain.', true);
+      } else if (challenge.type === ChallengeType.WISDOM) {
+        playerStore.loseRandomResources(1);
+        logStore.addToGameLog('You lost a resource while trying to solve the problem.', true);
+      }
+      
+      gameStore.currentTurn++;
+    }
+  }
+  
+  /**
+   * Avoid the challenge in the current landscape by spending resources
+   */
+  avoidChallengeLandscape(): void {
+    const gameStore = useGameStore();
+    const playerStore = usePlayerStore();
+    const logStore = useLogStore();
+    
+    // Check if player has enough resources
+    const requiredResources = 2;
+    const resourceCount = playerStore.resourceCount;
+    
+    if (resourceCount >= requiredResources) {
+      // Spend resources to avoid challenge
+      // In a real implementation, we would select specific resources to spend
+      for (let i = 0; i < requiredResources; i++) {
+        if (playerStore.resources.length > 0) {
+          const resourceToSpend = playerStore.resources[0];
+          playerStore.removeResource(resourceToSpend);
+        }
+      }
+      
+      logStore.addToGameLog(`You spent ${requiredResources} resources to avoid the challenge.`, false);
+      // Continue journey without challenge penalties
+      gameStore.currentTurn++;
+    } else {
+      logStore.addToGameLog(`You don't have enough resources to avoid the challenge. You need at least ${requiredResources}.`, true);
+    }
+  }
+  
+  /**
    * Reset the service state
    */
   reset(): void {

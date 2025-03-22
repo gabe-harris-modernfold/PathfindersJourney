@@ -255,11 +255,59 @@ export const useGameStore = defineStore('game', {
       const cardStore = useCardStore();
       
       this.currentLandscapeId = landscapeId;
+      // Also set the currentLandscape for backward compatibility
+      this.currentLandscape = landscapeId;
       
       const landscape = cardStore.getLandscapeById(landscapeId);
       if (landscape) {
         logStore.addToGameLog(`You have arrived at ${landscape.name}.`, true, 'system');
       }
+    },
+    
+    /**
+     * Set current landscape
+     * Supports both string ID and landscape object
+     * @param landscape The landscape ID (string) or object to set as current
+     */
+    setCurrentLandscape(landscape: string | any): void {
+      if (typeof landscape === 'string') {
+        // It's a landscape ID
+        this.currentLandscape = landscape;
+        this.currentLandscapeId = landscape;
+      } else if (landscape && typeof landscape === 'object') {
+        // It's a landscape object
+        this.currentLandscape = landscape.id || '';
+        this.currentLandscapeId = landscape.id || '';
+      }
+    },
+    
+    /**
+     * Advance the journey by a number of steps
+     * This delegates to journeyStore.advanceJourney
+     * @param steps Number of steps to advance
+     */
+    advanceJourney(steps: number): void {
+      const journeyStore = useJourneyStore();
+      journeyStore.advanceJourney(steps);
+    },
+    
+    /**
+     * Advance to the next season
+     * This delegates to seasonStore.advanceSeason
+     */
+    advanceSeason(): void {
+      const seasonStore = useSeasonStore();
+      seasonStore.advanceSeason();
+    },
+    
+    /**
+     * Update resource availability based on current season
+     * This delegates to seasonStore._updateResourceAvailability
+     */
+    updateResourceAvailability(): void {
+      const seasonStore = useSeasonStore();
+      // Using private method via any type cast
+      (seasonStore as any)._updateResourceAvailability();
     },
     
     /**
@@ -309,17 +357,6 @@ export const useGameStore = defineStore('game', {
         target: effect.target || 'player' // Add default target
       });
       this.addToGameLog(`Added temporary effect: ${effect.name} (${duration} turns)`);
-    },
-    
-    /**
-     * Set current landscape
-     * @param landscape The landscape to set as current
-     */
-    setCurrentLandscape(landscape: any): void {
-      this.currentLandscape = landscape;
-      if (landscape && landscape.id) {
-        this.currentLandscapeId = landscape.id;
-      }
     },
     
     /**
