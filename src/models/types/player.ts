@@ -39,6 +39,8 @@ export interface PlayerState {
   uniqueCraftedItemsCount: number;
   companionLoyalty: { [companionId: string]: CompanionStatus };
   wisdom: number;
+  equippedItems?: string[];
+  selectedCharacter?: any;
 }
 
 export interface PlayerActionResult {

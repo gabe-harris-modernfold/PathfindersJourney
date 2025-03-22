@@ -5,8 +5,18 @@
       <p>Manage your resources and gather new ones.</p>
     </div>
     
-    <!-- Reusing existing ResourceManagement component -->
-    <ResourceManagement />
+    <!-- Placeholder for ResourceManagement component -->
+    <div class="resource-management-container">
+      <div class="resource-list">
+        <h3>Current Resources</h3>
+        <p v-if="!playerStore.resources.length">You have no resources.</p>
+        <ul v-else>
+          <li v-for="resource in playerStore.resources" :key="resource">
+            {{ resource }}
+          </li>
+        </ul>
+      </div>
+    </div>
     
     <GameCard 
       title="Continue Journey" 
@@ -22,11 +32,12 @@
 
 <script setup lang="ts">
 import { useGameStore } from '@/stores/gameStore';
+import { usePlayerStore } from '@/stores/playerStore';
 import { useServices } from '@/composables/useServices';
 import GameCard from '@/components/GameCard.vue';
-import ResourceManagement from '@/components/game/ResourceManagement.vue';
 
 const gameStore = useGameStore();
+const playerStore = usePlayerStore();
 const { phaseService, resourceService } = useServices();
 
 // Advance to the next phase
@@ -52,5 +63,35 @@ const advancePhase = () => {
 .phase-description {
   text-align: center;
   margin-bottom: 1.5rem;
+}
+
+.resource-management-container {
+  width: 100%;
+  max-width: 600px;
+  background-color: rgba(245, 245, 220, 0.5);
+  border: 1px solid #8b4513;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.resource-list {
+  h3 {
+    color: #5a3e2b;
+    margin-bottom: 1rem;
+  }
+  
+  ul {
+    list-style-type: none;
+    padding: 0;
+    
+    li {
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      background-color: rgba(255, 255, 255, 0.6);
+      border-radius: 4px;
+      border-left: 3px solid #8b4513;
+    }
+  }
 }
 </style>

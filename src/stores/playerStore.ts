@@ -22,7 +22,9 @@ export const usePlayerStore = defineStore('player', {
     hasCraftedLegendaryItem: false,
     uniqueCraftedItemsCount: 0,
     companionLoyalty: {},
-    wisdom: 0,  // Add missing wisdom property
+    wisdom: 0,
+    equippedItems: [], // Add equippedItems property
+    selectedCharacter: null, // Add selectedCharacter property
   }),
   
   getters: {

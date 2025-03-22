@@ -1,11 +1,10 @@
 <template>
-  <GameLayout>
+  <div class="app-wrapper">
     <router-view />
-  </GameLayout>
+  </div>
 </template>
 
 <script setup lang="ts">
-import GameLayout from '@/components/layout/GameLayout.vue';
 </script>
 
 <style lang="scss">

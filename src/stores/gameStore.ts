@@ -8,6 +8,7 @@ import { useChallenge } from './challengeStore';
 import { useLogStore } from './logStore';
 import { useCardStore } from './cardStore';
 import { victoryService } from '@/services/victoryService';
+import { Season } from '@/models/enums/seasons'; // Import the Season enum
 
 interface GameState {
   currentPhase: GamePhase;
@@ -17,6 +18,15 @@ interface GameState {
   isVictory: boolean;
   victoryConditions: VictoryConditions;
   currentLandscapeId: string;
+  currentSeason?: string;
+  currentLandscape?: any;
+  currentChallenge?: any;
+  journeyProgress?: number;
+  journeyPath?: any[];
+  threatTokens?: number;
+  blessingTokens?: number;
+  visitedLandscapes?: string[];
+  journeyComplete?: boolean;
 }
 
 /**
@@ -40,7 +50,16 @@ export const useGameStore = defineStore('game', {
       seasonsExperienced: false,
       challengesOvercome: false
     },
-    currentLandscapeId: ''
+    currentLandscapeId: '',
+    currentSeason: undefined,
+    currentLandscape: undefined,
+    currentChallenge: undefined,
+    journeyProgress: undefined,
+    journeyPath: undefined,
+    threatTokens: undefined,
+    blessingTokens: undefined,
+    visitedLandscapes: undefined,
+    journeyComplete: undefined
   }),
   
   getters: {
@@ -100,6 +119,15 @@ export const useGameStore = defineStore('game', {
         challengesOvercome: false
       };
       this.currentLandscapeId = '';
+      this.currentSeason = undefined;
+      this.currentLandscape = undefined;
+      this.currentChallenge = undefined;
+      this.journeyProgress = undefined;
+      this.journeyPath = undefined;
+      this.threatTokens = undefined;
+      this.blessingTokens = undefined;
+      this.visitedLandscapes = undefined;
+      this.journeyComplete = undefined;
       
       // Reset all domain-specific stores
       useSeasonStore().reset();
@@ -144,6 +172,8 @@ export const useGameStore = defineStore('game', {
       const logStore = useLogStore();
       
       const phaseOrder = [
+        GamePhase.SETUP,
+        GamePhase.CHARACTER_SELECTION,
         GamePhase.SEASONAL_ASSESSMENT,
         GamePhase.THREAT_LEVEL_CHECK,
         GamePhase.LANDSCAPE_CHALLENGE,
@@ -151,7 +181,8 @@ export const useGameStore = defineStore('game', {
         GamePhase.RESOURCE_MANAGEMENT,
         GamePhase.ANIMAL_COMPANION,
         GamePhase.CRAFTING,
-        GamePhase.JOURNEY_PROGRESSION
+        GamePhase.JOURNEY_PROGRESSION,
+        GamePhase.EXPLORATION
       ];
       
       const currentIndex = phaseOrder.indexOf(this.currentPhase);
@@ -165,7 +196,7 @@ export const useGameStore = defineStore('game', {
         });
         
         // If we've completed a full cycle, advance the turn
-        if (this.currentPhase === GamePhase.SEASONAL_ASSESSMENT) {
+        if (this.currentPhase === GamePhase.SETUP) {
           this.advanceTurn();
         }
       }
@@ -217,18 +248,113 @@ export const useGameStore = defineStore('game', {
     
     /**
      * Set the current landscape ID
-     * @param landcapeId The ID of the landscape to set as current
+     * @param landscapeId The ID of the landscape to set as current
      */
-    setCurrentLandscapeId(landcapeId: string): void {
+    setCurrentLandscapeId(landscapeId: string): void {
       const logStore = useLogStore();
       const cardStore = useCardStore();
       
-      this.currentLandscapeId = landcapeId;
+      this.currentLandscapeId = landscapeId;
       
-      const landscape = cardStore.getLandscapeById(landcapeId);
+      const landscape = cardStore.getLandscapeById(landscapeId);
       if (landscape) {
-        logStore.addToGameLog(`You have arrived at ${landscape.name}.`, true, 'landscape');
+        logStore.addToGameLog(`You have arrived at ${landscape.name}.`, true, 'system');
       }
+    },
+    
+    /**
+     * Set the current challenge
+     * @param challenge The challenge to set as current
+     */
+    setCurrentChallenge(challenge: any): void {
+      this.currentChallenge = challenge;
+    },
+    
+    /**
+     * Add to the game log
+     * @param message The message to add to the log
+     * @param isHighlighted Whether the log entry should be highlighted
+     * @param type The type of log entry
+     * @param data Any additional data to include with the log entry
+     */
+    addToGameLog(message: string, isHighlighted?: boolean, type?: 'phase' | 'action' | 'challenge' | 'resource' | 'companion' | 'crafting' | 'system' | 'error' | 'debug', data?: any): void {
+      const logStore = useLogStore();
+      logStore.addToGameLog(message, isHighlighted, type, data);
+    },
+    
+    /**
+     * Add threat tokens
+     * @param amount The amount of threat tokens to add
+     */
+    addThreatTokens(amount: number): void {
+      if (!this.threatTokens) this.threatTokens = 0;
+      this.threatTokens += amount;
+      this.addToGameLog(`Added ${amount} threat tokens. Current total: ${this.threatTokens}`);
+    },
+    
+    /**
+     * Add temporary effect
+     * @param effect The effect to add
+     * @param duration The duration of the effect
+     */
+    addTempEffect(effect: any, duration: number): void {
+      const playerStore = usePlayerStore();
+      playerStore.addEffect({
+        id: effect.id || `temp_effect_${Date.now()}`,
+        name: effect.name,
+        description: effect.description,
+        magnitude: effect.magnitude || 1,
+        duration: duration,
+        type: effect.type || 'temporary',
+        target: effect.target || 'player' // Add default target
+      });
+      this.addToGameLog(`Added temporary effect: ${effect.name} (${duration} turns)`);
+    },
+    
+    /**
+     * Set current landscape
+     * @param landscape The landscape to set as current
+     */
+    setCurrentLandscape(landscape: any): void {
+      this.currentLandscape = landscape;
+      if (landscape && landscape.id) {
+        this.currentLandscapeId = landscape.id;
+      }
+    },
+    
+    /**
+     * Add visited landscape
+     * @param landscapeId The ID of the landscape to mark as visited
+     */
+    addVisitedLandscape(landscapeId: string): void {
+      if (!this.visitedLandscapes) this.visitedLandscapes = [];
+      if (!this.visitedLandscapes.includes(landscapeId)) {
+        this.visitedLandscapes.push(landscapeId);
+      }
+    },
+    
+    /**
+     * Complete the journey
+     */
+    completeJourney(): void {
+      this.journeyComplete = true;
+      this.addToGameLog('Your journey is complete!', true, 'system');
+    },
+    
+    /**
+     * Trigger a random event
+     */
+    triggerRandomEvent(): void {
+      // Implementation would be here
+      this.addToGameLog('A random event has occurred!', true, 'event');
+    },
+    
+    /**
+     * Trigger an otherworldly manifestation
+     */
+    triggerOtherworldlyManifestation(): void {
+      // Implementation would be here
+      this.addToGameLog('An otherworldly manifestation has appeared!', true, 'event');
     },
     
     /**
@@ -240,6 +366,12 @@ export const useGameStore = defineStore('game', {
       
       // Handle each phase based on the current phase
       switch (this.currentPhase) {
+        case GamePhase.SETUP:
+          // Setup game state
+          break;
+        case GamePhase.CHARACTER_SELECTION:
+          // Handle character selection
+          break;
         case GamePhase.SEASONAL_ASSESSMENT:
           // Check seasonal effects
           this._handleSeasonalAssessment();
@@ -280,6 +412,10 @@ export const useGameStore = defineStore('game', {
           this._handleJourneyProgression();
           break;
           
+        case GamePhase.EXPLORATION:
+          // Handle exploration
+          break;
+          
         default:
           break;
       }
@@ -294,14 +430,17 @@ export const useGameStore = defineStore('game', {
      */
     _formatPhase(phase: GamePhase): string {
       const phaseNames: Record<GamePhase, string> = {
+        [GamePhase.SETUP]: 'Setup',
+        [GamePhase.CHARACTER_SELECTION]: 'Character Selection',
         [GamePhase.SEASONAL_ASSESSMENT]: 'Seasonal Assessment',
         [GamePhase.THREAT_LEVEL_CHECK]: 'Threat Level Check',
         [GamePhase.LANDSCAPE_CHALLENGE]: 'Landscape Challenge',
         [GamePhase.CHALLENGE_RESOLUTION]: 'Challenge Resolution',
         [GamePhase.RESOURCE_MANAGEMENT]: 'Resource Management',
         [GamePhase.ANIMAL_COMPANION]: 'Animal Companion',
-        [GamePhase.CRAFTING]: 'Crafting',
+        [GamePhase.CRAFTING]: 'Crafting', 
         [GamePhase.JOURNEY_PROGRESSION]: 'Journey Progression',
+        [GamePhase.EXPLORATION]: 'Exploration',
         [GamePhase.GAME_OVER]: 'Game Over'
       };
       
@@ -404,23 +543,24 @@ export const useGameStore = defineStore('game', {
       // Basic recovery varies by season
       let recoveryChance = 0;
       switch (seasonStore.currentSeason) {
-        case 'beltane':
+        case Season.BELTANE:
           recoveryChance = 0.75; // 75% chance in Beltane (spring)
           break;
-        case 'lughnasadh':
+        case Season.LUGHNASADH:
           recoveryChance = 0.5; // 50% chance in Lughnasadh (summer)
           break;
-        case 'samhain':
-          recoveryChance = 0.25; // 25% chance in Samhain (autumn)
+        case Season.SAMHAIN:
+          recoveryChance = 0.3; // 30% chance in Samhain (autumn)
           break;
-        case 'winters_depth':
-          recoveryChance = 0; // No natural recovery in Winter's Depth
+        case Season.WINTERS_DEPTH:
+          recoveryChance = 0.1; // 10% chance in Winter's Depth
           break;
-        case 'imbolc':
-          recoveryChance = 0.4; // 40% chance in Imbolc (late winter/early spring)
+        case Season.IMBOLC:
+          recoveryChance = 0.25; // 25% chance in Imbolc (late winter)
           break;
         default:
-          recoveryChance = 0.3;
+          recoveryChance = 0.3; // Default is 30%
+          break;
       }
       
       // Check for healing
