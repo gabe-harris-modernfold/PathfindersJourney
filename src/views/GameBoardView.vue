@@ -8,23 +8,34 @@
     </main>
     
     <aside class="game-sidebar">
-      <!-- Player Dashboard Placeholder -->
-      <div class="placeholder-dashboard">
+      <!-- Player Dashboard -->
+      <div class="player-dashboard">
         <h3>Player Dashboard</h3>
         <div class="player-stats">
-          <p>Health: {{ playerStore.health }}/{{ playerStore.maxHealth }}</p>
-          <p>Season: {{ formatSeason(gameStore.currentSeason) }}</p>
-          <p>Phase: {{ formatPhase(gameStore.currentPhase) }}</p>
+          <div class="stat-group">
+            <p><strong>Health:</strong> {{ playerStore.health }}/{{ playerStore.maxHealth }}</p>
+            <p><strong>Experience:</strong> {{ playerStore.experience }} (Level {{ playerStore.experienceLevel }})</p>
+            <p><strong>Resources:</strong> {{ playerStore.resourceCount }}/{{ playerStore.resourceCapacity }}</p>
+          </div>
+          <div class="stat-group">
+            <p><strong>Season:</strong> {{ formatSeason(seasonStore.currentSeason) }}</p>
+            <p><strong>Phase:</strong> {{ formatPhase(gameStore.currentPhase) }}</p>
+            <p><strong>Turn:</strong> {{ gameStore.currentTurn }}</p>
+          </div>
+          <div class="stat-group" v-if="currentCharacter">
+            <p><strong>Character:</strong> {{ currentCharacter.name }}</p>
+            <p v-if="playerStore.animalCompanions.length > 0">
+              <strong>Companions:</strong> {{ playerStore.companionCount }}
+            </p>
+            <p v-if="playerStore.craftedItems.length > 0">
+              <strong>Crafted Items:</strong> {{ playerStore.craftedItemCount }}
+            </p>
+          </div>
         </div>
       </div>
       
-      <!-- Game Log Placeholder -->
-      <div class="placeholder-log">
-        <h3>Game Log</h3>
-        <div class="log-entries">
-          <p>Journey progress will be recorded here.</p>
-        </div>
-      </div>
+      <!-- Game Log -->
+      <GameLog />
     </aside>
   </div>
 </template>
@@ -35,8 +46,10 @@ import { useRouter } from 'vue-router';
 import { useGameStore } from '@/stores/gameStore';
 import { usePlayerStore } from '@/stores/playerStore';
 import { useCardStore } from '@/stores/cardStore';
+import { useSeasonStore } from '@/stores/seasonStore';
 import GameMap from '@/components/game/GameMap.vue';
 import GameCard from '@/components/core/GameCard.vue';
+import GameLog from '@/components/game/GameLog.vue';
 import { GamePhase } from '@/models/enums/phases';
 import { Season } from '@/models/enums/seasons';
 import PhaseFactory from '@/components/phases/PhaseFactory.vue';
@@ -57,6 +70,7 @@ const router = useRouter();
 const playerStore = usePlayerStore();
 const gameStore = useGameStore();
 const cardStore = useCardStore();
+const seasonStore = useSeasonStore();
 
 // Reactive references
 const lastChallengeResult = ref<ChallengeResult | null>(null);
@@ -402,13 +416,13 @@ const getChallengeDifficulty = () => {
   
   // Calculate season modifier based on current season
   const seasonModifiers = {
-    'SAMHAIN': 0,
-    'WINTERS_DEPTH': -2,
-    'IMBOLC': -1,
-    'BELTANE': 1,
-    'LUGHNASADH': 2
+    [Season.SAMHAIN]: 0,
+    [Season.WINTERS_DEPTH]: -2,
+    [Season.IMBOLC]: -1,
+    [Season.BELTANE]: 1,
+    [Season.LUGHNASADH]: 2
   };
-  const seasonModifier = seasonModifiers[gameStore.currentSeason] || 0;
+  const seasonModifier = seasonModifiers[seasonStore.currentSeason] || 0;
   
   return baseDifficulty + threatModifier + seasonModifier;
 };
@@ -437,14 +451,14 @@ const getTotalBonus = () => {
 
 const getSeasonModifier = () => {
   const seasonModifiers = {
-    'SAMHAIN': 0,
-    'WINTERS_DEPTH': -2,
-    'IMBOLC': -1,
-    'BELTANE': 1,
-    'LUGHNASADH': 2
+    [Season.SAMHAIN]: 0,
+    [Season.WINTERS_DEPTH]: -2,
+    [Season.IMBOLC]: -1,
+    [Season.BELTANE]: 1,
+    [Season.LUGHNASADH]: 2
   };
   
-  return seasonModifiers[gameStore.currentSeason] || 0;
+  return seasonModifiers[seasonStore.currentSeason] || 0;
 };
 
 const resolveChallengeLandscape = () => {
@@ -555,7 +569,7 @@ const gatherResources = () => {
   let resourcesToGather = 1;
   
   // Add seasonal bonuses
-  if (gameStore.currentSeason === 'LUGHNASADH') {
+  if (seasonStore.currentSeason === Season.LUGHNASADH) {
     resourcesToGather += 1; // Lughnasadh gives +1 resource
     gameStore.addToGameLog("The harvest season of Lughnasadh allows you to gather an extra resource.");
   }
@@ -730,11 +744,11 @@ const formatPhase = (phase: GamePhase): string => {
   ).join(' ');
 };
 
-const formatSeason = (season: string): string => {
+const formatSeason = (season: Season): string => {
   if (!season) return 'Unknown';
   
   // Convert enum value to readable format (e.g., SPRING to Spring)
-  const seasonName = season;
+  const seasonName = season.toString();
   return seasonName.charAt(0) + seasonName.slice(1).toLowerCase();
 };
 
@@ -815,39 +829,76 @@ const showChallengeRating = () => {
 <style lang="scss" scoped>
 .game-board {
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  background-color: #f8f4e9;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  grid-template-rows: 1fr;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #f5f5f5;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+  }
 }
 
 .game-content {
-  flex-grow: 1;
-  overflow-y: auto;
-  padding: 0.25rem;
-  display: flex;
-  flex-direction: column;
-}
-
-.phase-content {
-  margin-bottom: 0.25rem;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background-color: white;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: auto;
 }
 
 .game-sidebar {
   display: flex;
   flex-direction: column;
+  gap: 1rem;
+}
+
+.phase-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   gap: 0.25rem;
 }
 
-.placeholder-dashboard {
-  background-color: #fff;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
+.player-dashboard {
+  background-color: #2c3e50;
+  color: white;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  
+  h3 {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    font-size: 1.2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 0.5rem;
+  }
+}
+
+.player-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stat-group {
+  background-color: rgba(255, 255, 255, 0.1);
   border-radius: 0.25rem;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+  
+  p {
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+    
+    strong {
+      color: #f39c12;
+      margin-right: 0.25rem;
+    }
+  }
 }
 
 .placeholder-log {
@@ -855,6 +906,7 @@ const showChallengeRating = () => {
   padding: 0.5rem;
   border: 1px solid #ddd;
   border-radius: 0.25rem;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  height: 300px;
+  overflow-y: auto;
 }
 </style>
