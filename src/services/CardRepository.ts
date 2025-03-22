@@ -64,7 +64,7 @@ export class CardRepository {
   private _initializeCharacters(): CharacterCard[] {
     return characters.map(char => ({
       ...this._createBaseCard<CharacterCard>(char, CardType.CHARACTER, 'default_character.jpg'),
-      healthPoints: char.healthPoints || 0,
+      healthPoints: char.health || char.healthPoints || 10,
       strength: char.strength || 0,
       wisdom: char.wisdom || 0,
       agility: char.agility || 0,
@@ -76,6 +76,7 @@ export class CardRepository {
         description: char.specialAbility?.description || ''
       },
       startingResources: char.startingResources || [],
+      startingItems: char.startingItems || [],
       startingCompanion: char.startingCompanion,
       startingCompanions: char.startingCompanions
     }));
@@ -110,18 +111,27 @@ export class CardRepository {
    * @returns Array of processed resource cards
    */
   private _initializeResources(): ResourceCard[] {
-    return resources.map(res => ({
-      ...this._createBaseCard<ResourceCard>(res, CardType.RESOURCE, 'default_resource.jpg'),
-      resourceType: res.type || '',
-      effect: {
-        name: res.effect?.name || '',
-        description: res.effect?.description || ''
-      },
-      season: res.season || '',
-      rarity: res.rarity || 'common',
-      seasonalAbundance: res.seasonalAbundance || [],
-      specialEffect: res.specialEffect
-    }));
+    return resources.map(res => {
+      // Create the basic card with the common properties
+      const baseCard = this._createBaseCard<ResourceCard>(res, CardType.RESOURCE, 'default_resource.jpg');
+      
+      // Use type assertion to access raw JS data properties
+      const rawData = res as any;
+      
+      // Create the resource card with the additional properties
+      return {
+        ...baseCard,
+        resourceType: rawData.resourceType || '',
+        resourceCategory: rawData.type || '',  // Map 'type' from resources.js to 'resourceCategory'
+        effectText: rawData.effect || '',      // Now using type assertion to access raw data
+        season: rawData.season || '',
+        rarity: rawData.rarity || 'common',
+        seasonalAbundance: rawData.seasonalAbundance || [],
+        preferredBy: rawData.preferredBy || [], // Add preferredBy mapping
+        useEffect: rawData.useEffect || '',     // Add useEffect mapping
+        specialEffect: rawData.specialEffect
+      };
+    });
   }
 
   /**
@@ -303,17 +313,24 @@ export class CardRepository {
    * @returns Processed resource card
    */
   private _createResourceCard(data: any): ResourceCard {
+    // Create the basic card with the common properties
+    const baseCard = this._createBaseCard<ResourceCard>(data, CardType.RESOURCE, 'default_resource.jpg');
+    
+    // Use type assertion to access raw JS data properties
+    const rawData = data as any;
+    
+    // Create the resource card with the additional properties
     return {
-      ...this._createBaseCard<ResourceCard>(data, CardType.RESOURCE, 'default_resource.jpg'),
-      resourceType: data.type || '',
-      effect: {
-        name: data.effect?.name || '',
-        description: data.effect?.description || ''
-      },
-      season: data.season || '',
-      rarity: data.rarity || 'common',
-      seasonalAbundance: data.seasonalAbundance || [],
-      specialEffect: data.specialEffect
+      ...baseCard,
+      resourceType: rawData.resourceType || '',
+      resourceCategory: rawData.type || '',  // Map 'type' from resources.js to 'resourceCategory'
+      effectText: rawData.effect || '',      // Now using type assertion to access raw data
+      season: rawData.season || '',
+      rarity: rawData.rarity || 'common',
+      seasonalAbundance: rawData.seasonalAbundance || [],
+      preferredBy: rawData.preferredBy || [], // Add preferredBy mapping
+      useEffect: rawData.useEffect || '',     // Add useEffect mapping
+      specialEffect: rawData.specialEffect
     };
   }
 

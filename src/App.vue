@@ -1,10 +1,14 @@
 <template>
-  <div class="app-wrapper">
-    <router-view />
-  </div>
+  <ComponentWrapper componentName="App">
+    <div class="app-wrapper">
+      <router-view />
+    </div>
+  </ComponentWrapper>
 </template>
 
 <script setup lang="ts">
+import { ComponentWrapper } from './components/common';
+// App component
 </script>
 
 <style lang="scss">

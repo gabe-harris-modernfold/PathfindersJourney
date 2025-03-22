@@ -1,48 +1,50 @@
 <template>
-  <div class="game-setup">
-    <div class="game-container">
-      <div class="game-header">
-        <h1 class="game-title">Game Setup</h1>
-        <p class="game-subtitle">Choose your character and begin your journey through the mystical Celtic landscape.</p>
-      </div>
-      
-      <div class="celtic-quote">
-        "The journey through the Celtic Realm is one of discovery, challenge, and transformation."
-      </div>
-      
-      <h2>Select Your Character</h2>
-      <p class="character-intro mb-4">
-        Each character brings unique abilities and challenges to your journey. Choose wisely, as your character's strengths and weaknesses will shape your path through the Celtic Realm.
-      </p>
-      
-      <div class="character-selection">
-        <!-- Debug info to check character data -->
-        <div v-if="characters.length === 0" style="color: red; font-weight: bold;">
-          No characters found! Please check character data initialization.
+  <ComponentWrapper componentName="GameSetupView">
+    <div class="game-setup">
+      <div class="game-container">
+        <div class="game-header">
+          <h1 class="game-title">Game Setup</h1>
+          <p class="game-subtitle">Choose your character and begin your journey through the mystical Celtic landscape.</p>
         </div>
         
-        <GameCard 
-          v-for="character in characters" 
-          :key="character.id" 
-          :title="character.name"
-          cardType="CHARACTER"
-          :class="{ 'selected': selectedCharacter && selectedCharacter.id === character.id }"
-          @click="startGame(character)"
-        >
-          <p style="font-size: 10pt;">{{ character.description }}</p>
-          
-          <div class="character-stats" style="font-size: 10pt; background: transparent;">
-            <div class="stat" style="background: transparent;"><span class="stat-label" style="font-size: 9pt;">Health:</span> <span style="font-size: 9pt;">{{ character.healthPoints }}</span></div>
-            <div class="stat" style="background: transparent;"><span class="stat-label" style="font-size: 9pt;">Capacity:</span> <span style="font-size: 9pt;">{{ character.resourceCapacity }}</span></div>
+        <div class="celtic-quote">
+          "The journey through the Celtic Realm is one of discovery, challenge, and transformation."
+        </div>
+        
+        <h2>Select Your Character</h2>
+        <p class="character-intro mb-4">
+          Each character brings unique abilities and challenges to your journey. Choose wisely, as your character's strengths and weaknesses will shape your path through the Celtic Realm.
+        </p>
+        
+        <div class="character-selection">
+          <!-- Debug info to check character data -->
+          <div v-if="characters.length === 0" style="color: red; font-weight: bold;">
+            No characters found! Please check character data initialization.
           </div>
           
-          <div class="character-abilities" style="font-size: 10pt;">
-            <strong>{{ getAbilityName(character) }}:</strong> {{ getAbilityDescription(character) }}
-          </div>
-        </GameCard>
+          <GameCard 
+            v-for="character in characters" 
+            :key="character.id" 
+            :title="character.name"
+            cardType="CHARACTER"
+            :class="{ 'selected': selectedCharacter && selectedCharacter.id === character.id }"
+            @click="startGame(character)"
+          >
+            <p style="font-size: 10pt;">{{ character.description }}</p>
+            
+            <div class="character-stats" style="font-size: 10pt; background: transparent;">
+              <div class="stat" style="background: transparent;"><span class="stat-label" style="font-size: 9pt;">Health:</span> <span style="font-size: 9pt;">{{ character.healthPoints }}</span></div>
+              <div class="stat" style="background: transparent;"><span class="stat-label" style="font-size: 9pt;">Capacity:</span> <span style="font-size: 9pt;">{{ character.resourceCapacity }}</span></div>
+            </div>
+            
+            <div class="character-abilities" style="font-size: 10pt;">
+              <strong>{{ getAbilityName(character) }}:</strong> {{ getAbilityDescription(character) }}
+            </div>
+          </GameCard>
+        </div>
       </div>
     </div>
-  </div>
+  </ComponentWrapper>
 </template>
 
 <script setup lang="ts">
@@ -56,6 +58,7 @@ import { Season } from '@/models/enums/seasons';
 import { CardType } from '@/models/enums/cardTypes';
 import type { CharacterCard } from '@/models/types/cards';
 import GameCard from '@/components/GameCard.vue'; // Import the GameCard component
+import { ComponentWrapper } from '@/components/common';
 
 // Initialize stores and router
 const router = useRouter();

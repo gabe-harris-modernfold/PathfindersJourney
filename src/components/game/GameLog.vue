@@ -1,6 +1,15 @@
 <template>
   <div class="game-log">
-    <h3>Game Log</h3>
+    <div class="game-log-header">
+      <h3>Game Log</h3>
+      <button 
+        class="copy-button" 
+        title="Copy log to clipboard"
+        @click="copyLogToClipboard"
+      >
+        📋
+      </button>
+    </div>
     <div class="log-entries" ref="logContainer">
       <div 
         v-for="(entry, index) in logStore.formattedGameLog" 
@@ -31,6 +40,27 @@ const formatTimestamp = (timestamp: number): string => {
   return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 };
 
+// Copy log content to clipboard
+const copyLogToClipboard = () => {
+  if (!logStore.formattedGameLog.length) return;
+  
+  // Create text content from log entries
+  const logText = logStore.formattedGameLog
+    .map(entry => `[${formatTimestamp(entry.timestamp)}] ${entry.message}`)
+    .join('\n');
+  
+  // Copy to clipboard
+  navigator.clipboard.writeText(logText)
+    .then(() => {
+      // Add temporary success message to log
+      logStore.addToGameLog('Log copied to clipboard!', true, 'action');
+    })
+    .catch(err => {
+      console.error('Failed to copy log: ', err);
+      logStore.addToGameLog('Failed to copy log to clipboard.', true, 'error');
+    });
+};
+
 // Auto-scroll to the bottom when new entries are added
 watch(() => logStore.gameLog.length, async () => {
   await nextTick();
@@ -53,12 +83,33 @@ onMounted(() => {
   flex-direction: column;
   height: 100%;
   
-  h3 {
-    margin-top: 0;
+  .game-log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 10px;
     background-color: #2c3e50;
     color: white;
     border-bottom: 1px solid #1a2533;
+    
+    h3 {
+      margin: 0;
+    }
+    
+    .copy-button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+      
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+    }
   }
   
   .log-entries {

@@ -1,0 +1,37 @@
+// Component Debug Styles
+// Adds a light blue border and component name display for all components
+
+// Define the mixin
+@mixin component-debug {
+  position: relative;
+  border: 2px solid rgba(52, 152, 219, 0.6); // Light blue border (based on $info-color)
+  padding-top: 20px; // Space for the component name
+  border-radius: $border-radius-md;
+  margin: $spacing-xs;
+  
+  &::before {
+    content: attr(data-component-name);
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: white;
+    padding: 0 $spacing-sm;
+    font-size: $font-size-xs;
+    font-family: $font-family-base;
+    color: $info-color;
+    border: 1px solid rgba(52, 152, 219, 0.6);
+    border-radius: $border-radius-sm;
+    z-index: 10;
+  }
+}
+
+// Define the class that uses the mixin
+.component-debug {
+  @include component-debug;
+}
+
+// Apply to all Vue components by default
+[data-component-name] {
+  @include component-debug;
+}

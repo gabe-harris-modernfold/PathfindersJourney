@@ -1,43 +1,37 @@
 <template>
-  <div class="game-board" style="border: 2px solid lightblue; position: relative;">
-    <main class="game-content">
-      <!-- Phase-specific content using PhaseFactory -->
-      <section class="phase-content">
-        <PhaseFactory />
-      </section>
-    </main>
-    
-    <aside class="game-sidebar">
-      <!-- Player Dashboard -->
-      <div class="player-dashboard">
-        <h3>Player Dashboard</h3>
-        <div class="player-stats">
-          <div class="stat-group">
-            <p><strong>Health:</strong> {{ playerStore.health }}/{{ playerStore.maxHealth }}</p>
-            <p><strong>Experience:</strong> {{ playerStore.experience }} (Level {{ playerStore.experienceLevel }})</p>
-            <p><strong>Resources:</strong> {{ playerStore.resourceCount }}/{{ playerStore.resourceCapacity }}</p>
-          </div>
-          <div class="stat-group">
-            <p><strong>Season:</strong> {{ formatSeason(seasonStore.currentSeason) }}</p>
-            <p><strong>Phase:</strong> {{ formatPhase(gameStore.currentPhase) }}</p>
-            <p><strong>Turn:</strong> {{ gameStore.currentTurn }}</p>
-          </div>
-          <div class="stat-group" v-if="currentCharacter">
-            <p><strong>Character:</strong> {{ currentCharacter.name }}</p>
-            <p v-if="playerStore.animalCompanions.length > 0">
-              <strong>Companions:</strong> {{ playerStore.companionCount }}
-            </p>
-            <p v-if="playerStore.craftedItems.length > 0">
-              <strong>Crafted Items:</strong> {{ playerStore.craftedItemCount }}
-            </p>
+  <ComponentWrapper componentName="GameBoardView">
+    <div class="game-board">
+      <main class="game-content">
+        <!-- Phase-specific content using PhaseFactory -->
+        <section class="phase-content">
+          <PhaseFactory />
+        </section>
+      </main>
+      
+      <aside class="game-sidebar">
+        <!-- Player Dashboard -->
+        <div class="player-dashboard">
+          <h3>Player Dashboard</h3>
+          <div class="player-stats">
+            <div class="stat-row">
+              <div class="stat-item"><strong>Health:</strong> {{ playerStore.health }}/{{ playerStore.maxHealth }}</div>
+              <div class="stat-item"><strong>Experience:</strong> {{ playerStore.experience }} (Level {{ playerStore.experienceLevel }})</div>
+              <div class="stat-item"><strong>Resources:</strong> {{ playerStore.resourceCount }}/{{ playerStore.resourceCapacity }}</div>
+              <div class="stat-item"><strong>Season:</strong> {{ formatSeason(seasonStore.currentSeason) }}</div>
+              <div class="stat-item"><strong>Phase:</strong> {{ formatPhase(gameStore.currentPhase) }}</div>
+              <div class="stat-item"><strong>Turn:</strong> {{ gameStore.currentTurn }}</div>
+              <div class="stat-item" v-if="currentCharacter"><strong>Character:</strong> {{ currentCharacter.name }}</div>
+              <div class="stat-item" v-if="playerStore.animalCompanions.length > 0"><strong>Companions:</strong> {{ playerStore.companionCount }}</div>
+              <div class="stat-item" v-if="playerStore.craftedItems.length > 0"><strong>Crafted Items:</strong> {{ playerStore.craftedItemCount }}</div>
+            </div>
           </div>
         </div>
-      </div>
-      
-      <!-- Game Log -->
-      <GameLog />
-    </aside>
-  </div>
+        
+        <!-- Game Log -->
+        <GameLog />
+      </aside>
+    </div>
+  </ComponentWrapper>
 </template>
 
 <script setup lang="ts">
@@ -53,6 +47,7 @@ import GameLog from '@/components/game/GameLog.vue';
 import { GamePhase } from '@/models/enums/phases';
 import { Season } from '@/models/enums/seasons';
 import PhaseFactory from '@/components/phases/PhaseFactory.vue';
+import { ComponentWrapper } from '@/components/common';
 
 // Interface for challenge result
 interface ChallengeResult {
@@ -202,11 +197,23 @@ const resolveChallenge = () => {
 
   // Helper function to format season names
   const formatSeason = (season: Season): string => {
-    if (!season) return 'Unknown';
+    if (!season) return 'The Current Season';
     
-    // Convert enum value to readable format (e.g., SPRING to Spring)
-    const seasonName = season.toString();
-    return seasonName.charAt(0) + seasonName.slice(1).toLowerCase();
+    // Handle the string-based enum values
+    switch (season) {
+      case Season.SAMHAIN:
+        return 'Samhain';
+      case Season.WINTERS_DEPTH:
+        return 'Winter\'s Depth';
+      case Season.IMBOLC:
+        return 'Imbolc';
+      case Season.BELTANE:
+        return 'Beltane';
+      case Season.LUGHNASADH:
+        return 'Lughnasadh';
+      default:
+        return 'The Current Season';
+    }
   };
 
   // Simulate rolling the 8-sided die
@@ -745,11 +752,23 @@ const formatPhase = (phase: GamePhase): string => {
 };
 
 const formatSeason = (season: Season): string => {
-  if (!season) return 'Unknown';
+  if (!season) return 'The Current Season';
   
-  // Convert enum value to readable format (e.g., SPRING to Spring)
-  const seasonName = season.toString();
-  return seasonName.charAt(0) + seasonName.slice(1).toLowerCase();
+  // Handle the string-based enum values
+  switch (season) {
+    case Season.SAMHAIN:
+      return 'Samhain';
+    case Season.WINTERS_DEPTH:
+      return 'Winter\'s Depth';
+    case Season.IMBOLC:
+      return 'Imbolc';
+    case Season.BELTANE:
+      return 'Beltane';
+    case Season.LUGHNASADH:
+      return 'Lughnasadh';
+    default:
+      return 'The Current Season';
+  }
 };
 
 const getCardResourceName = (resourceId: string): string => {
@@ -885,7 +904,13 @@ const showChallengeRating = () => {
   gap: 0.75rem;
 }
 
-.stat-group {
+.stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.stat-item {
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 0.25rem;
   padding: 0.5rem;

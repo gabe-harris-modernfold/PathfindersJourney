@@ -15,6 +15,7 @@ interface GameCard extends BaseCard {
 export interface CharacterCard extends GameCard {
   type: CardType.CHARACTER;
   healthPoints: number;
+  health?: number;  // Allow optional health field for compatibility
   strength: number;
   wisdom: number;
   agility: number;
@@ -25,7 +26,8 @@ export interface CharacterCard extends GameCard {
     name: string;
     description: string;
   };
-  startingResources: string[];
+  startingResources?: string[];
+  startingItems?: string[];
   startingCompanion?: string;
   startingCompanions?: string[];
   challengeBonuses?: {
@@ -87,14 +89,14 @@ export interface AnimalCompanionCard extends GameCard {
 export interface ResourceCard extends GameCard {
   type: CardType.RESOURCE;
   description: string;
-  resourceType: string;
-  effect: {
-    name: string;
-    description: string;
-  };
-  season: string;
-  rarity: 'common' | 'uncommon' | 'rare';
-  seasonalAbundance: Season[];
+  resourceType?: string;
+  resourceCategory?: string;  // Changed from 'type' to 'resourceCategory' to avoid naming conflict
+  effectText?: string;        // Changed from 'effect' to 'effectText' to avoid type issues
+  season?: string;
+  rarity?: 'common' | 'uncommon' | 'rare';
+  seasonalAbundance?: Season[];
+  preferredBy?: string[];     // Animal companions that prefer this resource
+  useEffect?: string;         // Effect when used
   specialEffect?: {
     name: string;
     description: string;

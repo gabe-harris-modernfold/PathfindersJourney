@@ -1,13 +1,16 @@
 <template>
-  <div class="phase-content" :class="`phase-${formatPhaseClass(currentPhase)}`">
-    <component :is="currentPhaseComponent" />
-  </div>
+  <ComponentWrapper componentName="PhaseFactory">
+    <div class="phase-content" :class="`phase-${formatPhaseClass(currentPhase)}`">
+      <component :is="currentPhaseComponent" />
+    </div>
+  </ComponentWrapper>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useGameStore } from '@/stores/gameStore';
 import { GamePhase } from '@/models/enums/phases';
+import { ComponentWrapper } from '@/components/common';
 
 // Import all phase components
 import SeasonalAssessmentPhase from './SeasonalAssessmentPhase.vue';
@@ -51,7 +54,6 @@ const formatPhaseClass = (phase: GamePhase): string => {
 <style lang="scss" scoped>
 .phase-content {
   position: relative;
-  border: 2px solid lightblue;
   padding: 1rem;
   margin-top: 1rem;
   background-color: rgba(240, 230, 210, 0.3);

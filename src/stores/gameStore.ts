@@ -170,6 +170,7 @@ export const useGameStore = defineStore('game', {
      */
     advancePhase(): void {
       const logStore = useLogStore();
+      const journeyStore = useJourneyStore();
       
       const phaseOrder = [
         GamePhase.SETUP,
@@ -188,17 +189,40 @@ export const useGameStore = defineStore('game', {
       const currentIndex = phaseOrder.indexOf(this.currentPhase);
       if (currentIndex !== -1) {
         const previousPhase = this.currentPhase;
-        this.currentPhase = phaseOrder[(currentIndex + 1) % phaseOrder.length];
         
+        // Special handling for Exploration phase completion - move to next landscape
+        if (this.currentPhase === GamePhase.EXPLORATION) {
+          // Get the next landscape if available
+          if (this.journeyProgress < journeyStore.journeyPath.length - 1) {
+            // Log completion of current landscape exploration
+            const currentLandscapeName = this.getCurrentLandscapeName();
+            if (currentLandscapeName) {
+              logStore.addToGameLog(`You have completed your exploration of ${currentLandscapeName}.`, true, 'phase');
+            }
+            
+            // Move to next landscape
+            this.journeyProgress++;
+            this.currentLandscapeId = journeyStore.journeyPath[this.journeyProgress];
+            
+            // Log arrival at new landscape
+            const newLandscapeName = this.getCurrentLandscapeName();
+            if (newLandscapeName) {
+              logStore.addToGameLog(`Arrived at ${newLandscapeName}.`, true, 'phase');
+            }
+          }
+          
+          // Set directly to Seasonal Assessment instead of cycling through
+          this.currentPhase = GamePhase.SEASONAL_ASSESSMENT;
+        } else {
+          // Normal phase advancement for non-Exploration phases
+          this.currentPhase = phaseOrder[(currentIndex + 1) % phaseOrder.length];
+        }
+        
+        // Log the phase transition
         logStore.addToGameLog(`Entering the ${this._formatPhase(this.currentPhase)} phase.`, true, 'phase', {
           previousPhase,
           newPhase: this.currentPhase
         });
-        
-        // If we've completed a full cycle, advance the turn
-        if (this.currentPhase === GamePhase.SETUP) {
-          this.advanceTurn();
-        }
       }
     },
     
@@ -498,6 +522,19 @@ export const useGameStore = defineStore('game', {
       };
       
       return nameMap[season] || 'Unknown Season';
+    },
+    
+    /**
+     * Get the name of the current landscape
+     * @returns The name of the current landscape or null if not found
+     * @private
+     */
+    getCurrentLandscapeName(): string | null {
+      const cardStore = useCardStore();
+      if (!this.currentLandscapeId) return null;
+      
+      const landscape = cardStore.getLandscapeById(this.currentLandscapeId);
+      return landscape?.name || null;
     },
     
     /**

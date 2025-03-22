@@ -1,4 +1,5 @@
 <template>
+  <ComponentWrapper componentName="CompanionCard">
     <GameCard 
       :title="companion?.name || 'Unknown Companion'" 
       :subtitle="'Animal Companion'" 
@@ -91,289 +92,292 @@
         </div>
       </div>
     </div>
-  </template>
-  
-  <script>
-  import { defineComponent, computed, ref } from 'vue';
-  import { CardType } from '@/models/enums/cardTypes';
-  import GameCard from '@/components/core/GameCard.vue';
-  import { useServices } from '@/composables/useServices';
-  
-  export default defineComponent({
-    name: 'CompanionCard',
-    components: {
-      GameCard
+  </ComponentWrapper>
+</template>
+
+<script>
+import { defineComponent, computed, ref } from 'vue';
+import { CardType } from '@/models/enums/cardTypes';
+import GameCard from '@/components/core/GameCard.vue';
+import { useServices } from '@/composables/useServices';
+import { ComponentWrapper } from '@/components/common';
+
+export default defineComponent({
+  name: 'CompanionCard',
+  components: {
+    GameCard,
+    ComponentWrapper
+  },
+  props: {
+    companionId: {
+      type: String,
+      required: true
     },
-    props: {
-      companionId: {
-        type: String,
-        required: true
-      },
-      selected: {
-        type: Boolean,
-        default: false
-      },
-      abilityUsed: {
-        type: Boolean,
-        default: false
-      },
-      canFeed: {
-        type: Boolean,
-        default: false
-      }
+    selected: {
+      type: Boolean,
+      default: false
     },
-    emits: ['select', 'use-ability', 'feed', 'update:canFeed'],
-    setup(props, { emit }) {
-      const { cardRepository, companionService } = useServices();
-      
-      const showFeedDialog = ref(false);
-      const selectedResource = ref('');
-      
-      // Get companion data - now using cardRepository from services
-      const companion = computed(() => {
-        return cardRepository.getAnimalCompanionById(props.companionId);
-      });
-      
-      // Get companion loyalty
-      const loyalty = computed(() => {
-        return companionService.getLoyalty(props.companionId);
-      });
-      
-      // Loyalty bar style - use the service method
-      const loyaltyBarStyle = computed(() => {
-        return companionService.getLoyaltyBarStyle(props.companionId);
-      });
-      
-      // Compatible resources for feeding - use the service method
-      const compatibleResources = computed(() => {
-        return companionService.getCompatibleResources(props.companionId);
-      });
-      
-      // Check if companion is wary
-      const isCompanionWary = computed(() => {
-        return companionService.isCompanionWary(props.companionId);
-      });
-      
-      // Format season name for display - use the service method
-      const formatSeasonName = (season) => {
-        return companionService.formatSeasonName(season);
-      };
-      
-      // Dialog management
-      const openFeedDialog = () => {
-        showFeedDialog.value = true;
-      };
-      
-      const closeFeedDialog = () => {
-        showFeedDialog.value = false;
-        selectedResource.value = '';
-      };
-      
-      const feedCompanion = () => {
-        if (selectedResource.value) {
-          emit('update:canFeed', false);
-          emit('feed', props.companionId, selectedResource.value);
-          closeFeedDialog();
-        }
-      };
-      
-      return {
-        companion,
-        loyalty,
-        loyaltyBarStyle,
-        isCompanionWary,
-        compatibleResources,
-        showFeedDialog,
-        selectedResource,
-        formatSeasonName,
-        openFeedDialog,
-        closeFeedDialog,
-        feedCompanion,
-        CardType
-      };
+    abilityUsed: {
+      type: Boolean,
+      default: false
+    },
+    canFeed: {
+      type: Boolean,
+      default: false
     }
-  });
-  </script>
-  
-  <style lang="scss" scoped>
-  .companion-card__content {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    gap: 8px;
-  }
-  
-  .companion-loyalty {
-    margin-bottom: 8px;
-  }
-  
-  .loyalty-meter {
-    height: 8px;
-    background-color: #eee;
-    border-radius: 4px;
-    overflow: hidden;
-  }
-  
-  .loyalty-bar {
-    height: 100%;
-    transition: width 0.3s, background-color 0.3s;
-  }
-  
-  .season-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    justify-content: center;
-    margin-top: 4px;
-  }
-  
-  .season-tag {
-    font-size: 0.7rem;
-    padding: 2px 6px;
-    border-radius: 10px;
+  },
+  emits: ['select', 'use-ability', 'feed', 'update:canFeed'],
+  setup(props, { emit }) {
+    const { cardRepository, companionService } = useServices();
     
-    &.samhain {
-      background-color: #8b6a2c;
+    const showFeedDialog = ref(false);
+    const selectedResource = ref('');
+    
+    // Get companion data - now using cardRepository from services
+    const companion = computed(() => {
+      return cardRepository.getAnimalCompanionById(props.companionId);
+    });
+    
+    // Get companion loyalty
+    const loyalty = computed(() => {
+      return companionService.getLoyalty(props.companionId);
+    });
+    
+    // Loyalty bar style - use the service method
+    const loyaltyBarStyle = computed(() => {
+      return companionService.getLoyaltyBarStyle(props.companionId);
+    });
+    
+    // Compatible resources for feeding - use the service method
+    const compatibleResources = computed(() => {
+      return companionService.getCompatibleResources(props.companionId);
+    });
+    
+    // Check if companion is wary
+    const isCompanionWary = computed(() => {
+      return companionService.isCompanionWary(props.companionId);
+    });
+    
+    // Format season name for display - use the service method
+    const formatSeasonName = (season) => {
+      return companionService.formatSeasonName(season);
+    };
+    
+    // Dialog management
+    const openFeedDialog = () => {
+      showFeedDialog.value = true;
+    };
+    
+    const closeFeedDialog = () => {
+      showFeedDialog.value = false;
+      selectedResource.value = '';
+    };
+    
+    const feedCompanion = () => {
+      if (selectedResource.value) {
+        emit('update:canFeed', false);
+        emit('feed', props.companionId, selectedResource.value);
+        closeFeedDialog();
+      }
+    };
+    
+    return {
+      companion,
+      loyalty,
+      loyaltyBarStyle,
+      isCompanionWary,
+      compatibleResources,
+      showFeedDialog,
+      selectedResource,
+      formatSeasonName,
+      openFeedDialog,
+      closeFeedDialog,
+      feedCompanion,
+      CardType
+    };
+  }
+});
+</script>
+
+<style lang="scss" scoped>
+.companion-card__content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 8px;
+}
+
+.companion-loyalty {
+  margin-bottom: 8px;
+}
+
+.loyalty-meter {
+  height: 8px;
+  background-color: #eee;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.loyalty-bar {
+  height: 100%;
+  transition: width 0.3s, background-color 0.3s;
+}
+
+.season-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.season-tag {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+  
+  &.samhain {
+    background-color: #8b6a2c;
+    color: white;
+  }
+  
+  &.winters_depth {
+    background-color: #b3c7d6;
+    color: #333;
+  }
+  
+  &.imbolc {
+    background-color: #c6d8c6;
+    color: #333;
+  }
+  
+  &.beltane {
+    background-color: #f7c9a9;
+    color: #333;
+  }
+  
+  &.lughnasadh {
+    background-color: #f0d9a0;
+    color: #333;
+  }
+}
+
+.companion-card__actions {
+  display: flex;
+  gap: 4px;
+  
+  .btn {
+    flex: 1;
+    padding: 4px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    background: #e6d7b9;
+    border: 1px solid #8c7851;
+    cursor: pointer;
+    
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    &--primary {
+      background: #5a3e2b;
       color: white;
     }
-    
-    &.winters_depth {
-      background-color: #b3c7d6;
-      color: #333;
-    }
-    
-    &.imbolc {
-      background-color: #c6d8c6;
-      color: #333;
-    }
-    
-    &.beltane {
-      background-color: #f7c9a9;
-      color: #333;
-    }
-    
-    &.lughnasadh {
-      background-color: #f0d9a0;
-      color: #333;
-    }
   }
+}
+
+// Feed Dialog Styles
+.feed-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.feed-dialog {
+  background-color: #fff;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   
-  .companion-card__actions {
+  &__header {
+    padding: 16px;
+    border-bottom: 1px solid #eee;
     display: flex;
-    gap: 4px;
-    
-    .btn {
-      flex: 1;
-      padding: 4px;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      background: #e6d7b9;
-      border: 1px solid #8c7851;
-      cursor: pointer;
-      
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-      
-      &--primary {
-        background: #5a3e2b;
-        color: white;
-      }
-    }
-  }
-  
-  // Feed Dialog Styles
-  .feed-dialog-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    z-index: 1000;
+    
+    h3 {
+      margin: 0;
+      color: #5a3e2b;
+    }
+    
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #999;
+      
+      &:hover {
+        color: #333;
+      }
+    }
   }
   
-  .feed-dialog {
-    background-color: #fff;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 400px;
-    max-height: 80vh;
-    overflow-y: auto;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  &__content {
+    padding: 16px;
     
-    &__header {
-      padding: 16px;
-      border-bottom: 1px solid #eee;
+    .resource-list {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      
-      h3 {
-        margin: 0;
-        color: #5a3e2b;
-      }
-      
-      .close-btn {
-        background: none;
-        border: none;
-        font-size: 1.5rem;
-        cursor: pointer;
-        color: #999;
-        
-        &:hover {
-          color: #333;
-        }
-      }
-    }
-    
-    &__content {
-      padding: 16px;
-      
-      .resource-list {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        margin-top: 12px;
-        max-height: 200px;
-        overflow-y: auto;
-      }
-      
-      .resource-item {
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: all 0.2s;
-        
-        &:hover {
-          background-color: #f5f5f5;
-        }
-        
-        &.selected {
-          background-color: rgba(76, 175, 80, 0.1);
-          border-color: #4CAF50;
-        }
-      }
-      
-      .empty-state {
-        padding: 16px;
-        text-align: center;
-        color: #999;
-        font-style: italic;
-      }
-    }
-    
-    &__footer {
-      padding: 16px;
-      border-top: 1px solid #eee;
-      display: flex;
-      justify-content: flex-end;
+      flex-direction: column;
       gap: 8px;
+      margin-top: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .resource-item {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      
+      &:hover {
+        background-color: #f5f5f5;
+      }
+      
+      &.selected {
+        background-color: rgba(76, 175, 80, 0.1);
+        border-color: #4CAF50;
+      }
+    }
+    
+    .empty-state {
+      padding: 16px;
+      text-align: center;
+      color: #999;
+      font-style: italic;
     }
   }
-  </style>
+  
+  &__footer {
+    padding: 16px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+}
+</style>

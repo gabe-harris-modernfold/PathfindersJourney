@@ -77,13 +77,22 @@ export const usePlayerStore = defineStore('player', {
       
       if (character) {
         this.characterId = characterId;
-        this.health = character.healthPoints;
-        this.maxHealth = character.healthPoints;
+        // Use health or healthPoints property, with a fallback default value
+        const healthValue = character.health || character.healthPoints || 10;
+        this.health = healthValue;
+        this.maxHealth = healthValue;
         this.resourceCapacity = character.resourceCapacity;
         
         // Add starting resources if any
         if (character.startingResources) {
           character.startingResources.forEach(resourceId => {
+            this.addResource(resourceId);
+          });
+        }
+        
+        // Also check for startingItems (used in character model)
+        if (character.startingItems) {
+          character.startingItems.forEach(resourceId => {
             this.addResource(resourceId);
           });
         }

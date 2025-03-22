@@ -2,7 +2,10 @@
   <div class="landscape-challenge-phase">
     <h2 class="phase-title">LANDSCAPE CHALLENGE</h2>
     <div class="phase-description">
-      <p>Will you face the challenges of this landscape?</p>
+      <p v-if="currentLandscape">
+        {{ getChallengeDescription() }}
+      </p>
+      <p v-else>Will you face the challenges of this landscape?</p>
     </div>
     
     <div class="challenge-actions">
@@ -12,7 +15,7 @@
         @click="resolveChallenge"
       >
         <div style="font-size: 1rem; padding: 5px;">
-          Test your skills against the challenge
+          Test your skills against the challenge (Difficulty: {{ challengeDifficulty }})
         </div>
       </GameCard>
       
@@ -30,14 +33,39 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useGameStore } from '@/stores/gameStore';
 import { usePlayerStore } from '@/stores/playerStore';
+import { useCardStore } from '@/stores/cardStore';
 import { useServices } from '@/composables/useServices';
 import GameCard from '@/components/GameCard.vue';
 
 const gameStore = useGameStore();
 const playerStore = usePlayerStore();
+const cardStore = useCardStore();
 const { phaseService, challengeService } = useServices();
+
+// Get the current landscape
+const currentLandscape = computed(() => {
+  if (!gameStore.currentLandscapeId) return null;
+  return cardStore.getLandscapeById(gameStore.currentLandscapeId);
+});
+
+// Get challenge difficulty
+const challengeDifficulty = computed(() => {
+  return currentLandscape.value?.difficulty || 5;
+});
+
+// Get a narrative description of the current challenge
+const getChallengeDescription = () => {
+  if (!currentLandscape.value) return '';
+  
+  const landscape = currentLandscape.value;
+  const difficulty = landscape.difficulty || 5;
+  
+  // Use only the data from the landscape model
+  return `${landscape.description} The ${landscape.challenge} (${landscape.challengeType}, difficulty ${difficulty}).`;
+};
 
 // Resolve landscape challenge
 const resolveChallenge = () => {
@@ -69,6 +97,8 @@ const avoidChallenge = () => {
 .phase-description {
   text-align: center;
   margin-bottom: 1.5rem;
+  line-height: 1.5;
+  max-width: 600px;
 }
 
 .challenge-actions {
