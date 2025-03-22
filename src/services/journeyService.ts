@@ -7,6 +7,9 @@ import { usePlayerStore } from '@/stores/playerStore';
 import { useCardStore } from '@/stores/cardStore';
 import { Season } from '@/models/enums/seasons';
 import { LandscapeCard } from '@/models/types/cards';
+import { useJourneyStore } from '@/stores/journeyStore';
+import { useLogStore } from '@/stores/logStore';
+import { ExtendedGameStore, ExtendedPlayerStore } from '@/types/store-extensions';
 
 class JourneyService {
   /**
@@ -29,39 +32,109 @@ class JourneyService {
     // Select 15 landscapes for the journey
     const selectedLandscapes = shuffled.slice(0, 15);
     
-    // Ensure the first landscape is a safe starting point
-    this.ensureSafeStartingPoint(selectedLandscapes);
+    // Get landscape IDs for the path
+    const journeyPath = selectedLandscapes.map(landscape => landscape.id);
     
-    // Return the IDs of the selected landscapes
-    return selectedLandscapes.map(landscape => landscape.id);
+    // Update game store
+    const gameStore = useGameStore() as any as ExtendedGameStore;
+    gameStore.journeyPath = journeyPath;
+    
+    // Set initial landscape
+    if (journeyPath.length > 0) {
+      gameStore.currentLandscapeId = journeyPath[0];
+      gameStore.visitedLandscapes = [journeyPath[0]];
+      
+      // Log journey start
+      gameStore.addToGameLog(`Your journey begins at ${this.getLandscapeName(journeyPath[0])}`);
+    }
+    
+    return journeyPath;
   }
   
   /**
-   * Move to the next landscape in the journey
+   * Get the name of a landscape by its ID
+   * @param landscapeId The ID of the landscape
+   * @returns The name of the landscape
+   */
+  getLandscapeName(landscapeId: string): string {
+    const cardStore = useCardStore();
+    const landscape = cardStore.getLandscapeById(landscapeId);
+    return landscape?.name || 'Unknown Location';
+  }
+  
+  /**
+   * Move to the next landscape in the journey path
    * @returns The ID of the new current landscape
    */
   moveToNextLandscape(): string | null {
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as any as ExtendedGameStore;
+    const journeyStore = useJourneyStore();
     
     // Get current position in journey
     const currentIndex = gameStore.journeyPath.indexOf(gameStore.currentLandscapeId);
+    const nextIndex = currentIndex + 1;
     
-    // If at the end of the journey, return null
-    if (currentIndex === gameStore.journeyPath.length - 1) {
+    // Check if we're at the end of the journey
+    if (nextIndex >= gameStore.journeyPath.length) {
+      console.log('Reached the end of the journey path');
       return null;
     }
     
-    // Get next landscape ID
-    const nextLandscapeId = gameStore.journeyPath[currentIndex + 1];
+    // Get the next landscape ID
+    const nextLandscapeId = gameStore.journeyPath[nextIndex];
     
     // Update game state
-    gameStore.visitedLandscapes.push(nextLandscapeId);
     gameStore.currentLandscapeId = nextLandscapeId;
     
-    // Apply landscape entry effects
-    this.applyLandscapeEntryEffects(nextLandscapeId);
+    // Add to visited landscapes if not already visited
+    if (!gameStore.visitedLandscapes.includes(nextLandscapeId)) {
+      gameStore.visitedLandscapes.push(nextLandscapeId);
+      // Apply effects when entering a new landscape
+      this.applyLandscapeEntryEffects(nextLandscapeId);
+    }
     
     return nextLandscapeId;
+  }
+  
+  /**
+   * Start a new turn and handles all turn-related updates
+   * @returns The ID of the new current landscape
+   */
+  startNewTurn(): string | null {
+    const gameStore = useGameStore() as any as ExtendedGameStore;
+    const playerStore = usePlayerStore() as any as ExtendedPlayerStore;
+    
+    // Move to the next landscape
+    const newLandscapeId = this.moveToNextLandscape();
+    
+    // Reset per-turn player actions
+    playerStore.hasResourceForagingAction = true;
+    playerStore.hasPerformedCrafting = false;
+    
+    // Increment turn counter
+    gameStore.currentTurn++;
+    
+    return newLandscapeId;
+  }
+  
+  /**
+   * Get the ID of the next landscape in the journey path
+   * @returns The ID of the next landscape or null if at the end
+   */
+  getNextLandscapeId(): string | null {
+    const gameStore = useGameStore() as any as ExtendedGameStore;
+    const journeyStore = useJourneyStore();
+    
+    // Get current position in journey
+    const currentIndex = gameStore.journeyPath.indexOf(gameStore.currentLandscapeId);
+    const nextIndex = currentIndex + 1;
+    
+    // Check if we're at the end of the journey
+    if (nextIndex >= gameStore.journeyPath.length) {
+      return null;
+    }
+    
+    return gameStore.journeyPath[nextIndex];
   }
   
   /**
@@ -69,7 +142,7 @@ class JourneyService {
    * @param gameStore The game store instance
    * @returns True if the current location provides shelter
    */
-  isCurrentLocationShelter(gameStore = useGameStore()): boolean {
+  isCurrentLocationShelter(gameStore = useGameStore() as any as ExtendedGameStore): boolean {
     const cardStore = useCardStore();
     const landscape = cardStore.getLandscapeById(gameStore.currentLandscapeId);
     
@@ -77,54 +150,48 @@ class JourneyService {
   }
   
   /**
-   * Get available movement options from current landscape
+   * Get available landscape options to move to
    * @returns Array of available landscape IDs to move to
    */
   getAvailableMovementOptions(): string[] {
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as any as ExtendedGameStore;
+    const journeyStore = useJourneyStore();
     
     // Get current position in journey
     const currentIndex = gameStore.journeyPath.indexOf(gameStore.currentLandscapeId);
     
-    // If at the end of the journey, return empty array
-    if (currentIndex === gameStore.journeyPath.length - 1) {
-      return [];
+    // Only allow forward movement in this implementation
+    const result = [];
+    if (currentIndex + 1 < gameStore.journeyPath.length) {
+      result.push(gameStore.journeyPath[currentIndex + 1]);
     }
     
-    // For now, only allow moving to the next landscape
-    // Could be expanded to allow backtracking or alternate paths
-    return [gameStore.journeyPath[currentIndex + 1]];
+    return result;
   }
   
   /**
-   * Get the next landscape in the journey
+   * Get the next landscape object in the journey path
    * @returns The next landscape object or null if at the end
    */
   getNextLandscape(): LandscapeCard | null {
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as any as ExtendedGameStore;
     const cardStore = useCardStore();
+    const journeyStore = useJourneyStore();
     
-    // Get current position in journey
-    const currentIndex = gameStore.journeyPath.indexOf(gameStore.currentLandscapeId);
-    
-    // If at the end of the journey, return null
-    if (currentIndex === gameStore.journeyPath.length - 1) {
+    const nextLandscapeId = this.getNextLandscapeId();
+    if (!nextLandscapeId) {
       return null;
     }
     
-    // Get next landscape ID
-    const nextLandscapeId = gameStore.journeyPath[currentIndex + 1];
-    
-    // Return the landscape object
     return cardStore.getLandscapeById(nextLandscapeId);
   }
   
   /**
-   * Get the current landscape
+   * Get the current landscape object
    * @returns The current landscape object
    */
   getCurrentLandscape(): LandscapeCard | null {
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as any as ExtendedGameStore;
     const cardStore = useCardStore();
     
     return cardStore.getLandscapeById(gameStore.currentLandscapeId);
@@ -132,71 +199,80 @@ class JourneyService {
   
   /**
    * Apply effects when entering a new landscape
-   * @param landscapeId The ID of the landscape being entered
    */
   private applyLandscapeEntryEffects(landscapeId: string): void {
     const cardStore = useCardStore();
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as any as ExtendedGameStore;
+    const logStore = useLogStore();
     const landscape = cardStore.getLandscapeById(landscapeId);
     
     if (!landscape) {
       return;
     }
     
-    // Apply entry effects if defined
-    if (landscape.entryEffect && landscape.entryEffect.description) {
-      gameStore.addToGameLog(`Landscape Effect: ${landscape.entryEffect.description}`);
+    // Log entry to new landscape
+    gameStore.addToGameLog(`You have arrived at ${landscape.name}`);
+    
+    // Apply landscape effects
+    if (landscape.difficulty > 0) {
+      // Dangerous landscapes add threat tokens based on difficulty
+      const threatTokens = Math.min(landscape.difficulty, 3);
+      gameStore.addThreatTokens(threatTokens);
+      gameStore.addToGameLog(`The danger of this area adds ${threatTokens} threat token(s)`);
     }
     
-    // Add landscape-specific challenges to the game
-    if (landscape.challenges && landscape.challenges.length > 0) {
-      // Set challenge from landscape
-      const challenge = landscape.challenges[0];
-      const challengeId = `${landscape.id}_${challenge.type.toLowerCase()}`;
+    // Apply landscape challenge if it has one
+    if (landscape.challengeType) {
+      gameStore.addToGameLog(`This area presents a ${landscape.challengeType} challenge`);
+      
+      // Set the challenge in the game state
+      // Use a dummy challenge ID based on landscape for now
+      const challengeId = `${landscape.id}_challenge`;
       gameStore.setCurrentChallenge(challengeId);
     }
-  }
-  
-  /**
-   * Ensure the first landscape in the journey is a safe starting point
-   * @param landscapes Array of landscapes for the journey
-   */
-  private ensureSafeStartingPoint(landscapes: LandscapeCard[]): void {
-    // Find a safe landscape (low difficulty, provides shelter)
-    const safeIndex = landscapes.findIndex(landscape => 
-      landscape.providesShelter && 
-      landscape.challenges && 
-      landscape.challenges.every(challenge => challenge.difficulty <= 3)
-    );
     
-    // If found, swap with the first landscape
-    if (safeIndex > 0) {
-      [landscapes[0], landscapes[safeIndex]] = [landscapes[safeIndex], landscapes[0]];
+    // Apply landscape special effects
+    if (landscape.specialFeature) {
+      gameStore.addTempEffect(
+        landscape.specialFeature.name, 
+        landscape.specialFeature.description,
+        landscape.specialFeature.effect,
+        1
+      );
+      gameStore.addToGameLog(`The landscape applies ${landscape.specialFeature.name}`);
+    }
+    
+    // Apply entry effects if defined
+    if (landscape.entryEffect) {
+      gameStore.addToGameLog(`Entry Effect: ${landscape.entryEffect.description}`);
     }
   }
   
   /**
-   * Advance to the next season
+   * Advance to the next season in the seasonal cycle
    * @returns The new current season
    */
   advanceToNextSeason(): Season {
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as any as ExtendedGameStore;
     
     // Use the proper Season enum values
     const seasons = [Season.SAMHAIN, Season.WINTERS_DEPTH, Season.IMBOLC, Season.BELTANE, Season.LUGHNASADH];
-    const currentIndex = seasons.indexOf(gameStore.currentSeason as Season);
     
-    // If current season not found, default to first season
-    const nextIndex = (currentIndex === -1) ? 0 : (currentIndex + 1) % seasons.length;
-    const nextSeason = seasons[nextIndex];
+    // Find current season index
+    const currentIndex = seasons.indexOf(gameStore.currentSeason);
+    const nextIndex = (currentIndex + 1) % seasons.length;
     
-    // Update game state
-    gameStore.currentSeason = nextSeason;
+    // Set the new season
+    const newSeason = seasons[nextIndex];
+    gameStore.currentSeason = newSeason;
     
-    // Apply seasonal transition effects
-    this.applySeasonalTransitionEffects(nextSeason);
+    // Apply effects for the seasonal transition
+    this.applySeasonalTransitionEffects(newSeason);
     
-    return nextSeason;
+    // Log season change
+    gameStore.addToGameLog(`The season has changed to ${this.getSeasonName(newSeason)}`);
+    
+    return newSeason;
   }
   
   /**
@@ -204,33 +280,53 @@ class JourneyService {
    * @param season The new season
    */
   private applySeasonalTransitionEffects(season: Season): void {
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as any as ExtendedGameStore;
+    const logStore = useLogStore();
+    const cardStore = useCardStore();
     
-    // Different effects based on the season
+    // Different seasons have different effects
     switch (season) {
-      case Season.SAMHAIN:
-        // Veil between worlds is thin - increase threat
-        gameStore.addThreatTokens(1);
-        break;
       case Season.WINTERS_DEPTH:
-        // Harsh conditions - challenges are more difficult
-        gameStore.addTempEffect('winter_hardship', 'Winter Hardship', 'All physical challenges +1 difficulty', 1, 3);
+        // Winter is harsh, add threat tokens
+        gameStore.addThreatTokens(2);
+        gameStore.addToGameLog('The harsh winter adds 2 threat tokens');
         break;
       case Season.IMBOLC:
-        // Renewal - heal 1 health
-        const playerStore = usePlayerStore();
-        console.log('Player heals 1 health from Imbolc season');
-        playerStore.healHealth(1);
-        gameStore.addToGameLog('The renewal of Imbolc heals you for 1 health', true);
+        // Early spring brings hope, no effect
         break;
       case Season.BELTANE:
-        // Abundance - easier to find resources
-        gameStore.addTempEffect('resource_abundance', 'Resource Abundance', 'Collect +1 resource from successful challenges', 1, 3);
+        // Summer is bountiful, no threat
         break;
       case Season.LUGHNASADH:
-        // Harvest - crafting is easier
-        gameStore.addTempEffect('crafting_bonus', 'Crafting Bonus', 'Crafting is easier during Lughnasadh', 1, 3);
+        // Harvest time, no effect
         break;
+      case Season.SAMHAIN:
+        // The veil thins, add threat
+        gameStore.addThreatTokens(1);
+        gameStore.addToGameLog('The thinning veil adds 1 threat token');
+        break;
+    }
+  }
+  
+  /**
+   * Get the name of a season
+   * @param season The season enum value
+   * @returns The display name of the season
+   */
+  getSeasonName(season: Season): string {
+    switch (season) {
+      case Season.WINTERS_DEPTH:
+        return "Winter's Depth";
+      case Season.IMBOLC:
+        return "Imbolc";
+      case Season.BELTANE:
+        return "Beltane";
+      case Season.LUGHNASADH:
+        return "Lughnasadh";
+      case Season.SAMHAIN:
+        return "Samhain";
+      default:
+        return "Unknown Season";
     }
   }
 }

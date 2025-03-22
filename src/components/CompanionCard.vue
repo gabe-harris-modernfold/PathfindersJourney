@@ -97,8 +97,7 @@
   import { defineComponent, computed, ref } from 'vue';
   import { CardType } from '@/models/enums/cardTypes';
   import GameCard from '@/components/core/GameCard.vue';
-  import { useCardStore } from '@/stores/cardStore';
-  import { companionService } from '@/services/companionService';
+  import { useServices } from '@/composables/useServices';
   
   export default defineComponent({
     name: 'CompanionCard',
@@ -125,14 +124,14 @@
     },
     emits: ['select', 'use-ability', 'feed', 'update:canFeed'],
     setup(props, { emit }) {
-      const cardStore = useCardStore();
+      const { cardRepository, companionService } = useServices();
       
       const showFeedDialog = ref(false);
       const selectedResource = ref('');
       
-      // Get companion data
+      // Get companion data - now using cardRepository from services
       const companion = computed(() => {
-        return cardStore.getCompanionById(props.companionId);
+        return cardRepository.getAnimalCompanionById(props.companionId);
       });
       
       // Get companion loyalty

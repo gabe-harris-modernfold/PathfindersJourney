@@ -4,6 +4,7 @@ import { useCardStore } from '@/stores/cardStore';
 import { TempEffect } from '@/models/types/game';
 import { PlayerEffect } from '@/models/types/player';
 import { Season } from '@/models/enums/seasons';
+import { ExtendedGameStore, ExtendedPlayerStore } from '@/types/store-extensions';
 
 // Threat manifestation types
 export enum ThreatManifestationType {
@@ -49,8 +50,8 @@ export interface ThreatEvent {
  * Service for managing threat tokens and their effects in the game
  */
 export class ThreatService {
-  private gameStore = useGameStore();
-  private playerStore = usePlayerStore();
+  private gameStore = useGameStore() as unknown as ExtendedGameStore;
+  private playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
   private cardStore = useCardStore();
   
   // Track threat reduction per turn
@@ -793,3 +794,6 @@ export class ThreatService {
     return false;
   }
 }
+
+// Export singleton instance
+export const threatService = new ThreatService();

@@ -3,6 +3,7 @@ import { PlayerState, PlayerEffect, CompanionState } from '@/models/types/player
 import { CharacterCard } from '@/models/types/cards';
 import { useCardStore } from './cardStore';
 import { useGameStore } from './gameStore';
+import { useLogStore } from './logStore';
 import { victoryService } from '@/services/victoryService';
 
 export const usePlayerStore = defineStore('player', {
@@ -194,15 +195,19 @@ export const usePlayerStore = defineStore('player', {
         updatedStatus.turnsWary = 0;
       }
       
-      const gameStore = useGameStore();
-      gameStore.addToGameLog(`You fed your animal companion with ${gameStore.formatResourceName(resourceId)}.`, true, 'companion');
+      const logStore = useLogStore();
+      const cardStore = useCardStore();
+      
+      // Get the resource name for better log messages
+      const resource = cardStore.getResourceById(resourceId);
+      logStore.addToGameLog(`You fed your animal companion with ${resource ? resource.name : resourceId}.`, true, 'companion');
       
       return true;
     },
     
     // Handle companions at end of turn
     updateCompanionStatus(): void {
-      const gameStore = useGameStore();
+      const logStore = useLogStore();
       const cardStore = useCardStore();
       
       // Iterate through all companions
@@ -223,7 +228,7 @@ export const usePlayerStore = defineStore('player', {
         if (status.state === CompanionState.LOYAL && status.turnsSinceLastFed >= 3) {
           status.state = CompanionState.WARY;
           status.turnsWary = 0;
-          gameStore.addToGameLog(`${companionName} has become wary due to lack of food.`, true, 'companion');
+          logStore.addToGameLog(`${companionName} has become wary due to lack of food.`, true, 'companion');
         }
         
         // If already wary, update wary counter
@@ -233,14 +238,14 @@ export const usePlayerStore = defineStore('player', {
           // If wary for 2 turns, mark as leaving
           if (status.turnsWary >= 2) {
             status.state = CompanionState.LEAVING;
-            gameStore.addToGameLog(`${companionName} is leaving you due to continued neglect.`, true, 'companion');
+            logStore.addToGameLog(`${companionName} is leaving you due to continued neglect.`, true, 'companion');
           }
         }
         
         // If companion is marked as leaving, remove it
         if (status.state === CompanionState.LEAVING) {
           this.removeAnimalCompanion(companionId);
-          gameStore.addToGameLog(`${companionName} has left you.`, true, 'companion');
+          logStore.addToGameLog(`${companionName} has left you.`, true, 'companion');
         }
       });
     },
@@ -378,12 +383,13 @@ export const usePlayerStore = defineStore('player', {
     // New methods for threat management
     takeDamage(amount: number) {
       const gameStore = useGameStore();
+      const logStore = useLogStore();
       const alive = this.loseHealth(amount);
       
-      gameStore.addToGameLog(`You take ${amount} damage. Health: ${this.health}/${this.maxHealth}`);
+      logStore.addToGameLog(`You take ${amount} damage. Health: ${this.health}/${this.maxHealth}`);
       
       if (!alive) {
-        gameStore.addToGameLog('You have been defeated!', true);
+        logStore.addToGameLog('You have been defeated!', true);
         gameStore.endGame(false);
       }
       
@@ -392,6 +398,7 @@ export const usePlayerStore = defineStore('player', {
     
     loseRandomResources(amount: number) {
       const gameStore = useGameStore();
+      const logStore = useLogStore();
       let lostCount = 0;
       
       // Don't try to remove more resources than the player has
@@ -411,7 +418,7 @@ export const usePlayerStore = defineStore('player', {
           this.resources.splice(randomIndex, 1);
           lostCount++;
           
-          gameStore.addToGameLog(`You lost ${resource ? resource.name : 'a resource'}.`);
+          logStore.addToGameLog(`You lost ${resource ? resource.name : 'a resource'}.`);
         }
       }
       
@@ -419,7 +426,7 @@ export const usePlayerStore = defineStore('player', {
     },
     
     addEffect(effect: PlayerEffect) {
-      const gameStore = useGameStore();
+      const logStore = useLogStore();
       
       // Check if effect already exists
       const existingEffectIndex = this.activeEffects.findIndex(e => e.id === effect.id);
@@ -428,23 +435,23 @@ export const usePlayerStore = defineStore('player', {
         // Update existing effect
         this.activeEffects[existingEffectIndex].magnitude = effect.magnitude;
         this.activeEffects[existingEffectIndex].duration = effect.duration;
-        gameStore.addToGameLog(`Effect renewed: ${effect.name}`, true);
+        logStore.addToGameLog(`Effect renewed: ${effect.name}`, true);
       } else {
         // Add new effect
         this.activeEffects.push(effect);
-        gameStore.addToGameLog(`New effect gained: ${effect.name} - ${effect.description}`, true);
+        logStore.addToGameLog(`New effect gained: ${effect.name} - ${effect.description}`, true);
       }
       
       return true;
     },
     
     removeEffect(effectId: string) {
-      const gameStore = useGameStore();
+      const logStore = useLogStore();
       const index = this.activeEffects.findIndex(effect => effect.id === effectId);
       
       if (index !== -1) {
         const effect = this.activeEffects[index];
-        gameStore.addToGameLog(`Effect ended: ${effect.name}`, true);
+        logStore.addToGameLog(`Effect ended: ${effect.name}`, true);
         this.activeEffects.splice(index, 1);
         return true;
       }
@@ -459,8 +466,8 @@ export const usePlayerStore = defineStore('player', {
           effect.duration--;
           
           if (effect.duration === 0) {
-            const gameStore = useGameStore();
-            gameStore.addToGameLog(`Effect ended: ${effect.name}`, true);
+            const logStore = useLogStore();
+            logStore.addToGameLog(`Effect ended: ${effect.name}`, true);
             this.activeEffects.splice(index, 1);
           }
         }
@@ -481,14 +488,14 @@ export const usePlayerStore = defineStore('player', {
       
       // Get companion info from card store to perform ability
       const cardStore = useCardStore();
-      const gameStore = useGameStore();
+      const logStore = useLogStore();
       const companion = cardStore.getCompanionById(companionId);
       
       if (!companion) {
         return false;
       }
       
-      gameStore.addToGameLog(`You use ${companion.name}'s special ability: ${companion.ability.description}`, true, 'companion');
+      logStore.addToGameLog(`You use ${companion.name}'s special ability: ${companion.ability.description}`, true, 'companion');
       
       // Apply ability effects based on companion type
       // (In a real implementation, this would have specific logic for each companion)
@@ -519,14 +526,14 @@ export const usePlayerStore = defineStore('player', {
       
       // Get item details from card store
       const cardStore = useCardStore();
-      const gameStore = useGameStore();
+      const logStore = useLogStore();
       const item = cardStore.getCraftedItemById(itemId);
       
       if (!item) {
         return false;
       }
       
-      gameStore.addToGameLog(`You use ${item.name}: ${item.description}`, true, 'crafting');
+      logStore.addToGameLog(`You use ${item.name}: ${item.description}`, true, 'crafting');
       
       // Apply item effects based on the type
       // (In a real implementation, this would have specific logic for each item)
@@ -551,14 +558,14 @@ export const usePlayerStore = defineStore('player', {
       
       // Get companion info from card store
       const cardStore = useCardStore();
-      const gameStore = useGameStore();
+      const logStore = useLogStore();
       const companion = cardStore.getCompanionById(companionId);
       
       if (!companion) {
         return false;
       }
       
-      gameStore.addToGameLog(`${companion.name} helps you with the challenge.`, true, 'companion');
+      logStore.addToGameLog(`${companion.name} helps you with the challenge.`, true, 'companion');
       
       // In a real implementation, this could reduce companion loyalty or have other effects
       
@@ -579,14 +586,14 @@ export const usePlayerStore = defineStore('player', {
       
       // Get companion info from card store
       const cardStore = useCardStore();
-      const gameStore = useGameStore();
+      const logStore = useLogStore();
       const companion = cardStore.getCompanionById(companionId);
       
       if (!companion) {
         return false;
       }
       
-      gameStore.addToGameLog(`${companion.name} keeps watch over you during the night.`, true, 'companion');
+      logStore.addToGameLog(`${companion.name} keeps watch over you during the night.`, true, 'companion');
       
       // In a real implementation, this could reduce companion loyalty or have other effects
       
@@ -623,7 +630,7 @@ export const usePlayerStore = defineStore('player', {
     // Craft an item from resources
     craftItem(itemId: string): boolean {
       const cardStore = useCardStore();
-      const gameStore = useGameStore();
+      const logStore = useLogStore();
       const item = cardStore.getCraftedItemById(itemId);
       
       if (!item || !item.requiredResources) {
@@ -645,19 +652,19 @@ export const usePlayerStore = defineStore('player', {
       // Add the crafted item
       this.addCraftedItem(itemId);
       
-      gameStore.addToGameLog(`You crafted ${item.name}.`, true, 'crafting');
+      logStore.addToGameLog(`You crafted ${item.name}.`, true, 'crafting');
       
       return true;
     },
 
     // Rest to recover health
     rest(): boolean {
-      const gameStore = useGameStore();
+      const logStore = useLogStore();
       
       // Heal 1 health point when resting
       this.healHealth(1);
       
-      gameStore.addToGameLog(`You rest and recover. Health is now ${this.health}/${this.maxHealth}.`, true, 'system');
+      logStore.addToGameLog(`You rest and recover. Health is now ${this.health}/${this.maxHealth}.`, true, 'system');
       
       return true;
     },
@@ -676,14 +683,14 @@ export const usePlayerStore = defineStore('player', {
       
       // Get companion info from card store
       const cardStore = useCardStore();
-      const gameStore = useGameStore();
+      const logStore = useLogStore();
       const companion = cardStore.getCompanionById(companionId);
       
       if (!companion) {
         return false;
       }
       
-      gameStore.addToGameLog(`${companion.name} helps you gather resources.`, true, 'companion');
+      logStore.addToGameLog(`${companion.name} helps you gather resources.`, true, 'companion');
       
       // In a real implementation, this could reduce companion loyalty or have other effects
       

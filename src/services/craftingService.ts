@@ -6,6 +6,8 @@ import { useGameStore } from '@/stores/gameStore';
 import { usePlayerStore } from '@/stores/playerStore';
 import { useCardStore } from '@/stores/cardStore';
 import { ThreatService } from '@/services/threatService';
+import { ExtendedGameStore, ExtendedPlayerStore } from '@/types/store-extensions';
+import { Season } from '@/models/enums/seasons';
 
 // Define interfaces to extend existing types
 interface ExtendedLandscape {
@@ -39,8 +41,8 @@ const getComplexityValue = (complexity: string | number): number => {
 };
 
 class CraftingService {
-  private gameStore = useGameStore();
-  private playerStore = usePlayerStore();
+  private gameStore = useGameStore() as unknown as ExtendedGameStore;
+  private playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
   private cardStore = useCardStore();
   private threatService = new ThreatService();
   
@@ -55,9 +57,9 @@ class CraftingService {
     landscapeSupported: boolean;
     playerSkill: boolean;
   } {
-    const playerStore = usePlayerStore();
+    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
     const cardStore = useCardStore();
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as unknown as ExtendedGameStore;
     
     // Get crafted item
     const item = cardStore.getCraftedItemById(itemId);
@@ -136,7 +138,7 @@ class CraftingService {
    * @returns True if player has the necessary skill
    */
   playerHasSkillForComplexity(complexityTier: number): boolean {
-    const playerStore = usePlayerStore();
+    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
     
     // Number of crafted items can indicate skill level
     const craftedItemCount = playerStore.craftedItemCount;
@@ -174,20 +176,25 @@ class CraftingService {
     
     if (!canCraft) {
       if (missingResources.length > 0) {
-        this.gameStore.addToGameLog(`Cannot craft item: missing resources - ${missingResources.join(', ')}`, true);
+        const gameStore = useGameStore() as unknown as ExtendedGameStore;
+        gameStore.addToGameLog(`Cannot craft item: missing resources - ${missingResources.join(', ')}`, true);
       } else if (!landscapeSupported) {
-        this.gameStore.addToGameLog('Cannot craft item: current landscape does not support this complexity of crafting', true);
+        const gameStore = useGameStore() as unknown as ExtendedGameStore;
+        gameStore.addToGameLog('Cannot craft item: current landscape does not support this complexity of crafting', true);
       } else if (!playerSkill) {
-        this.gameStore.addToGameLog('Cannot craft item: insufficient crafting experience', true);
+        const gameStore = useGameStore() as unknown as ExtendedGameStore;
+        gameStore.addToGameLog('Cannot craft item: insufficient crafting experience', true);
       } else {
-        this.gameStore.addToGameLog('Cannot craft item: unknown reason', true);
+        const gameStore = useGameStore() as unknown as ExtendedGameStore;
+        gameStore.addToGameLog('Cannot craft item: unknown reason', true);
       }
       return false;
     }
     
     const item = this.cardStore.getCraftedItemById(itemId);
     if (!item) {
-      this.gameStore.addToGameLog(`Cannot craft item: item with ID ${itemId} not found`, true);
+      const gameStore = useGameStore() as unknown as ExtendedGameStore;
+      gameStore.addToGameLog(`Cannot craft item: item with ID ${itemId} not found`, true);
       return false;
     }
     
@@ -200,36 +207,42 @@ class CraftingService {
     }
     
     if (invalidResources.length > 0) {
-      this.gameStore.addToGameLog(`Crafting failed: invalid resource references - ${invalidResources.join(', ')}`, true);
+      const gameStore = useGameStore() as unknown as ExtendedGameStore;
+      gameStore.addToGameLog(`Crafting failed: invalid resource references - ${invalidResources.join(', ')}`, true);
       return false;
     }
     
     // Remove required resources
     for (const resourceId of item.requiredResources) {
-      this.playerStore.removeResource(resourceId);
+      const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
+      playerStore.removeResource(resourceId);
     }
     
     // Add the crafted item to inventory
-    this.playerStore.addCraftedItem(itemId);
+    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
+    playerStore.addCraftedItem(itemId);
     
     // Update unique crafted items count for skill progression
-    if (!this.playerStore.craftedItems.includes(itemId)) {
-      this.playerStore.uniqueCraftedItemsCount++;
+    if (!playerStore.craftedItems.includes(itemId)) {
+      playerStore.uniqueCraftedItemsCount++;
     }
     
     // Check for legendary item
     if (item.isLegendary) {
-      this.playerStore.hasCraftedLegendaryItem = true;
+      const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
+      playerStore.hasCraftedLegendaryItem = true;
     }
     
     // Apply threat cost based on item complexity
     const threatCost = this.threatService.getThreatForCraftedItem(itemId);
     if (threatCost > 0) {
       this.threatService.addThreatTokens(threatCost);
-      this.gameStore.addToGameLog(`Crafting this powerful item has increased threat by ${threatCost}.`, true);
+      const gameStore = useGameStore() as unknown as ExtendedGameStore;
+      gameStore.addToGameLog(`Crafting this powerful item has increased threat by ${threatCost}.`, true);
     }
     
-    this.gameStore.addToGameLog(`Successfully crafted ${item.name}!`, true);
+    const gameStore = useGameStore() as unknown as ExtendedGameStore;
+    gameStore.addToGameLog(`Successfully crafted ${item.name}!`, true);
     return true;
   }
   
@@ -240,21 +253,17 @@ class CraftingService {
    */
   calculateCraftingDifficulty(itemId: string): number {
     const cardStore = useCardStore();
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as unknown as ExtendedGameStore;
     
     // Get crafted item
     const item = cardStore.getCraftedItemById(itemId);
     if (!item) {
-      return 0;
+      return 10; // High difficulty if item not found
     }
     
-    // Get the complexity tier numeric value
-    const complexityValue = getComplexityValue(item.complexity);
-    
-    // Base difficulty from item
-    // Use item complexity as the base if no specific difficulty is defined
-    const baseDifficulty = typeof item['difficulty'] === 'number' ? item['difficulty'] : 3;
-    let difficulty = baseDifficulty * complexityValue;
+    // Base difficulty from item complexity
+    let complexity = item.complexity || 'simple';
+    let difficulty = getComplexityValue(complexity);
     
     // Apply location bonus/penalty
     const locationBonus = this.getLocationCraftingBonus(itemId, gameStore.currentLandscapeId);
@@ -269,7 +278,7 @@ class CraftingService {
     difficulty += threatLevel;
     
     // Apply player's crafting experience bonus
-    const playerStore = usePlayerStore();
+    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
     const experienceBonus = Math.floor(playerStore.craftedItemCount / 2);
     difficulty -= experienceBonus;
     
@@ -317,17 +326,22 @@ class CraftingService {
    * @param season The current season
    * @returns The seasonal modifier (negative is beneficial)
    */
-  getSeasonalCraftingModifier(season: string): number {
-    // Define seasonal crafting modifiers
-    const seasonalModifiers: Record<string, number> = {
-      'SAMHAIN': 0,
-      'WINTERS_DEPTH': 1, // Harder to craft in winter
-      'IMBOLC': 0,
-      'BELTANE': -1, // Easier to craft in spring
-      'LUGHNASADH': -1 // Easier to craft in harvest season
-    };
-    
-    return seasonalModifiers[season] || 0;
+  getSeasonalCraftingModifier(season: Season): number {
+    // Different seasons have different effects on crafting
+    switch(season) {
+      case Season.SAMHAIN:
+        return 1; // Slightly more difficult
+      case Season.WINTERS_DEPTH:
+        return 2; // More difficult in winter
+      case Season.IMBOLC:
+        return 0; // Neutral
+      case Season.BELTANE:
+        return -1; // Easier in spring
+      case Season.LUGHNASADH:
+        return -2; // Easiest in harvest season
+      default:
+        return 0;
+    }
   }
   
   /**
@@ -379,8 +393,8 @@ class CraftingService {
     seasonalModifier: number
   } | null {
     const cardStore = useCardStore();
-    const gameStore = useGameStore();
-    const playerStore = usePlayerStore();
+    const gameStore = useGameStore() as unknown as ExtendedGameStore;
+    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
     
     const item = cardStore.getCraftedItemById(itemId);
     if (!item) {
@@ -409,7 +423,7 @@ class CraftingService {
    * @param itemId The ID of the crafted item
    */
   applyItemEffect(itemId: string) {
-    const playerStore = usePlayerStore();
+    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
     const cardStore = useCardStore();
     
     const item = cardStore.getCraftedItemById(itemId);
@@ -425,7 +439,7 @@ class CraftingService {
       playerStore.healHealth(2);
     } else if (item.ability.type === 'protection') {
       // Example: Protection items add temporary effects
-      const gameStore = useGameStore();
+      const gameStore = useGameStore() as unknown as ExtendedGameStore;
       gameStore.addTempEffect(
         `${itemId}_protection`,
         `${item.name} Protection`,
@@ -438,7 +452,7 @@ class CraftingService {
     // If the item has a drawback, apply it
     if (item.drawback) {
       // Example: Some drawbacks could reduce health or add threat
-      const gameStore = useGameStore();
+      const gameStore = useGameStore() as unknown as ExtendedGameStore;
       gameStore.addThreatTokens(1);
     }
   }
@@ -447,7 +461,7 @@ class CraftingService {
    * Check if crafting this item satisfies any victory conditions
    */
   private checkCraftingVictoryConditions(): void {
-    const playerStore = usePlayerStore();
+    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
     
     // Example: Check if player has crafted a legendary item
     const cardStore = useCardStore();
@@ -477,7 +491,7 @@ class CraftingService {
    * @returns True if the player has the resource
    */
   hasResource(resourceId: string): boolean {
-    const playerStore = usePlayerStore();
+    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
     return playerStore.resources.includes(resourceId);
   }
 

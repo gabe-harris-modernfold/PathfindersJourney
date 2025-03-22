@@ -6,6 +6,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { usePlayerStore } from '@/stores/playerStore';
 import { useCardStore } from '@/stores/cardStore';
 import { GamePhase } from '@/models/enums/phases';
+import { ExtendedGameStore, ExtendedPlayerStore } from '@/types/store-extensions';
 
 class VictoryService {
   /**
@@ -50,7 +51,7 @@ class VictoryService {
     const isVictory = Object.values(conditions).every(Boolean);
     
     // Update game state
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as any as ExtendedGameStore;
     gameStore.victoryConditions = conditions;
     
     return {
@@ -64,7 +65,7 @@ class VictoryService {
    * @returns True if journey is complete
    */
   checkJourneyCompletion(): boolean {
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as any as ExtendedGameStore;
     
     // Complete when all 15 landscapes have been visited
     return gameStore.visitedLandscapes.length >= 15;
@@ -75,7 +76,7 @@ class VictoryService {
    * @returns True if balance is maintained
    */
   checkBalanceMaintained(): boolean {
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as any as ExtendedGameStore;
     return gameStore.threatTokens < 6;
   }
   
@@ -84,7 +85,7 @@ class VictoryService {
    * @returns True if knowledge is acquired
    */
   checkKnowledgeAcquired(): boolean {
-    const playerStore = usePlayerStore();
+    const playerStore = usePlayerStore() as any as ExtendedPlayerStore;
     return playerStore.craftedItems.length >= 2;
   }
   
@@ -93,8 +94,9 @@ class VictoryService {
    * @returns True if bonds are formed
    */
   checkBondsFormed(): boolean {
-    const playerStore = usePlayerStore();
-    return playerStore.animalCompanions.length >= 1;
+    const playerStore = usePlayerStore() as any as ExtendedPlayerStore;
+    // Fix: call the companionCount method instead of treating it as a property
+    return playerStore.companionCount() >= 1;
   }
   
   /**
@@ -102,9 +104,9 @@ class VictoryService {
    * @returns True if personal quest is fulfilled
    */
   checkPersonalQuest(): boolean {
-    const playerStore = usePlayerStore();
+    const playerStore = usePlayerStore() as any as ExtendedPlayerStore;
     const cardStore = useCardStore();
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as any as ExtendedGameStore;
     
     const character = cardStore.getCharacterById(playerStore.characterId);
     if (!character) {
@@ -117,7 +119,7 @@ class VictoryService {
       case 'giant_beastfriend':
         // Bond with at least 4 different Animal Companions
         // Using companionCount getter instead of animalCompanions array
-        return playerStore.companionCount >= 4;
+        return playerStore.companionCount() >= 4;
         
       case 'hedge_witch':
         // Create at least 3 different Crafted Items
@@ -154,7 +156,7 @@ class VictoryService {
    * @returns True if landscapes traversed
    */
   checkLandscapesTraversed(): boolean {
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as any as ExtendedGameStore;
     return gameStore.visitedLandscapes.length >= 10;
   }
   
@@ -163,7 +165,7 @@ class VictoryService {
    * @returns True if seasons experienced
    */
   checkSeasonsExperienced(): boolean {
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as any as ExtendedGameStore;
     // Since experiencedSeasons doesn't exist, we'll assume this is always true for now
     // In a real implementation, we would track the seasons experienced
     return true;
@@ -174,7 +176,7 @@ class VictoryService {
    * @returns True if challenges overcome
    */
   checkChallengesOvercome(): boolean {
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as any as ExtendedGameStore;
     // Since overcomeChallenges doesn't exist, we'll assume this is always true for now
     // In a real implementation, we would track the challenges overcome
     return true;
@@ -184,7 +186,7 @@ class VictoryService {
    * Process victory
    */
   processVictory(): void {
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as any as ExtendedGameStore;
     
     // Use the endGame method instead of directly modifying state properties
     gameStore.endGame(true);
@@ -198,7 +200,7 @@ class VictoryService {
    * @param reason The reason for defeat
    */
   processDefeat(reason: string): void {
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as any as ExtendedGameStore;
     
     // Use the endGame method instead of directly modifying state properties
     gameStore.endGame(false);
@@ -219,8 +221,8 @@ class VictoryService {
     isDefeat: boolean;
     reason: string | null;
   } {
-    const gameStore = useGameStore();
-    const playerStore = usePlayerStore();
+    const gameStore = useGameStore() as any as ExtendedGameStore;
+    const playerStore = usePlayerStore() as any as ExtendedPlayerStore;
     
     // Check health
     if (playerStore.health <= 0) {

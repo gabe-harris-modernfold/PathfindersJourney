@@ -2,6 +2,9 @@ import { computed, ref } from 'vue';
 import { useGameStore } from '@/stores/gameStore';
 import { usePlayerStore } from '@/stores/playerStore';
 import { useCardStore } from '@/stores/cardStore';
+import { useSeasonStore } from '@/stores/seasonStore';
+import { useJourneyStore } from '@/stores/journeyStore';
+import { useChallenge } from '@/stores/challengeStore';
 import { GamePhase } from '@/models/enums/phases';
 import { Season } from '@/models/enums/seasons';
 
@@ -13,6 +16,9 @@ export function useGameState() {
   const gameStore = useGameStore();
   const playerStore = usePlayerStore();
   const cardStore = useCardStore();
+  const seasonStore = useSeasonStore();
+  const journeyStore = useJourneyStore();
+  const challengeStore = useChallenge();
 
   // Computed properties for common game state
   const isGameStarted = computed(() => gameStore.currentPhase !== GamePhase.SETUP);
@@ -20,10 +26,10 @@ export function useGameState() {
     playerStore.characterId ? cardStore.getCharacterById(playerStore.characterId) : null
   );
   const currentLandscape = computed(() => 
-    gameStore.currentLandscapeId ? cardStore.getLandscapeById(gameStore.currentLandscapeId) : null
+    journeyStore.currentLandscapeId ? cardStore.getLandscapeById(journeyStore.currentLandscapeId) : null
   );
   const currentSeason = computed(() => 
-    gameStore.currentSeason ? cardStore.getSeasonById(gameStore.currentSeason) : null
+    seasonStore.currentSeason ? cardStore.getSeasonById(seasonStore.currentSeason) : null
   );
   const playerResources = computed(() => 
     playerStore.resources.map(id => cardStore.getResourceById(id)).filter(Boolean)
@@ -36,10 +42,10 @@ export function useGameState() {
   );
   const journeyProgress = computed(() => {
     const totalLandscapes = 15; // Total number of landscapes in the game
-    return Math.floor((gameStore.visitedLandscapes.length / totalLandscapes) * 100);
+    return Math.floor((journeyStore.visitedLandscapes.length / totalLandscapes) * 100);
   });
   const threatLevel = computed(() => 
-    Math.floor(gameStore.threatTokens / 3)
+    Math.floor(challengeStore.threatTokens / 3)
   );
 
   // Game state helpers
@@ -66,6 +72,9 @@ export function useGameState() {
     gameStore,
     playerStore,
     cardStore,
+    seasonStore,
+    journeyStore,
+    challengeStore,
     
     // Game state
     isGameStarted,

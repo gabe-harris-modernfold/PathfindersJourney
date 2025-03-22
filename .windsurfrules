@@ -10,4 +10,6 @@ work with the existing design
 use existing componets
 do not run tests
 minial descricptions of work performed back to the user
-maintain consistancy with models in src\models\data use using properites
+maintain consistancy with models in src\models\data use using 
+Do not hard code game values. They are in src\models\data.
+minimize ruinning shell commands

@@ -8,19 +8,25 @@ import { useCardStore } from '@/stores/cardStore';
 import { diceService } from '@/services/diceService';
 import { ChallengeOutcome, Challenge } from '@/models/types/game';
 import { ChallengeType } from '@/models/enums/cardTypes';
+import { ExtendedGameStore, ExtendedPlayerStore } from '@/types/store-extensions';
+import { Season } from '@/models/enums/seasons';
 
 class ChallengeService {
+  // Private properties with consistent naming
+  private _lastChallengeId: string | null = null;
+  private _lastChallengeOutcome: ChallengeOutcome | null = null;
+  
   /**
    * Calculate challenge difficulty based on multiple factors
    * @param challenge The challenge to calculate difficulty for
    * @returns The calculated difficulty value
    */
   calculateDifficulty(challenge: Challenge): number {
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as unknown as ExtendedGameStore;
     const baseDifficulty = challenge.difficulty;
     
     // Apply seasonal modifiers
-    const seasonModifier = this.getSeasonalModifier(challenge.type, gameStore.currentSeason);
+    const seasonModifier = this._getSeasonalModifier(challenge.type, gameStore.currentSeason);
     
     // Apply threat level modifier
     const threatModifier = Math.floor(gameStore.threatTokens / 3);
@@ -34,20 +40,20 @@ class ChallengeService {
    * @returns The calculated player bonus
    */
   calculatePlayerBonus(challenge: Challenge): number {
-    const playerStore = usePlayerStore();
+    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
     const cardStore = useCardStore();
     
     // Character ability bonus
-    let bonus = this.getCharacterBonus(playerStore.characterId, challenge.type);
+    let bonus = this._getCharacterBonus(playerStore.characterId, challenge.type);
     
     // Item bonuses
-    bonus += this.getItemBonuses(playerStore.craftedItems, challenge.type);
+    bonus += this._getItemBonuses(playerStore.craftedItems, challenge.type);
     
     // Companion bonuses
-    bonus += this.getCompanionBonuses(playerStore.animalCompanions, challenge.type);
+    bonus += this._getCompanionBonuses(playerStore.animalCompanions, challenge.type);
     
     // Blessing tokens
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as unknown as ExtendedGameStore;
     bonus += gameStore.blessingTokens;
     
     return bonus;
@@ -66,7 +72,7 @@ class ChallengeService {
     const total = diceRoll + playerBonus;
     
     // Record the challenge attempt
-    this.recordChallengeAttempt({
+    this._recordChallengeAttempt({
       challengeType: challenge.type,
       difficulty,
       diceRoll,
@@ -76,45 +82,57 @@ class ChallengeService {
     
     // Natural 8 always succeeds
     if (diceRoll === 8) {
-      return {
+      const outcome = {
         success: true,
         exceptional: true,
         roll: diceRoll,
         total,
         difficulty
       };
+      
+      this._lastChallengeOutcome = outcome;
+      return outcome;
     }
     
     // Success: total >= difficulty
     if (total >= difficulty) {
-      return {
+      const outcome = {
         success: true,
         exceptional: total >= difficulty + 2,
         roll: diceRoll,
         total,
         difficulty
       };
+      
+      this._lastChallengeOutcome = outcome;
+      return outcome;
     }
     
     // Partial success: total = difficulty - 1
     if (total === difficulty - 1) {
-      return {
-        success: 'partial',
+      const outcome: ChallengeOutcome = {
+        success: 'partial' as const,
         exceptional: false,
         roll: diceRoll,
         total,
         difficulty
       };
+      
+      this._lastChallengeOutcome = outcome;
+      return outcome;
     }
     
     // Failure
-    return {
+    const outcome = {
       success: false,
       exceptional: total <= difficulty - 3,
       roll: diceRoll,
       total,
       difficulty
     };
+    
+    this._lastChallengeOutcome = outcome;
+    return outcome;
   }
   
   /**
@@ -123,8 +141,8 @@ class ChallengeService {
    * @param challenge The challenge that was attempted
    */
   applyOutcome(outcome: ChallengeOutcome, challenge: Challenge): void {
-    const gameStore = useGameStore();
-    const playerStore = usePlayerStore();
+    const gameStore = useGameStore() as unknown as ExtendedGameStore;
+    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
     
     if (outcome.success === true) {
       // Full success
@@ -135,7 +153,7 @@ class ChallengeService {
       
       // Collect resources if applicable
       if (challenge.resourceReward) {
-        this.collectResources(2);
+        this._collectResources(2);
       }
       
       // Apply any specific success effects
@@ -146,7 +164,7 @@ class ChallengeService {
     } else if (outcome.success === 'partial') {
       // Partial success
       if (challenge.resourceReward) {
-        this.collectResources(1);
+        this._collectResources(1);
       }
       
       // Apply any specific partial success effects
@@ -170,17 +188,33 @@ class ChallengeService {
   }
   
   /**
+   * Get the last challenge outcome
+   * @returns The last challenge outcome or null if no challenge has been resolved
+   */
+  getLastOutcome(): ChallengeOutcome | null {
+    return this._lastChallengeOutcome;
+  }
+  
+  /**
+   * Reset the service state
+   */
+  reset(): void {
+    this._lastChallengeId = null;
+    this._lastChallengeOutcome = null;
+  }
+  
+  /**
    * Record a challenge attempt for history tracking
    * @param attempt The challenge attempt details
    */
-  recordChallengeAttempt(attempt: {
+  private _recordChallengeAttempt(attempt: {
     challengeType: ChallengeType;
     difficulty: number;
     diceRoll: number;
     playerBonus: number;
     total: number;
   }): void {
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as unknown as ExtendedGameStore;
     
     // Create a record with the required properties
     const record = {
@@ -189,6 +223,7 @@ class ChallengeService {
       turn: gameStore.currentTurn
     };
     
+    this._lastChallengeId = record.id;
     gameStore.challengeHistory.push(record);
   }
   
@@ -198,7 +233,7 @@ class ChallengeService {
    * @param season The current season
    * @returns The seasonal modifier value
    */
-  private getSeasonalModifier(challengeType: ChallengeType, season: string): number {
+  private _getSeasonalModifier(challengeType: ChallengeType, season: Season): number {
     // Define seasonal challenge modifiers
     const seasonalModifiers = {
       'SAMHAIN': {
@@ -237,7 +272,7 @@ class ChallengeService {
    * @param challengeType The type of challenge
    * @returns The character bonus value
    */
-  private getCharacterBonus(characterId: string, challengeType: ChallengeType): number {
+  private _getCharacterBonus(characterId: string, challengeType: ChallengeType): number {
     const cardStore = useCardStore();
     const character = cardStore.getCharacterById(characterId);
     
@@ -254,7 +289,7 @@ class ChallengeService {
    * @param challengeType The type of challenge
    * @returns The total item bonuses
    */
-  private getItemBonuses(itemIds: string[], challengeType: ChallengeType): number {
+  private _getItemBonuses(itemIds: string[], challengeType: ChallengeType): number {
     const cardStore = useCardStore();
     let totalBonus = 0;
     
@@ -274,9 +309,9 @@ class ChallengeService {
    * @param challengeType The type of challenge
    * @returns The total companion bonuses
    */
-  private getCompanionBonuses(companionIds: string[], challengeType: ChallengeType): number {
+  private _getCompanionBonuses(companionIds: string[], challengeType: ChallengeType): number {
     const cardStore = useCardStore();
-    const gameStore = useGameStore();
+    const gameStore = useGameStore() as unknown as ExtendedGameStore;
     let totalBonus = 0;
     
     for (const companionId of companionIds) {
@@ -303,11 +338,12 @@ class ChallengeService {
    * Collect resources as a reward
    * @param count Number of resources to collect
    */
-  private collectResources(count: number): void {
+  private _collectResources(count: number): void {
     // This would typically call resourceService.collectLandscapeResources
     // For now, we'll just log it
     console.log(`Collecting ${count} resources`);
   }
 }
 
+// Export as a singleton instance for consistent access pattern
 export const challengeService = new ChallengeService();

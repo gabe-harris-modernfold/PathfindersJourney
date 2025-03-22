@@ -53,9 +53,8 @@
   import { defineComponent, computed } from 'vue';
   import { CardType } from '@/models/enums/cardTypes';
   import GameCard from '@/components/core/GameCard.vue';
-  import { useCardStore } from '@/stores/cardStore';
   import { usePlayerStore } from '@/stores/playerStore';
-  import { craftingService } from '@/services/craftingService';
+  import { useServices } from '@/composables/useServices';
   
   export default defineComponent({
     name: 'CraftingRecipeCard',
@@ -78,8 +77,8 @@
     },
     emits: ['select', 'craft', 'cancel'],
     setup(props) {
-      const cardStore = useCardStore();
       const playerStore = usePlayerStore();
+      const { craftingService, cardRepository } = useServices();
       
       // Check if player has a specific resource
       const hasResource = (resourceId) => {

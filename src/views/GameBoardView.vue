@@ -1,368 +1,9 @@
 <template>
   <div class="game-board" style="border: 2px solid lightblue; position: relative;">
     <main class="game-content">
-      <!-- Cards Row Section -->
-      <section class="cards-row-section">
-        <div class="cards-row">
-          <div class="card-item">
-            <GameCard
-              :title="formatSeason(gameStore.currentSeason)"
-              subtitle="Current Season"
-              :cardType="CardType.SEASON"
-            >
-              <p>The seasons affect which resources are available and the effectiveness of your animal companions.</p>
-            </GameCard>
-          </div>
-          
-          <div v-if="currentLandscape" class="card-item">
-            <GameCard
-              :title="currentLandscape.name"
-              subtitle="Current Landscape"
-              :cardType="CardType.LANDSCAPE"
-            >
-              <p>{{ currentLandscape.description }}</p>
-            </GameCard>
-          </div>
-          
-          <div v-if="currentCharacter" class="card-item">
-            <GameCard
-              :title="currentCharacter.name"
-              subtitle="Your Character"
-              :cardType="CardType.CHARACTER"
-            >
-              <p>{{ currentCharacter.specialAbility.name }}: {{ currentCharacter.specialAbility.description }}</p>
-            </GameCard>
-          </div>
-          
-          <!-- Resource Cards -->
-          <div v-for="resourceId in playerStore.resources" :key="resourceId" class="card-item">
-            <GameCard
-              :title="getCardResourceName(resourceId)"
-              subtitle="Resource"
-              :cardType="CardType.RESOURCE"
-            >
-              <p>{{ getResourceDescription(resourceId) }}</p>
-            </GameCard>
-          </div>
-          
-          <!-- Crafted Item Cards -->
-          <div v-for="itemId in playerStore.craftedItems" :key="itemId" class="card-item">
-            <GameCard
-              :title="getCraftedItemName(itemId)"
-              subtitle="Crafted Item"
-              :cardType="CardType.CRAFTED_ITEM"
-            >
-              <p>{{ getCraftedItemDescription(itemId) }}</p>
-            </GameCard>
-          </div>
-        </div>
-      </section>
-
-      <!-- Character Section -->
-      <section class="character-section" v-if="false">
-        <div class="character-card-container">
-          <GameCard
-            :title="currentCharacter ? currentCharacter.name : 'No Character Selected'"
-            :subtitle="currentCharacter ? currentCharacter.archetype : ''"
-            :cardType="CardType.CHARACTER"
-          >
-            <div v-if="currentCharacter">
-              <p>{{ currentCharacter.description }}</p>
-              <div v-if="currentCharacter.specialAbility">
-                <h4>Special Ability:</h4>
-                <p>{{ currentCharacter.specialAbility.name }}: {{ currentCharacter.specialAbility.description }}</p>
-              </div>
-            </div>
-          </GameCard>
-        </div>
-      </section>
-      
-      <!-- Landscape Section -->
-      <section class="landscape-section" v-if="false">
-        <div class="landscape-card-container">
-          <GameCard 
-            :title="currentLandscape.name" 
-            :subtitle="currentLandscape.description" 
-            :cardType="CardType.LANDSCAPE"
-          >
-            <div v-if="currentLandscape.availableResources && currentLandscape.availableResources.length">
-              <h4>Available Resources:</h4>
-              <ul>
-                <li v-for="resourceId in currentLandscape.availableResources" :key="resourceId">
-                  {{ getCardResourceName(resourceId) }}
-                </li>
-              </ul>
-            </div>
-          </GameCard>
-        </div>
-      </section>
-      
-      <!-- Phase-specific content -->
-      <section class="phase-content" style="border: 2px solid lightblue; position: relative; margin-top: 0; padding: 5px; background-color: rgba(240, 230, 210, 0.3); border-radius: 8px; border: 1px solid #8c7851;">
-        <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">GameBoardView</div>
-        <div style="position: absolute; top: -20px; left: 115px; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">PhaseContent</div>
-        
-        <!-- Seasonal Assessment Phase -->
-        <div v-if="gameStore.currentPhase === GamePhase.SEASONAL_ASSESSMENT" style="display: flex; flex-direction: column; align-items: center; width: 100%; position: relative; border: 2px solid rgba(173, 216, 230, 0.3); padding: 5px;">
-          <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">SeasonalAssessmentPhase</div>
-          <GameCard 
-            title="Continue Journey" 
-            cardType="ACTION"
-            @click="gameStore.advancePhase()"
-          >
-            <div style="font-size: 1.1rem; padding: 10px;">
-              Proceed to the next phase of your adventure
-            </div>
-          </GameCard>
-        </div>
-        
-        <!-- Exploration Phase -->
-        <div v-else-if="gameStore.currentPhase === GamePhase.EXPLORATION">
-          <h2 class="phase-title">EXPLORATION</h2>
-          <div class="phase-description">
-            <p>You are exploring {{ currentLandscape?.name }}. What will you discover?</p>
-          </div>
-          <button @click="gameStore.advancePhase()" style="margin-top: 5px; font-weight: bold; padding: 5px 10px; font-size: 0.9rem; border-radius: 6px; cursor: pointer; background: linear-gradient(to bottom, #8c7851, #5a3e2b); border: 2px solid #f0c8a0; color: #fff; transition: all 0.3s ease;">
-            Continue to Next Phase
-          </button>
-        </div>
-        
-        <!-- Challenge Phase -->
-        <div v-else-if="gameStore.currentPhase === GamePhase.CHALLENGE && currentChallenge">
-          <h2 class="phase-title">CHALLENGE</h2>
-          <div class="challenge-card-container">
-            <GameCard 
-              :title="currentChallenge.name" 
-              :subtitle="currentChallenge.description" 
-              :cardType="CardType.CHARACTER"
-            >
-              <div>
-                <p><strong>Difficulty:</strong> {{ currentChallenge.difficulty }}</p>
-                <div v-if="currentChallenge.rewards">
-                  <h4>Rewards:</h4>
-                  <ul>
-                    <li v-if="currentChallenge.rewards.resources">Resources: {{ currentChallenge.rewards.resources.join(', ') }}</li>
-                    <li v-if="currentChallenge.rewards.experience">Experience: {{ currentChallenge.rewards.experience }}</li>
-                    <li v-if="currentChallenge.rewards.knowledge">Knowledge: {{ currentChallenge.rewards.knowledge }}</li>
-                  </ul>
-                </div>
-              </div>
-            </GameCard>
-          </div>
-          
-          <div class="challenge-details mt-4">
-            <p>Difficulty: {{ getChallengeDifficulty() }}</p>
-          </div>
-          
-          <div class="challenge-actions mt-4">
-            <button 
-              @click="resolveChallenge" 
-              class="btn btn--primary"
-            >
-              Face Challenge
-            </button>
-            <button 
-              @click="avoidChallenge" 
-              class="btn btn--secondary ml-2"
-            >
-              Avoid (Lose 1 Health)
-            </button>
-          </div>
-        </div>
-        
-        <!-- Challenge Resolution Phase -->
-        <div v-else-if="gameStore.currentPhase === GamePhase.CHALLENGE_RESOLUTION && lastChallengeResult">
-          <h2 class="phase-title">CHALLENGE OUTCOME</h2>
-          
-          <div class="challenge-result" :class="{ 
-            'success': lastChallengeResult.success, 
-            'partial-success': lastChallengeResult.partialSuccess,
-            'failure': !lastChallengeResult.success && !lastChallengeResult.partialSuccess
-          }">
-            <h3>{{ lastChallengeResult.success ? 'Success!' : lastChallengeResult.partialSuccess ? 'Partial Success' : 'Failure' }}</h3>
-          </div>
-          
-          <GameCard 
-            title="Continue to Next Phase" 
-            cardType="ACTION"
-            @click="gameStore.advancePhase()"
-          >
-            <div style="font-size: 1rem; padding: 5px;">
-              Proceed with your journey
-            </div>
-          </GameCard>
-        </div>
-        
-        <!-- Threat Level Check Phase -->
-        <div v-else-if="gameStore.currentPhase === GamePhase.THREAT_LEVEL_CHECK" style="position: relative; border: 2px solid lightblue; padding: 10px;">
-          <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">ThreatLevelCheckPhase</div>
-          <div class="phase-description">
-            <div>
-              <!-- Threat meter removed -->
-            </div>
-          </div>
-          <GameCard 
-            title="Remain Vigilant" 
-            cardType="ACTION"
-            @click="gameStore.advancePhase()"
-          >
-            <div style="font-size: 1.1rem; padding: 10px;">
-              Stay alert and advance to the next phase
-            </div>
-          </GameCard>
-        </div>
-        
-        <!-- Resource Management Phase -->
-        <div v-else-if="gameStore.currentPhase === GamePhase.RESOURCE_MANAGEMENT" style="position: relative; border: 2px solid lightblue; padding: 10px;">
-          <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">ResourceManagementPhase</div>
-          <ResourceManagement />
-        </div>
-        
-        <!-- Animal Companion Phase -->
-        <div v-else-if="gameStore.currentPhase === GamePhase.ANIMAL_COMPANION" style="position: relative; border: 2px solid lightblue; padding: 10px;">
-          <div v-if="playerStore.animalCompanions.length === 0">
-            <AnimalCompanionSelection
-              @select-companion="selectCompanion"
-            />
-            
-            <div class="action-buttons mt-4">
-              <GameCard 
-                title="Skip Animal Companion" 
-                cardType="ACTION"
-                @click="advancePhase"
-              >
-                <div style="font-size: 1rem; padding: 5px;">
-                  Continue without a companion
-                </div>
-              </GameCard>
-            </div>
-          </div>
-          
-          <div v-else>
-            <CompanionManagement />
-            
-            <div class="action-buttons mt-4">
-              <button 
-                class="btn btn--primary"
-                @click="advancePhase"
-              >
-                Continue Journey
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Crafting Phase -->
-        <div v-else-if="gameStore.currentPhase === GamePhase.CRAFTING">
-          <CraftingStation />
-        </div>
-        
-        <!-- Journey Phase -->
-        <div v-else-if="gameStore.currentPhase === GamePhase.JOURNEY">
-          <h2 class="phase-title">JOURNEY</h2>
-          <GameMap />
-          <div class="journey-actions mt-4">
-            <GameCard 
-              title="Journey Onwards" 
-              cardType="ACTION"
-              @click="gameStore.advanceJourney(1)"
-            >
-              <div style="font-size: 1rem; padding: 5px;">
-                Continue your travels
-              </div>
-            </GameCard>
-          </div>
-        </div>
-        
-        <!-- Journey Progression Phase -->
-        <div v-else-if="gameStore.currentPhase === GamePhase.JOURNEY_PROGRESSION" style="position: relative; border: 2px solid lightblue; padding: 10px;">
-          <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">JourneyProgressionPhase</div>
-          <h2 class="phase-title">JOURNEY PROGRESSION</h2>
-          <div class="phase-description">
-            <p>You are ready to journey to the next landscape.</p>
-            <div v-if="nextLandscape" class="next-landscape mt-4">
-              <GameCard 
-                :title="nextLandscape.name" 
-                subtitle="Next Landscape"
-                :cardType="CardType.LANDSCAPE"
-                @click="startNewTurn()"
-              >
-                <p>{{ nextLandscape.description }}</p>
-                <div class="action-text" style="font-weight: bold; margin-top: 10px; text-align: center; color: #5a3e2b;">
-                  Click to journey to this location
-                </div>
-              </GameCard>
-            </div>
-            <div v-else class="mt-4">
-              <GameCard 
-                title="Continue Journey" 
-                cardType="ACTION"
-                @click="gameStore.advancePhase()"
-              >
-                <div style="font-size: 1.1rem; padding: 10px;">
-                  Begin the next turn of your adventure
-                </div>
-              </GameCard>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Landscape Challenge Phase -->
-        <div v-else-if="gameStore.currentPhase === GamePhase.LANDSCAPE_CHALLENGE" style="position: relative; border: 2px solid lightblue; padding: 10px;">
-          <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">LandscapeChallengePhase</div>
-          <div class="challenge-actions" style="margin-top: 20px; display: flex; gap: 10px;">
-            <GameCard 
-              title="Roll D8 and Resolve Challenge" 
-              cardType="ACTION"
-              @click="resolveChallengeLandscape()"
-            >
-              <div style="font-size: 1rem; padding: 5px;">
-                Test your skills against the challenge
-              </div>
-            </GameCard>
-            
-            <GameCard 
-              title="Avoid Challenge" 
-              cardType="ACTION"
-              @click="avoidChallengeLandscape()"
-            >
-              <div style="font-size: 1rem; padding: 5px;">
-                Cost: 2 Resources
-              </div>
-            </GameCard>
-          </div>
-        </div>
-        
-        <!-- Challenge Resolution Phase -->
-        <div v-else-if="gameStore.currentPhase === GamePhase.CHALLENGE_RESOLUTION" style="position: relative; border: 2px solid lightblue; padding: 10px;">
-          <div style="position: absolute; top: -20px; left: 0; background-color: rgba(173, 216, 230, 0.5); padding: 2px 6px; font-size: 12px; color: #333; z-index: 1070; pointer-events: none;">ChallengeResolutionPhase</div>
-          <h2 class="phase-title">CHALLENGE RESOLUTION</h2>
-          <div class="phase-description">
-            <p>Resolve the current challenge with your skills and resources.</p>
-          </div>
-          <GameCard 
-            title="Continue to Next Phase" 
-            cardType="ACTION"
-            @click="gameStore.advancePhase()"
-          >
-            <div style="font-size: 1rem; padding: 5px;">
-              Proceed with your journey
-            </div>
-          </GameCard>
-        </div>
-        
-        <!-- Seasonal Assessment Phase -->
-        <div v-else-if="gameStore.currentPhase === GamePhase.SEASONAL_ASSESSMENT">
-          <GameCard 
-            title="Continue Journey" 
-            cardType="ACTION"
-            @click="gameStore.advancePhase()"
-          >
-            <div style="font-size: 1.1rem; padding: 10px;">
-              Proceed to the next phase of your adventure
-            </div>
-          </GameCard>
-        </div>
+      <!-- Phase-specific content using PhaseFactory -->
+      <section class="phase-content">
+        <PhaseFactory />
       </section>
     </main>
     
@@ -394,6 +35,7 @@ import type { ResourceCard } from '@/models/types/cards';
 import type { LandscapeCard } from '@/models/types/cards';
 import { Season } from '@/models/enums/seasons';
 import { ChallengeType } from '@/models/enums/cardTypes';
+import PhaseFactory from '@/components/phases/PhaseFactory.vue';
 
 // Interface for challenge result
 interface ChallengeResult {
@@ -1075,7 +717,9 @@ const formatPhase = (phase: GamePhase): string => {
   if (!phase) return 'Unknown';
   
   const phaseName = phase.toString().replace(/_/g, ' ').toLowerCase();
-  return phaseName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  return phaseName.split(' ').map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+  ).join(' ');
 };
 
 const formatSeason = (season: Season): string => {
@@ -1115,7 +759,7 @@ const triggerRandomEvent = () => {
 const triggerOtherworldlyManifestation = () => {
   // Use the gameStore's otherworldly manifestation trigger
   gameStore.triggerOtherworldlyManifestation();
-  gameStore.addToGameLog("The veil thins as otherworldly forces manifest!", true);
+  gameStore.addToGameLog("The veil between worlds grows thin! An Otherworldly Manifestation is imminent!", true);
 };
 
 const advanceToChallenge = () => {
@@ -1135,11 +779,6 @@ const advanceToNextPhase = () => {
   background-color: #f8f4e9;
 }
 
-.game-header {
-  padding: 0.5rem;
-  background-color: rgba(92, 61, 46, 0.1);
-}
-
 .game-content {
   flex-grow: 1;
   overflow-y: auto;
@@ -1148,51 +787,17 @@ const advanceToNextPhase = () => {
   flex-direction: column;
 }
 
-.season-section, 
-.cards-row-section {
+.phase-content {
   margin-bottom: 0.25rem;
   width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  
-  h2, h3 {
-    font-size: 28px; 
-  }
-  
-  p {
-    font-size: 18px;
-    line-height: 1.6;
-  }
 }
 
-.cards-row {
+.game-log {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.8rem;
-  padding: 0.25rem;
-  width: 100%;
-  
-  .card-item {
-    flex: 0 0 auto;
-    max-width: calc(31% - 0.8rem); 
-    min-width: 200px; 
-    margin-bottom: 0.8rem;
-  }
-}
-
-.seasonal-wheel-container {
-  margin-bottom: 0;
-}
-
-.phase-description {
-  p {
-    font-family: 'Cinzel', serif;
-    font-size: 26px;
-    line-height: 1.6;
-    letter-spacing: 0.5px;
-  }
+  flex-direction: column;
+  gap: 0.25rem;
 }
 </style>

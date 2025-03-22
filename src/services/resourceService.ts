@@ -6,6 +6,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { usePlayerStore } from '@/stores/playerStore';
 import { useCardStore } from '@/stores/cardStore';
 import { Season } from '@/models/enums/seasons';
+import { ExtendedGameStore, ExtendedPlayerStore } from '@/types/store-extensions';
 
 class ResourceService {
   /**
@@ -14,7 +15,7 @@ class ResourceService {
    * @returns True if the resource can be collected
    */
   canCollectResource(resourceId: string): boolean {
-    const playerStore = usePlayerStore();
+    const playerStore = usePlayerStore() as any as ExtendedPlayerStore;
     
     // Check capacity limits
     if (playerStore.isResourceCapacityReached) {
@@ -30,7 +31,7 @@ class ResourceService {
    * @returns True if the resource was collected successfully
    */
   collectResource(resourceId: string): boolean {
-    const playerStore = usePlayerStore();
+    const playerStore = usePlayerStore() as any as ExtendedPlayerStore;
     const cardStore = useCardStore();
     
     if (!this.canCollectResource(resourceId)) {
@@ -54,8 +55,8 @@ class ResourceService {
    * @returns Array of collected resource IDs
    */
   collectLandscapeResources(count: number): string[] {
-    const gameStore = useGameStore();
-    const playerStore = usePlayerStore();
+    const gameStore = useGameStore() as any as ExtendedGameStore;
+    const playerStore = usePlayerStore() as any as ExtendedPlayerStore;
     const cardStore = useCardStore();
     
     const landscape = cardStore.getLandscapeById(gameStore.currentLandscapeId);
@@ -93,7 +94,7 @@ class ResourceService {
    * @returns True if the resource was used successfully
    */
   useResource(resourceId: string): boolean {
-    const playerStore = usePlayerStore();
+    const playerStore = usePlayerStore() as any as ExtendedPlayerStore;
     return playerStore.removeResource(resourceId);
   }
   
@@ -103,7 +104,7 @@ class ResourceService {
    * @returns Array of resource IDs of the specified type
    */
   getResourcesByType(type: string): string[] {
-    const playerStore = usePlayerStore();
+    const playerStore = usePlayerStore() as any as ExtendedPlayerStore;
     const cardStore = useCardStore();
     
     return playerStore.resources.filter(resourceId => {
