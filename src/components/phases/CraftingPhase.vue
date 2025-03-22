@@ -57,6 +57,7 @@ import { useCardStore } from '@/stores/cardStore';
 import { useLogStore } from '@/stores/logStore';
 import { useServices } from '@/composables/useServices';
 import GameCard from '@/components/GameCard.vue';
+import { craftedItems } from '@/models/data/crafted-items';
 
 const gameStore = useGameStore();
 const playerStore = usePlayerStore();
@@ -71,6 +72,8 @@ onMounted(() => {
   } else {
     logStore.addToGameLog(`You check your pack but find no resources for crafting (0/${playerStore.resourceCapacity}).`, true, 'resource');
   }
+  console.log('Available recipes:', availableRecipes.value);
+  console.log('Player resources:', playerStore.resources);
 });
 
 // Get resource name from card store
@@ -85,11 +88,28 @@ const getResourceDescription = (resourceId: string): string => {
   return resource ? resource.description : 'A mysterious resource.';
 };
 
+// Check if player has all required resources for a recipe
+const hasRequiredResources = (requiredResources: string[]): boolean => {
+  if (!requiredResources || requiredResources.length === 0) return false;
+  
+  // Create a copy of player resources to avoid mutation
+  const availableResources = [...playerStore.resources];
+  
+  // Check if all required resources are in the player's inventory
+  return requiredResources.every(resourceId => availableResources.includes(resourceId));
+};
+
 // Get available recipes based on current resources
 const availableRecipes = computed(() => {
-  // This would normally come from a crafting service or recipes data
-  // For now, returning an empty array as placeholder
-  return [];
+  // Filter crafted items to only show those that can be crafted with current resources
+  return craftedItems
+    .filter(item => hasRequiredResources(item.requiredResources))
+    .map(item => ({
+      id: item.id,
+      name: item.name,
+      description: `${item.ability} ${item.drawback ? `(Drawback: ${item.drawback})` : ''}`,
+      ingredients: item.requiredResources
+    }));
 });
 
 // Format ingredients list for display
@@ -104,8 +124,11 @@ const formatIngredients = (ingredients: string[]): string => {
 
 // Craft an item using the selected recipe
 const craftItem = (recipeId: string) => {
-  // This would call a craftingService method to craft the item
-  logStore.addToGameLog(`You attempt to craft an item...`, true, 'crafting');
+  const success = playerStore.craftItem(recipeId);
+  
+  if (!success) {
+    logStore.addToGameLog(`You cannot craft this item. You may be missing required resources.`, false, 'crafting');
+  }
 };
 
 // Advance to the next phase

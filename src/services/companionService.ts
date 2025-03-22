@@ -417,6 +417,25 @@ class CompanionService {
   reset(): void {
     this._lastBondedCompanionId = null;
   }
+
+  /**
+   * Get all available companions
+   * @returns Array of available companion cards
+   */
+  getAvailableCompanions(): AnimalCompanionCard[] {
+    const cardStore = useCardStore();
+    return cardStore.animalCompanions;
+  }
+
+  /**
+   * Get a companion by ID
+   * @param companionId ID of the companion
+   * @returns The companion card or null if not found
+   */
+  getCompanion(companionId: string): AnimalCompanionCard | null {
+    const cardStore = useCardStore();
+    return cardStore.getCompanionById(companionId);
+  }
 }
 
 export const companionService = new CompanionService();
