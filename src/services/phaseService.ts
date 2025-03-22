@@ -10,9 +10,32 @@ import { BaseService } from '@/services/core/BaseService';
 import { StoreRegistry } from '@/services/core/StoreRegistry'; // Import StoreRegistry
 
 class PhaseService extends BaseService {
-  private _gameStore = useGameStore();
-  private _playerStore = usePlayerStore();
-  private _logStore = useLogStore();
+  // Use private properties with null initialization instead of direct store access
+  private _gameStoreInstance: any = null;
+  private _playerStoreInstance: any = null;
+  private _logStoreInstance: any = null;
+  
+  // Lazy getters for stores
+  private get _gameStore(): any {
+    if (!this._gameStoreInstance) {
+      this._gameStoreInstance = useGameStore();
+    }
+    return this._gameStoreInstance;
+  }
+  
+  private get _playerStore(): any {
+    if (!this._playerStoreInstance) {
+      this._playerStoreInstance = usePlayerStore();
+    }
+    return this._playerStoreInstance;
+  }
+  
+  private get _logStore(): any {
+    if (!this._logStoreInstance) {
+      this._logStoreInstance = useLogStore();
+    }
+    return this._logStoreInstance;
+  }
   
   /**
    * Advances the game to the next phase
@@ -146,5 +169,19 @@ class PhaseService extends BaseService {
   }
 }
 
-// Create singleton instance
-export const phaseService = new PhaseService(new StoreRegistry());
+// Create and export lazy initialized singleton
+let _phaseServiceInstance: PhaseService | null = null;
+
+export function getPhaseService(): PhaseService {
+  if (!_phaseServiceInstance) {
+    _phaseServiceInstance = new PhaseService(new StoreRegistry());
+  }
+  return _phaseServiceInstance;
+}
+
+// For backward compatibility with existing code
+export const phaseService = {
+  get instance() {
+    return getPhaseService();
+  }
+};

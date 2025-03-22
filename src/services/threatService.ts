@@ -50,12 +50,8 @@ export interface ThreatEvent {
  * Service for managing threat tokens and their effects in the game
  */
 export class ThreatService {
-  private gameStore = useGameStore() as unknown as ExtendedGameStore;
-  private playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
-  private cardStore = useCardStore();
-  
   // Track threat reduction per turn
-  private threatReductionThisTurn = 0;
+  private _threatReductionThisTurn = 0;
   
   // Maximum threat reduction allowed per turn
   private readonly MAX_THREAT_REDUCTION_PER_TURN = 3;
@@ -257,7 +253,8 @@ export class ThreatService {
    * @returns Current number of threat tokens
    */
   public addThreatTokens(amount: number): number {
-    return this.gameStore.addThreatTokens(amount);
+    const gameStore = useGameStore() as unknown as ExtendedGameStore;
+    return gameStore.addThreatTokens(amount);
   }
   
   /**
@@ -267,31 +264,34 @@ export class ThreatService {
    */
   public removeThreatTokens(amount: number): number {
     // Enforce maximum threat reduction per turn
-    const remainingReduction = this.MAX_THREAT_REDUCTION_PER_TURN - this.threatReductionThisTurn;
+    const remainingReduction = this.MAX_THREAT_REDUCTION_PER_TURN - this._threatReductionThisTurn;
     if (remainingReduction <= 0) {
-      this.gameStore.addToGameLog('Maximum threat reduction reached for this turn.', true);
-      return this.gameStore.threatTokens;
+      const gameStore = useGameStore() as unknown as ExtendedGameStore;
+      gameStore.addToGameLog('Maximum threat reduction reached for this turn.', true);
+      return gameStore.threatTokens;
     }
     
     // Adjust amount if it would exceed the maximum
     const actualAmount = Math.min(amount, remainingReduction);
     
     // Update the reduction tracker
-    this.threatReductionThisTurn += actualAmount;
+    this._threatReductionThisTurn += actualAmount;
     
     // Log the reduction
     if (actualAmount < amount) {
-      this.gameStore.addToGameLog(`Reduced ${actualAmount} threat tokens (limit reached for this turn).`, true);
+      const gameStore = useGameStore() as unknown as ExtendedGameStore;
+      gameStore.addToGameLog(`Reduced ${actualAmount} threat tokens (limit reached for this turn).`, true);
     }
     
-    return this.gameStore.removeThreatTokens(actualAmount);
+    const gameStore = useGameStore() as unknown as ExtendedGameStore;
+    return gameStore.removeThreatTokens(actualAmount);
   }
   
   /**
    * Reset the threat reduction tracker for a new turn
    */
   public resetThreatReductionTracker(): void {
-    this.threatReductionThisTurn = 0;
+    this._threatReductionThisTurn = 0;
   }
   
   /**
@@ -299,7 +299,8 @@ export class ThreatService {
    * @returns Current threat level
    */
   public getThreatLevel(): number {
-    return Math.floor(this.gameStore.threatTokens / 3);
+    const gameStore = useGameStore() as unknown as ExtendedGameStore;
+    return Math.floor(gameStore.threatTokens / 3);
   }
   
   /**
@@ -307,7 +308,8 @@ export class ThreatService {
    * @returns True if player has threat prevention effect
    */
   public hasThreatPrevention(): boolean {
-    return this.playerStore.hasEffect('threat_prevention');
+    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
+    return playerStore.hasEffect('threat_prevention');
   }
   
   /**
@@ -352,28 +354,35 @@ export class ThreatService {
   public applyThreatEvent(event: ThreatEvent): void {
     // Skip if player has threat prevention
     if (this.hasThreatPrevention()) {
-      this.gameStore.addToGameLog(`${event.name} was prevented by your protective effects!`, true);
+      const gameStore = useGameStore() as unknown as ExtendedGameStore;
+      gameStore.addToGameLog(`${event.name} was prevented by your protective effects!`, true);
       return;
     }
     
     // Add effect to game state
-    this.gameStore.addToGameLog(`Threat manifests: ${event.name} - ${event.description}`, true);
+    const gameStore = useGameStore() as unknown as ExtendedGameStore;
+    gameStore.addToGameLog(`Threat manifests: ${event.name} - ${event.description}`, true);
     
     // Apply immediate effects based on manifestation type
     switch (event.manifestation) {
       case ThreatManifestationType.HEALTH_LOSS:
-        this.playerStore.takeDamage(event.strength);
-        this.gameStore.addToGameLog(`You lose ${event.strength} health from the threat.`);
+        const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
+        playerStore.takeDamage(event.strength);
+        const healthLogStore = useGameStore() as unknown as ExtendedGameStore;
+        healthLogStore.addToGameLog(`You lose ${event.strength} health from the threat.`);
         break;
         
       case ThreatManifestationType.RESOURCE_LOSS:
-        this.playerStore.loseRandomResources(event.strength);
-        this.gameStore.addToGameLog(`You lose ${event.strength} random resources from the threat.`);
+        const resourcePlayerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
+        resourcePlayerStore.loseRandomResources(event.strength);
+        const resourceLogStore = useGameStore() as unknown as ExtendedGameStore;
+        resourceLogStore.addToGameLog(`You lose ${event.strength} random resources from the threat.`);
         break;
         
       case ThreatManifestationType.CHALLENGE_DIFFICULTY:
         // Add temporary effect to increase challenge difficulty
-        this.gameStore.addTempEffect(
+        const challengeGameStore = useGameStore() as unknown as ExtendedGameStore;
+        challengeGameStore.addTempEffect(
           'threat_challenge_difficulty',
           'Increased Challenge Difficulty',
           `Challenges are ${event.strength} points more difficult due to threat.`,
@@ -384,7 +393,8 @@ export class ThreatService {
         
       case ThreatManifestationType.COMPANION_EFFECT:
         // Add temporary effect to reduce companion effectiveness
-        this.gameStore.addTempEffect(
+        const companionGameStore = useGameStore() as unknown as ExtendedGameStore;
+        companionGameStore.addTempEffect(
           'threat_companion_effect',
           'Companion Unrest',
           `Animal companions are less effective due to threat.`,
@@ -395,7 +405,8 @@ export class ThreatService {
         
       case ThreatManifestationType.LANDSCAPE_EFFECT:
         // Add temporary effect to reduce resource gathering
-        this.gameStore.addTempEffect(
+        const landscapeGameStore = useGameStore() as unknown as ExtendedGameStore;
+        landscapeGameStore.addTempEffect(
           'threat_landscape_effect',
           'Landscape Disruption',
           `Resource gathering is reduced due to threat.`,
@@ -406,7 +417,8 @@ export class ThreatService {
         
       case ThreatManifestationType.SEASONAL_SHIFT:
         // Add temporary effect to disrupt seasonal benefits
-        this.gameStore.addTempEffect(
+        const seasonalGameStore = useGameStore() as unknown as ExtendedGameStore;
+        seasonalGameStore.addTempEffect(
           'threat_seasonal_shift',
           'Seasonal Disruption',
           `Seasonal benefits are reduced due to threat.`,
@@ -416,7 +428,8 @@ export class ThreatService {
         
         // Advance the season if this is a major event
         if (event.type === ThreatEventType.MAJOR) {
-          this.gameStore.advanceSeason();
+          const seasonGameStore = useGameStore() as unknown as ExtendedGameStore;
+          seasonGameStore.advanceSeason();
         }
         break;
     }
@@ -429,7 +442,8 @@ export class ThreatService {
   public manifestThreat(): ThreatEvent | null {
     // Check if player has threat prevention
     if (this.hasThreatPrevention()) {
-      this.gameStore.addToGameLog('Your protective effects prevented a threat manifestation!', true);
+      const gameStore = useGameStore() as unknown as ExtendedGameStore;
+      gameStore.addToGameLog('Your protective effects prevented a threat manifestation!', true);
       return null;
     }
     
@@ -479,8 +493,10 @@ export class ThreatService {
       target: 'player'
     };
     
-    this.playerStore.addEffect(effect);
-    this.gameStore.addToGameLog(`You are now protected from threats for ${duration} turns.`, true);
+    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
+    playerStore.addEffect(effect);
+    const gameStore = useGameStore() as unknown as ExtendedGameStore;
+    gameStore.addToGameLog(`You are now protected from threats for ${duration} turns.`, true);
   }
   
   /**
@@ -497,7 +513,8 @@ export class ThreatService {
     }
     
     // Roll for otherworldly manifestation if threat is high
-    if (this.gameStore.threatTokens >= 10) {
+    const gameStore = useGameStore() as unknown as ExtendedGameStore;
+    if (gameStore.threatTokens >= 10) {
       this.rollForOtherworldlyManifestation();
     }
     
@@ -513,12 +530,14 @@ export class ThreatService {
     if (landscapeId === this.SACRED_SITES.MOONLIT_LOCH) {
       // Moonlit Loch: Remove 1-3 tokens through purification ritual
       const reduction = Math.floor(Math.random() * 3) + 1; // 1-3 tokens
-      this.gameStore.addToGameLog(`You performed a purification ritual at the Moonlit Loch, reducing threat by ${reduction}.`, true);
+      const gameStore = useGameStore() as unknown as ExtendedGameStore;
+      gameStore.addToGameLog(`You performed a purification ritual at the Moonlit Loch, reducing threat by ${reduction}.`, true);
       return this.removeThreatTokens(reduction);
     } 
     else if (landscapeId === this.SACRED_SITES.DRUIDS_SANCTUARY) {
       // Druid's Sanctuary: Remove 2 tokens through meditation
-      this.gameStore.addToGameLog('You meditated at the Druid\'s Sanctuary, reducing threat by 2.', true);
+      const gameStore = useGameStore() as unknown as ExtendedGameStore;
+      gameStore.addToGameLog('You meditated at the Druid\'s Sanctuary, reducing threat by 2.', true);
       return this.removeThreatTokens(2);
     }
     
@@ -531,13 +550,14 @@ export class ThreatService {
    * @returns True if the resource was used successfully for threat reduction
    */
   public useResourceForThreatReduction(resourceId: string): boolean {
-    const playerStore = usePlayerStore();
+    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
     
     if (resourceId === this.THREAT_RESOURCES.SACRED_WATER) {
       // Sacred Water: Remove 1 token when used
       if (this.removeThreatTokens(1) > 0) {
         playerStore.removeResource(resourceId);
-        this.gameStore.addToGameLog('You used Sacred Water to purify and reduce threat by 1.', true);
+        const gameStore = useGameStore() as unknown as ExtendedGameStore;
+        gameStore.addToGameLog('You used Sacred Water to purify and reduce threat by 1.', true);
         return true;
       }
     } 
@@ -546,7 +566,8 @@ export class ThreatService {
       playerStore.removeResource(resourceId);
       
       // Add a temporary effect to prevent the next threat token accumulation
-      this.gameStore.addTempEffect(
+      const gameStore = useGameStore() as unknown as ExtendedGameStore;
+      gameStore.addTempEffect(
         'threat_prevention_rowan',
         'Rowan Protection',
         'Protected from threat accumulation by Rowan Wood.',
@@ -554,7 +575,8 @@ export class ThreatService {
         1
       );
       
-      this.gameStore.addToGameLog('You used Rowan Wood to ward against the next threat accumulation.', true);
+      const logStore = useGameStore() as unknown as ExtendedGameStore;
+      logStore.addToGameLog('You used Rowan Wood to ward against the next threat accumulation.', true);
       return true;
     }
     
@@ -566,12 +588,13 @@ export class ThreatService {
    * @returns Number of threat tokens removed
    */
   public performSeasonalPurificationRitual(): number {
-    const gameStore = this.gameStore;
-    const currentSeason = gameStore.currentSeason;
+    const seasonStore = useGameStore() as unknown as ExtendedGameStore;
+    const currentSeason = seasonStore.currentSeason;
     
     // Check if ritual already performed this season
     if (this.hasPerformedSeasonalRitual) {
-      gameStore.addToGameLog('You have already performed a purification ritual this season.', true);
+      const ritualLogStore = useGameStore() as unknown as ExtendedGameStore;
+      ritualLogStore.addToGameLog('You have already performed a purification ritual this season.', true);
       return 0;
     }
     
@@ -605,7 +628,8 @@ export class ThreatService {
     // Mark ritual as performed this season
     this.hasPerformedSeasonalRitual = true;
     
-    gameStore.addToGameLog(`You performed the ${ritualName}, reducing threat by ${reduction}.`, true);
+    const resultLogStore = useGameStore() as unknown as ExtendedGameStore;
+    resultLogStore.addToGameLog(`You performed the ${ritualName}, reducing threat by ${reduction}.`, true);
     return this.removeThreatTokens(reduction);
   }
   
@@ -621,7 +645,8 @@ export class ThreatService {
    * @returns The manifestation that occurred, or null if none
    */
   public rollForOtherworldlyManifestation(): any {
-    if (this.gameStore.threatTokens < 10) {
+    const gameStore = useGameStore() as unknown as ExtendedGameStore;
+    if (gameStore.threatTokens < 10) {
       return null;
     }
     
@@ -629,7 +654,8 @@ export class ThreatService {
     const roll = Math.floor(Math.random() * 8) + 1;
     const manifestation = this.otherworldlyManifestations[roll - 1];
     
-    this.gameStore.addToGameLog(`Otherworldly Manifestation: ${manifestation.name} - ${manifestation.description}`, true);
+    const logStore = useGameStore() as unknown as ExtendedGameStore;
+    logStore.addToGameLog(`Otherworldly Manifestation: ${manifestation.name} - ${manifestation.description}`, true);
     
     // Apply the manifestation effects
     this.applyThreatEvent(manifestation);
@@ -663,7 +689,8 @@ export class ThreatService {
    * @returns Number of threat tokens to add (0 if none)
    */
   public getThreatForCraftedItem(itemId: string): number {
-    const item = this.cardStore.getCraftedItemById(itemId);
+    const cardStore = useCardStore();
+    const item = cardStore.getCraftedItemById(itemId);
     
     if (!item) return 0;
     
@@ -720,7 +747,8 @@ export class ThreatService {
     if (this.isSacredSite(landscapeId)) {
       // Ensure severity is within bounds
       const threatAmount = Math.max(1, Math.min(3, severity));
-      this.gameStore.addToGameLog(`Your actions have disrespected a sacred site, increasing threat by ${threatAmount}.`, true);
+      const gameStore = useGameStore() as unknown as ExtendedGameStore;
+      gameStore.addToGameLog(`Your actions have disrespected a sacred site, increasing threat by ${threatAmount}.`, true);
       return this.addThreatTokens(threatAmount);
     }
     
@@ -737,7 +765,7 @@ export class ThreatService {
     this.resetSeasonalRitualTracker();
     
     // Add threat for seasonal crossing if player is unprepared
-    const playerStore = this.playerStore;
+    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
     
     // Check if player has necessary preparation for the season
     let isPrepared = false;
@@ -758,9 +786,11 @@ export class ThreatService {
     // Add threat if unprepared
     if (!isPrepared) {
       this.addThreatForSeasonalCrossing();
-      this.gameStore.addToGameLog(`You were unprepared for the transition to ${newSeason}, increasing threat by 2.`, true);
+      const logStore = useGameStore() as unknown as ExtendedGameStore;
+      logStore.addToGameLog(`You were unprepared for the transition to ${newSeason}, increasing threat by 2.`, true);
     } else {
-      this.gameStore.addToGameLog(`Your preparations have eased the transition to ${newSeason}.`, true);
+      const logStore = useGameStore() as unknown as ExtendedGameStore;
+      logStore.addToGameLog(`Your preparations have eased the transition to ${newSeason}.`, true);
     }
   }
   
@@ -773,9 +803,11 @@ export class ThreatService {
     this.processThreatEffects();
     
     // Check current landscape for any threat-related effects
-    const currentLandscapeId = this.gameStore.currentLandscapeId;
+    const gameStore = useGameStore() as unknown as ExtendedGameStore;
+    const currentLandscapeId = gameStore.currentLandscapeId;
     if (this.isSacredSite(currentLandscapeId)) {
-      this.gameStore.addToGameLog(`You are at a sacred site (${currentLandscapeId}). You may perform a ritual to reduce threat.`, false);
+      const logStore = useGameStore() as unknown as ExtendedGameStore;
+      logStore.addToGameLog(`You are at a sacred site (${currentLandscapeId}). You may perform a ritual to reduce threat.`, false);
     }
     
     // Apply any pending threat effects from crafted items
@@ -795,5 +827,20 @@ export class ThreatService {
   }
 }
 
-// Export singleton instance
-export const threatService = new ThreatService();
+// Instead of exporting the singleton directly, create a getter function
+// This way, the ThreatService won't be initialized until it's actually needed
+let _threatServiceInstance: ThreatService | null = null;
+
+export function getThreatService(): ThreatService {
+  if (!_threatServiceInstance) {
+    _threatServiceInstance = new ThreatService();
+  }
+  return _threatServiceInstance;
+}
+
+// For backward compatibility with existing code
+export const threatService = {
+  get instance() {
+    return getThreatService();
+  }
+};
