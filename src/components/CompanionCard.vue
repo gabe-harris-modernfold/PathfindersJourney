@@ -15,7 +15,7 @@
           </div>
         </div>
         
-        <p v-if="companion?.ability">{{ companion.ability.description }}</p>
+        <p v-if="companion?.ability">{{ parseJsonAbility(companion.ability) }}</p>
         
         <div class="companion-seasons" v-if="companion?.affinitySeasons?.length">
           <div class="season-tags">
@@ -100,7 +100,8 @@ import { defineComponent, computed, ref } from 'vue';
 import { CardType } from '@/models/enums/cardTypes';
 import GameCard from '@/components/core/GameCard.vue';
 import { useServices } from '@/composables/useServices';
-import { ComponentWrapper } from '@/components/common';
+import ComponentWrapper from '@/components/core/ComponentWrapper.vue';
+import { parseJsonAbility } from '@/utils/stringUtils';
 
 export default defineComponent({
   name: 'CompanionCard',
@@ -193,6 +194,7 @@ export default defineComponent({
       openFeedDialog,
       closeFeedDialog,
       feedCompanion,
+      parseJsonAbility,
       CardType
     };
   }

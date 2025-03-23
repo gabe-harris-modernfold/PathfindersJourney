@@ -22,7 +22,12 @@
               <div class="stat-item"><strong>Turn:</strong> {{ gameStore.currentTurn }}</div>
               <div class="stat-item" v-if="currentCharacter"><strong>Character:</strong> {{ currentCharacter.name }}</div>
               <div class="stat-item" v-if="playerStore.animalCompanions.length > 0"><strong>Companions:</strong> {{ playerStore.companionCount }}</div>
-              <div class="stat-item" v-if="playerStore.craftedItems.length > 0"><strong>Crafted Items:</strong> {{ playerStore.craftedItemCount }}</div>
+              <div class="stat-item" v-if="playerStore.craftedItems.length > 0">
+                <strong>Crafted Items:</strong> 
+                <span v-for="itemId in playerStore.craftedItems" :key="itemId" class="crafted-item">
+                  {{ getCraftedItemName(itemId) }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -924,6 +929,24 @@ const showChallengeRating = () => {
       margin-right: 0.25rem;
     }
   }
+}
+
+.crafted-item {
+  display: inline-block;
+  margin-right: 5px;
+  margin-bottom: 3px;
+  padding: 2px 5px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.crafted-item:after {
+  content: ", ";
+}
+
+.crafted-item:last-child:after {
+  content: "";
 }
 
 .placeholder-log {

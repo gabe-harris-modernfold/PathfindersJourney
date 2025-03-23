@@ -16,8 +16,8 @@
           >
             <h4>{{ companion.name }}</h4>
             <div class="companion-narrative">
-              <p>{{ companion.abilityDescription }}</p>
-              <p>{{ companion.ability }}</p>
+              <p>{{ parseJsonString(companion.abilityDescription) }}</p>
+              <p>{{ parseJsonString(companion.ability) }}</p>
               
               <p v-if="companion.preferredResources && companion.preferredResources.length > 0">
                 <span class="label">Preferred Resources</span>
@@ -49,8 +49,8 @@
         <div v-for="companionId in playerStore.animalCompanions" :key="companionId" class="selected-companion">
           <div v-if="getCompanion(companionId)" class="companion-narrative">
             <h4>{{ getCompanion(companionId).name }}</h4>
-            <p>{{ getCompanion(companionId).abilityDescription }}</p>
-            <p>{{ getCompanion(companionId).ability }}</p>
+            <p>{{ parseJsonString(getCompanion(companionId).abilityDescription) }}</p>
+            <p>{{ parseJsonString(getCompanion(companionId).ability) }}</p>
             
             <p v-if="getCompanion(companionId).preferredResources && getCompanion(companionId).preferredResources.length > 0">
               <span class="label">Preferred Resources</span>
@@ -83,6 +83,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { usePlayerStore } from '@/stores/playerStore';
 import { useCardStore } from '@/stores/cardStore';
 import { useServices } from '@/composables/useServices';
+import { parseJsonString } from '@/utils/stringUtils';
 
 const gameStore = useGameStore();
 const playerStore = usePlayerStore();
