@@ -30,12 +30,7 @@
         </GameCard>
       </div>
 
-      <!-- Always show this button as a fallback -->
-      <div class="fallback-action" style="margin-top: 20px;">
-        <button @click="forceAdvanceToExploration" class="fallback-button">
-          Continue Adventure
-        </button>
-      </div>
+      <!-- Removed redundant fallback button -->
     </div>
   </div>
 </template>
@@ -119,30 +114,6 @@ const forceAdvanceToExploration = () => {
   margin-top: 10px;
   text-align: center;
   color: #5a3e2b;
-}
-
-.fallback-button {
-  background-color: #4a543f;
-  color: #fff;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: bold;
-  margin-top: 10px;
-  
-  &:hover {
-    background-color: #5a644f;
-  }
-}
-
-.fallback-action {
-  text-align: center;
-  padding: 15px;
-  border: 1px dashed #9b9b9b;
-  border-radius: 4px;
-  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .current-exploration {

@@ -8,20 +8,21 @@
     <div class="crafting-container">
       <div class="resource-panel">
         <h3>Your Resources ({{ playerStore.resourceCount }}/{{ playerStore.resourceCapacity }})</h3>
-        <div class="resource-list">
-          <p v-if="!playerStore.resources.length">You have no resources to craft with.</p>
-          <ul v-else>
-            <li 
-              v-for="resourceId in playerStore.resources" 
-              :key="resourceId" 
-              class="resource-item"
-              @click="selectResourceToDiscard(resourceId)"
-            >
-              <div class="resource-name">{{ getResourceName(resourceId) }}</div>
-              <div class="resource-description">{{ getResourceDescription(resourceId) }}</div>
-              <div class="resource-action"><small>Click to discard</small></div>
-            </li>
-          </ul>
+        <p v-if="!playerStore.resources.length">You have no resources to craft with.</p>
+        <div v-else class="resource-grid">
+          <GameCard 
+            v-for="resourceId in playerStore.resources" 
+            :key="resourceId"
+            :title="getResourceName(resourceId)"
+            cardType="RESOURCE"
+            class="resource-card"
+            @click="selectResourceToDiscard(resourceId)"
+          >
+            <p>{{ getResourceDescription(resourceId) }}</p>
+            <div class="resource-action">
+              <small>Click to discard</small>
+            </div>
+          </GameCard>
         </div>
         <!-- Resource discard confirmation modal -->
         <div v-if="resourceToDiscard" class="discard-confirmation">
@@ -226,7 +227,30 @@ const advancePhase = () => {
   }
 }
 
-.resource-list, 
+.resource-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+  margin-bottom: 20px;
+}
+
+.resource-card {
+  height: 100%;
+  transition: transform 0.2s;
+  
+  &:hover {
+    transform: translateY(-5px);
+  }
+}
+
+.resource-action {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: #666;
+  text-align: center;
+}
+
 .recipe-list {
   ul {
     list-style-type: none;
@@ -234,7 +258,6 @@ const advancePhase = () => {
     margin: 0;
   }
   
-  .resource-item, 
   .recipe-item {
     background-color: rgba(255, 255, 255, 0.6);
     border-radius: 4px;
@@ -242,13 +265,11 @@ const advancePhase = () => {
     padding: 0.75rem;
     border-left: 3px solid #8b4513;
     
-    .resource-name, 
     .recipe-name {
       font-weight: bold;
       margin-bottom: 0.25rem;
     }
     
-    .resource-description, 
     .recipe-description {
       font-size: 0.9rem;
       color: #5a3e2b;

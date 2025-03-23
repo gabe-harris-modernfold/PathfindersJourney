@@ -6,15 +6,24 @@
     </div>
     
     <div class="resource-management-container">
-      <div class="resource-list">
-        <h3>Current Resources ({{ playerStore.resourceCount }}/{{ playerStore.resourceCapacity }})</h3>
+      <div class="resource-panel">
+        <h3>Your Resources ({{ playerStore.resourceCount }}/{{ playerStore.resourceCapacity }})</h3>
         <p v-if="!playerStore.resources.length">You have no resources.</p>
-        <ul v-else class="resources-grid">
-          <li v-for="resourceId in playerStore.resources" :key="resourceId" class="resource-item">
-            <div class="resource-name">{{ getResourceName(resourceId) }}</div>
-            <div class="resource-description">{{ getResourceDescription(resourceId) }}</div>
-          </li>
-        </ul>
+        <div v-else class="resource-grid">
+          <GameCard 
+            v-for="resourceId in playerStore.resources" 
+            :key="resourceId"
+            :title="getResourceName(resourceId)"
+            cardType="RESOURCE"
+            class="resource-card"
+            @click="confirmResourceDiscard(resourceId)"
+          >
+            <p>{{ getResourceDescription(resourceId) }}</p>
+            <div class="resource-action">
+              <small>Click to discard</small>
+            </div>
+          </GameCard>
+        </div>
       </div>
     </div>
     
@@ -43,11 +52,23 @@
         </div>
       </GameCard>
     </div>
+    
+    <!-- Resource discard confirmation modal -->
+    <div v-if="showDiscardModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3>Discard Resource?</h3>
+        <p>Are you sure you want to discard {{ getResourceName(resourceToDiscard) }}?</p>
+        <div class="modal-buttons">
+          <button class="confirm" @click="discardResource">Discard</button>
+          <button class="cancel" @click="cancelDiscard">Cancel</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useGameStore } from '@/stores/gameStore';
 import { usePlayerStore } from '@/stores/playerStore';
 import { useCardStore } from '@/stores/cardStore';
@@ -212,6 +233,35 @@ const gatherResourcesDisabledReason = computed(() => {
   // Always empty for testing
   return '';
 });
+
+// Resource discard confirmation
+const resourceToDiscard = ref<string | null>(null);
+const showDiscardModal = ref(false);
+
+// Confirm resource discard
+const confirmResourceDiscard = (resourceId: string) => {
+  resourceToDiscard.value = resourceId;
+  showDiscardModal.value = true;
+};
+
+// Discard the selected resource
+const discardResource = () => {
+  if (resourceToDiscard.value) {
+    const resourceName = getResourceName(resourceToDiscard.value);
+    playerStore.removeResource(resourceToDiscard.value);
+    console.log(`Discarded ${resourceName}`);
+    
+    // Close the modal
+    showDiscardModal.value = false;
+    resourceToDiscard.value = null;
+  }
+};
+
+// Cancel resource discard
+const cancelDiscard = () => {
+  showDiscardModal.value = false;
+  resourceToDiscard.value = null;
+};
 </script>
 
 <style lang="scss" scoped>
@@ -243,40 +293,55 @@ const gatherResourcesDisabledReason = computed(() => {
   margin-bottom: 2rem;
 }
 
-.resource-list {
+.resource-panel {
   h3 {
     color: #5a3e2b;
     margin-bottom: 1rem;
   }
+}
+
+.resource-grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 15px;
+  overflow-x: auto;
+}
+
+.resource-card {
+  height: 100%;
+  flex: 0 0 auto;
+  width: 250px;
+  transition: transform 0.2s;
+  display: flex;
+  flex-direction: column;
   
-  .resources-grid {
-    list-style-type: none;
-    padding: 0;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-    
-    @media (min-width: 480px) {
-      grid-template-columns: repeat(2, 1fr);
-    }
+  &:hover {
+    transform: translateY(-5px);
   }
   
-  .resource-item {
-    padding: 0.75rem;
-    background-color: rgba(255, 255, 255, 0.6);
-    border-radius: 4px;
-    border-left: 3px solid #8b4513;
+  :deep(.game-card__body) {
+    display: flex;
+    flex-direction: column;
+    padding-top: 30px;
+    padding-bottom: 30px;
+    position: relative;
     
-    .resource-name {
-      font-weight: bold;
-      margin-bottom: 0.25rem;
-    }
-    
-    .resource-description {
-      font-size: 0.85rem;
-      color: #5a3e2b;
+    p {
+      margin-bottom: 5px;
     }
   }
+}
+
+.resource-action {
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #666;
 }
 
 .resource-actions {
@@ -286,5 +351,52 @@ const gatherResourcesDisabledReason = computed(() => {
   width: 100%;
   max-width: 600px;
   margin-bottom: 2rem;
+}
+
+/* Modal styling */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-content {
+  background-color: #f9f3e9;
+  padding: 20px;
+  border-radius: 5px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+}
+
+.modal-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  
+  button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    
+    &.confirm {
+      background-color: #a43434;
+      color: white;
+    }
+    
+    &.cancel {
+      background-color: #4a543f;
+      color: white;
+    }
+  }
 }
 </style>

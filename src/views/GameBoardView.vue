@@ -9,26 +9,31 @@
       </main>
       
       <aside class="game-sidebar">
-        <!-- Player Dashboard -->
-        <div class="player-dashboard">
-          <h3>Player Dashboard</h3>
-          <div class="player-stats">
-            <div class="stat-row">
-              <div class="stat-item"><strong>Health:</strong> {{ playerStore.health }}/{{ playerStore.maxHealth }}</div>
-              <div class="stat-item"><strong>Experience:</strong> {{ playerStore.experience }} (Level {{ playerStore.experienceLevel }})</div>
-              <div class="stat-item"><strong>Resources:</strong> {{ playerStore.resourceCount }}/{{ playerStore.resourceCapacity }}</div>
-              <div class="stat-item"><strong>Season:</strong> {{ formatSeason(seasonStore.currentSeason) }}</div>
-              <div class="stat-item"><strong>Phase:</strong> {{ formatPhase(gameStore.currentPhase) }}</div>
-              <div class="stat-item"><strong>Turn:</strong> {{ gameStore.currentTurn }}</div>
-              <div class="stat-item" v-if="currentCharacter"><strong>Character:</strong> {{ currentCharacter.name }}</div>
-              <div class="stat-item" v-if="playerStore.animalCompanions.length > 0"><strong>Companions:</strong> {{ playerStore.companionCount }}</div>
-              <div class="stat-item" v-if="playerStore.craftedItems.length > 0">
-                <strong>Crafted Items:</strong> 
-                <span v-for="itemId in playerStore.craftedItems" :key="itemId" class="crafted-item">
-                  {{ getCraftedItemName(itemId) }}
-                </span>
-              </div>
-            </div>
+        <!-- Player Dashboard - Redesigned to be narrative and whimsical -->
+        <div class="player-dashboard narrative-style">
+          <h3>Your Journey's Tale</h3>
+          <div class="narrative-scroll">
+            <p>
+              You are a <span class="highlight">{{ currentCharacter?.name || 'Pathfinder' }}</span>, 
+              with <span class="highlight">{{ playerStore.health }}/{{ playerStore.maxHealth }}</span> vitality, 
+              currently in the season of <span class="highlight">{{ formatSeason(seasonStore.currentSeason) }}</span>.
+            </p>
+            <p>
+              Your pack holds <span class="highlight">{{ playerStore.resourceCount }}/{{ playerStore.resourceCapacity }}</span> treasures 
+              gathered during <span class="highlight">{{ gameStore.currentTurn }}</span> turns of adventure.
+            </p>
+            <p v-if="playerStore.animalCompanions.length > 0">
+              <span class="highlight">{{ playerStore.companionCount }}</span> loyal beasts walk beside you on this path.
+            </p>
+            <p v-if="playerStore.craftedItems.length > 0">
+              Your hands have crafted: 
+              <span v-for="itemId in playerStore.craftedItems" :key="itemId" class="crafted-item">
+                {{ getCraftedItemName(itemId) }}{{ playerStore.craftedItems.indexOf(itemId) < playerStore.craftedItems.length - 1 ? ', ' : '' }}
+              </span>
+            </p>
+            <p>
+              The fates guide you to <span class="highlight">{{ formatPhase(gameStore.currentPhase) }}</span>.
+            </p>
           </div>
         </div>
         
@@ -551,6 +556,24 @@ const handleThreatCheck = () => {
   if (threatModifier > 0) {
     gameStore.addToGameLog(`Challenge difficulty increased by +${threatModifier} due to threat level.`, false);
   }
+  
+  // Get the current landscape details
+  const currentLandscape = cardStore.getLandscapeById(gameStore.currentLandscapeId);
+  if (currentLandscape) {
+    // Provide information about the current landscape's challenge based on threat level
+    if (gameStore.threatTokens >= 3 && gameStore.threatTokens < 7) {
+      // Low to medium threat - reveal challenge type
+      gameStore.addToGameLog(`Your senses warn of a ${currentLandscape.challengeType} threat in this area.`, false);
+    } else if (gameStore.threatTokens >= 7) {
+      // High threat - reveal specific challenge
+      gameStore.addToGameLog(`Visions clearly reveal "${currentLandscape.challenge}" present at the ${currentLandscape.name}.`, true);
+      
+      // Add challenge difficulty information if threat is very high
+      if (gameStore.threatTokens >= 9) {
+        gameStore.addToGameLog(`The ${currentLandscape.challenge} is a difficulty ${currentLandscape.difficulty} trial that will test your ${currentLandscape.challengeType} abilities.`, false);
+      }
+    }
+  }
 
   // Check for random event trigger
   if (gameStore.threatTokens >= 5) {
@@ -888,25 +911,48 @@ const showChallengeRating = () => {
 }
 
 .player-dashboard {
-  background-color: #2c3e50;
-  color: white;
-  padding: 0.75rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background-color: #f2e9d8;
+  border-radius: 5px;
+  padding: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+
+  &.narrative-style {
+    background-color: #f9f3e9;
+    border: 1px solid #d9c7a7;
+    font-family: 'Garamond', serif;
+  }
   
   h3 {
-    margin-top: 0;
-    margin-bottom: 0.75rem;
     font-size: 1.2rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    padding-bottom: 0.5rem;
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #5a3e2b;
+    text-align: center;
+    font-family: 'Garamond', serif;
   }
 }
 
-.player-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+.narrative-scroll {
+  line-height: 1.4;
+  font-size: 0.95rem;
+  color: #432818;
+  
+  p {
+    margin: 8px 0;
+  }
+  
+  .highlight {
+    color: #6b4226;
+    font-weight: bold;
+  }
+}
+
+.crafted-item {
+  display: inline;
+  color: #6b4226;
+  font-style: italic;
+  margin-right: 5px;
 }
 
 .stat-row {
@@ -929,24 +975,6 @@ const showChallengeRating = () => {
       margin-right: 0.25rem;
     }
   }
-}
-
-.crafted-item {
-  display: inline-block;
-  margin-right: 5px;
-  margin-bottom: 3px;
-  padding: 2px 5px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-  font-size: 0.9em;
-}
-
-.crafted-item:after {
-  content: ", ";
-}
-
-.crafted-item:last-child:after {
-  content: "";
 }
 
 .placeholder-log {

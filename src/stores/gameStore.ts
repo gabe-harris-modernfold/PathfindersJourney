@@ -172,6 +172,12 @@ export const useGameStore = defineStore('game', {
       const logStore = useLogStore();
       const journeyStore = useJourneyStore();
       
+      // Chronicle the transition with whimsical narrative
+      logStore.addToGameLog(`The ancient tome of fate turns another page...`, false, 'debug');
+      
+      const currentLandscapeName = this.getCurrentLandscapeName();
+      logStore.addToGameLog(`The winds whisper tales of ${currentLandscapeName || 'unknown realms'}...`, false, 'debug');
+      
       const phaseOrder = [
         GamePhase.SETUP,
         GamePhase.CHARACTER_SELECTION,
@@ -195,7 +201,6 @@ export const useGameStore = defineStore('game', {
           // Get the next landscape if available
           if (this.journeyProgress < journeyStore.journeyPath.length - 1) {
             // Log completion of current landscape exploration
-            const currentLandscapeName = this.getCurrentLandscapeName();
             if (currentLandscapeName) {
               logStore.addToGameLog(`You have completed your exploration of ${currentLandscapeName}.`, true, 'phase');
             }
@@ -204,22 +209,39 @@ export const useGameStore = defineStore('game', {
             this.journeyProgress++;
             this.currentLandscapeId = journeyStore.journeyPath[this.journeyProgress];
             
-            // Log arrival at new landscape
+            // Log arrival at new landscape with narrative flair
             const newLandscapeName = this.getCurrentLandscapeName();
             if (newLandscapeName) {
-              logStore.addToGameLog(`Arrived at ${newLandscapeName}.`, true, 'phase');
+              logStore.addToGameLog(`The mists part to reveal ${newLandscapeName}. Your journey continues...`, true, 'phase');
             }
           }
           
           // Set directly to Seasonal Assessment instead of cycling through
           this.currentPhase = GamePhase.SEASONAL_ASSESSMENT;
+          logStore.addToGameLog(`The celestial dance shifts as the seasons prepare to change...`, false, 'debug');
         } else {
           // Normal phase advancement for non-Exploration phases
           this.currentPhase = phaseOrder[(currentIndex + 1) % phaseOrder.length];
+          logStore.addToGameLog(`The threads of fate weave onward...`, false, 'debug');
         }
         
-        // Log the phase transition
-        logStore.addToGameLog(`Entering the ${this._formatPhase(this.currentPhase)} phase.`, true, 'phase', {
+        // Visited landscapes as narrative breadcrumbs
+        if (this.visitedLandscapes && this.visitedLandscapes.length > 0) {
+          const visitedNames = this.visitedLandscapes.map(id => {
+            const landscape = useCardStore().getLandscapeById(id);
+            return landscape ? landscape.name : id;
+          }).join(', ');
+          logStore.addToGameLog(`Your footsteps have graced: ${visitedNames}`, false, 'debug');
+        }
+        
+        // Journey progress as a mystical measurement
+        if (this.journeyProgress !== undefined && journeyStore.journeyPath) {
+          const totalSteps = journeyStore.journeyPath.length - 1;
+          logStore.addToGameLog(`The cosmic scale shows your quest ${this.journeyProgress} steps of ${totalSteps} complete`, false, 'debug');
+        }
+        
+        // Log the phase transition with narrative flair
+        logStore.addToGameLog(`The wheel turns to the ${this._formatPhase(this.currentPhase)} phase.`, true, 'phase', {
           previousPhase,
           newPhase: this.currentPhase
         });

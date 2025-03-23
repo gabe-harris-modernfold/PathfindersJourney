@@ -5,6 +5,7 @@
 import { useGameStore } from '@/stores/gameStore';
 import { usePlayerStore } from '@/stores/playerStore';
 import { useCardStore } from '@/stores/cardStore';
+import { useSeasonStore } from '@/stores/seasonStore';
 import { Season } from '@/models/enums/seasons';
 import { LandscapeCard } from '@/models/types/cards';
 import { useJourneyStore } from '@/stores/journeyStore';
@@ -113,6 +114,13 @@ class JourneyService {
     
     // Increment turn counter using the dedicated method
     gameStore.incrementTurn();
+    
+    // Check if we should advance the season (every 3 landscapes)
+    // We use the visited landscapes length as a counter
+    if (gameStore.visitedLandscapes.length > 0 && gameStore.visitedLandscapes.length % 3 === 0) {
+      console.log(`Advancing season after ${gameStore.visitedLandscapes.length} landscapes`);
+      this.advanceToNextSeason();
+    }
     
     return newLandscapeId;
   }
@@ -291,63 +299,12 @@ class JourneyService {
   }
   
   /**
-   * Advance to the next season in the seasonal cycle
-   * @returns The new current season
+   * Advances to the next season
+   * Wrapper method for seasonStore.advanceSeason()
    */
-  advanceToNextSeason(): Season {
-    const gameStore = useGameStore() as any as ExtendedGameStore;
-    
-    // Use the proper Season enum values
-    const seasons = [Season.SAMHAIN, Season.WINTERS_DEPTH, Season.IMBOLC, Season.BELTANE, Season.LUGHNASADH];
-    
-    // Find current season index
-    const currentIndex = seasons.indexOf(gameStore.currentSeason);
-    const nextIndex = (currentIndex + 1) % seasons.length;
-    
-    // Set the new season
-    const newSeason = seasons[nextIndex];
-    gameStore.currentSeason = newSeason;
-    
-    // Apply effects for the seasonal transition
-    this.applySeasonalTransitionEffects(newSeason);
-    
-    // Log season change
-    gameStore.addToGameLog(`The season has changed to ${this.getSeasonName(newSeason)}`);
-    
-    return newSeason;
-  }
-  
-  /**
-   * Apply effects when transitioning to a new season
-   * @param season The new season
-   */
-  private applySeasonalTransitionEffects(season: Season): void {
-    const gameStore = useGameStore() as any as ExtendedGameStore;
-    const logStore = useLogStore();
-    const cardStore = useCardStore();
-    
-    // Different seasons have different effects
-    switch (season) {
-      case Season.WINTERS_DEPTH:
-        // Winter is harsh, add threat tokens
-        gameStore.addThreatTokens(2);
-        gameStore.addToGameLog('The harsh winter adds 2 threat tokens');
-        break;
-      case Season.IMBOLC:
-        // Early spring brings hope, no effect
-        break;
-      case Season.BELTANE:
-        // Summer is bountiful, no threat
-        break;
-      case Season.LUGHNASADH:
-        // Harvest time, no effect
-        break;
-      case Season.SAMHAIN:
-        // The veil thins, add threat
-        gameStore.addThreatTokens(1);
-        gameStore.addToGameLog('The thinning veil adds 1 threat token');
-        break;
-    }
+  advanceToNextSeason(): void {
+    const seasonStore = useSeasonStore();
+    seasonStore.advanceSeason();
   }
   
   /**
