@@ -252,6 +252,15 @@ export const useGameStore = defineStore('game', {
     },
     
     /**
+     * Increment the turn counter
+     */
+    incrementTurn(): void {
+      this.currentTurn += 1;
+      const logStore = useLogStore();
+      logStore.addToGameLog(`Turn ${this.currentTurn} has begun.`, true, 'system');
+    },
+    
+    /**
      * Check if victory conditions have been met
      */
     checkVictoryConditions(): boolean {

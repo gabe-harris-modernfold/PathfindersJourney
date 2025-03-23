@@ -11,11 +11,28 @@
         <div class="resource-list">
           <p v-if="!playerStore.resources.length">You have no resources to craft with.</p>
           <ul v-else>
-            <li v-for="resourceId in playerStore.resources" :key="resourceId" class="resource-item">
+            <li 
+              v-for="resourceId in playerStore.resources" 
+              :key="resourceId" 
+              class="resource-item"
+              @click="selectResourceToDiscard(resourceId)"
+            >
               <div class="resource-name">{{ getResourceName(resourceId) }}</div>
               <div class="resource-description">{{ getResourceDescription(resourceId) }}</div>
+              <div class="resource-action"><small>Click to discard</small></div>
             </li>
           </ul>
+        </div>
+        <!-- Resource discard confirmation modal -->
+        <div v-if="resourceToDiscard" class="discard-confirmation">
+          <div class="discard-modal">
+            <h4>Discard Resource</h4>
+            <p>Are you sure you want to discard {{ getResourceName(resourceToDiscard) }}?</p>
+            <div class="discard-buttons">
+              <button @click="confirmDiscard" class="confirm-button">Discard</button>
+              <button @click="cancelDiscard" class="cancel-button">Cancel</button>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -50,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useGameStore } from '@/stores/gameStore';
 import { usePlayerStore } from '@/stores/playerStore';
 import { useCardStore } from '@/stores/cardStore';
@@ -129,6 +146,28 @@ const craftItem = (recipeId: string) => {
   if (!success) {
     logStore.addToGameLog(`You cannot craft this item. You may be missing required resources.`, false, 'crafting');
   }
+};
+
+// Select a resource to discard
+const resourceToDiscard = ref<string | null>(null);
+
+// Select a resource to discard
+const selectResourceToDiscard = (resourceId: string) => {
+  resourceToDiscard.value = resourceId;
+};
+
+// Confirm discarding a resource
+const confirmDiscard = () => {
+  if (resourceToDiscard.value) {
+    playerStore.removeResource(resourceToDiscard.value);
+    logStore.addToGameLog(`You discarded ${getResourceName(resourceToDiscard.value)}.`, true, 'resource');
+    resourceToDiscard.value = null;
+  }
+};
+
+// Cancel discarding a resource
+const cancelDiscard = () => {
+  resourceToDiscard.value = null;
 };
 
 // Advance to the next phase
@@ -235,6 +274,60 @@ const advancePhase = () => {
   
   &:hover {
     background-color: #6b3513;
+  }
+}
+
+.discard-confirmation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.discard-modal {
+  background-color: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  
+  h4 {
+    margin-top: 0;
+  }
+  
+  .discard-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    
+    button {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .confirm-button {
+      background-color: #8b4513;
+      color: white;
+      
+      &:hover {
+        background-color: #6b3513;
+      }
+    }
+    
+    .cancel-button {
+      background-color: #ccc;
+      
+      &:hover {
+        background-color: #aaa;
+      }
+    }
   }
 }
 </style>

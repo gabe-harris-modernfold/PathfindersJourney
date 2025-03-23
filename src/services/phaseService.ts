@@ -95,6 +95,39 @@ class PhaseService extends BaseService {
   }
   
   /**
+   * Directly advance to the Exploration phase
+   * @returns The new game phase (Exploration)
+   */
+  public advanceToExploration(): GamePhase {
+    const nextPhase = GamePhase.EXPLORATION;
+    
+    // Set the new phase
+    this._gameStore.setPhase(nextPhase);
+    
+    // Log the phase transition
+    this._logStore.addToGameLog(`Advanced to ${this.formatPhase(nextPhase)} phase.`, false, 'phase');
+    
+    return nextPhase;
+  }
+  
+  /**
+   * Force advance to the Exploration phase regardless of current state
+   * This is a fallback method to ensure the game can continue when normal progression fails
+   * @returns The new game phase (Exploration)
+   */
+  public forceAdvanceToExploration(): GamePhase {
+    const nextPhase = GamePhase.EXPLORATION;
+    
+    // Force set the phase to exploration
+    this._gameStore.setPhase(nextPhase);
+    
+    // Log the forced phase transition
+    this._logStore.addToGameLog(`Continuing adventure in ${this.formatPhase(nextPhase)} phase.`, false, 'phase');
+    
+    return nextPhase;
+  }
+  
+  /**
    * Gets the current phase
    * @returns The current game phase
    */

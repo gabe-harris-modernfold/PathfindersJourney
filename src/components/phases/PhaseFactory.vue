@@ -1,7 +1,14 @@
 <template>
   <ComponentWrapper componentName="PhaseFactory">
     <div class="phase-content" :class="`phase-${formatPhaseClass(currentPhase)}`">
-      <component :is="currentPhaseComponent" />
+      <component :is="currentPhaseComponent" v-if="currentPhaseComponent" />
+      <div v-else class="fallback-phase">
+        <h2>Continue Your Journey</h2>
+        <p>There seems to be an issue loading the current phase.</p>
+        <button @click="skipToNextPhase" class="fallback-button">
+          Continue to Next Phase
+        </button>
+      </div>
     </div>
   </ComponentWrapper>
 </template>
@@ -11,6 +18,7 @@ import { computed } from 'vue';
 import { useGameStore } from '@/stores/gameStore';
 import { GamePhase } from '@/models/enums/phases';
 import { ComponentWrapper } from '@/components/common';
+import { useServices } from '@/composables/useServices';
 
 // Import all phase components
 import SeasonalAssessmentPhase from './SeasonalAssessmentPhase.vue';
@@ -49,6 +57,12 @@ const currentPhaseComponent = computed(() => {
 const formatPhaseClass = (phase: GamePhase): string => {
   return phase.toLowerCase().replace(/_/g, '-');
 };
+
+// Function to skip to the next phase when the current phase component fails to load
+const skipToNextPhase = () => {
+  const { phaseService } = useServices();
+  phaseService.advancePhase();
+};
 </script>
 
 <style lang="scss" scoped>
@@ -59,5 +73,23 @@ const formatPhaseClass = (phase: GamePhase): string => {
   background-color: rgba(240, 230, 210, 0.3);
   border-radius: 8px;
   border: 1px solid #8c7851;
+}
+
+.fallback-phase {
+  text-align: center;
+  padding: 2rem;
+}
+
+.fallback-button {
+  background-color: #8c7851;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.fallback-button:hover {
+  background-color: #786c3b;
 }
 </style>

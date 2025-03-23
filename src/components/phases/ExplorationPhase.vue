@@ -7,16 +7,6 @@
     </div>
     
     <GameCard 
-      title="DEBUG: Jump to Seasonal Assessment" 
-      cardType="ACTION"
-      @click="debugJumpToNextLandscape"
-    >
-      <div style="font-size: 1.1rem; padding: 10px;">
-        Debug Function: Force jump to next landscape and Seasonal Assessment
-      </div>
-    </GameCard>
-
-    <GameCard 
       title="Continue Exploration" 
       cardType="ACTION"
       @click="completeExploration"

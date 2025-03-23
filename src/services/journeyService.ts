@@ -97,11 +97,11 @@ class JourneyService {
   }
   
   /**
-   * Start a new turn and handles all turn-related updates
+   * Start a new turn at the next landscape
    * @returns The ID of the new current landscape
    */
   startNewTurn(): string | null {
-    const gameStore = useGameStore() as any as ExtendedGameStore;
+    const gameStore = useGameStore();
     const playerStore = usePlayerStore() as any as ExtendedPlayerStore;
     
     // Move to the next landscape
@@ -111,10 +111,37 @@ class JourneyService {
     playerStore.hasResourceForagingAction = true;
     playerStore.hasPerformedCrafting = false;
     
-    // Increment turn counter
-    gameStore.currentTurn++;
+    // Increment turn counter using the dedicated method
+    gameStore.incrementTurn();
     
     return newLandscapeId;
+  }
+  
+  /**
+   * Force initialization of the journey path
+   * This is a safety method to ensure we have a valid journey path
+   * @returns The initialized journey path or empty array if failed
+   */
+  ensureJourneyPathInitialized(): string[] {
+    const gameStore = useGameStore();
+    const journeyStore = useJourneyStore();
+    
+    // Check if journey path is missing or empty
+    if (!gameStore.journeyPath || !Array.isArray(gameStore.journeyPath) || gameStore.journeyPath.length === 0) {
+      console.log('Journey path needs initialization, generating now...');
+      
+      // Initialize a new journey path
+      const path = this.initializeJourney();
+      
+      // Make sure the first landscape is set as current
+      if (path.length > 0 && !gameStore.currentLandscapeId) {
+        gameStore.setCurrentLandscapeId(path[0]);
+      }
+      
+      return path;
+    }
+    
+    return gameStore.journeyPath;
   }
   
   /**
@@ -124,6 +151,21 @@ class JourneyService {
   getNextLandscapeId(): string | null {
     const gameStore = useGameStore() as any as ExtendedGameStore;
     const journeyStore = useJourneyStore();
+    
+    // Ensure journey path is initialized
+    this.ensureJourneyPathInitialized();
+    
+    // Check if journey path exists after initialization attempt
+    if (!gameStore.journeyPath || !Array.isArray(gameStore.journeyPath) || gameStore.journeyPath.length === 0) {
+      console.error('Journey path is not initialized properly');
+      return null;
+    }
+    
+    // Check if current landscape ID exists
+    if (!gameStore.currentLandscapeId) {
+      console.error('Current landscape ID is not set');
+      return null;
+    }
     
     // Get current position in journey
     const currentIndex = gameStore.journeyPath.indexOf(gameStore.currentLandscapeId);
@@ -135,18 +177,6 @@ class JourneyService {
     }
     
     return gameStore.journeyPath[nextIndex];
-  }
-  
-  /**
-   * Check if the current location provides shelter
-   * @param gameStore The game store instance
-   * @returns True if the current location provides shelter
-   */
-  isCurrentLocationShelter(gameStore = useGameStore() as any as ExtendedGameStore): boolean {
-    const cardStore = useCardStore();
-    const landscape = cardStore.getLandscapeById(gameStore.currentLandscapeId);
-    
-    return landscape?.providesShelter || false;
   }
   
   /**
@@ -195,6 +225,18 @@ class JourneyService {
     const cardStore = useCardStore();
     
     return cardStore.getLandscapeById(gameStore.currentLandscapeId);
+  }
+  
+  /**
+   * Check if the current location provides shelter
+   * @param gameStore The game store instance
+   * @returns True if the current location provides shelter
+   */
+  isCurrentLocationShelter(gameStore = useGameStore() as any as ExtendedGameStore): boolean {
+    const cardStore = useCardStore();
+    const landscape = cardStore.getLandscapeById(gameStore.currentLandscapeId);
+    
+    return landscape?.providesShelter || false;
   }
   
   /**
