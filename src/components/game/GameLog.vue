@@ -79,46 +79,47 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .game-log {
+  width: 100%;
+  background-color: rgba(245, 245, 245, 0.95);
+  border: 1px solid #d9c7a7;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-top: auto;
+  max-height: 200px;
   display: flex;
   flex-direction: column;
-  height: 100%;
   
   .game-log-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px;
-    background-color: #2c3e50;
-    color: white;
-    border-bottom: 1px solid #1a2533;
+    padding: 0.5rem 1rem;
+    background-color: #f9f3e9;
+    border-bottom: 1px solid #d9c7a7;
     
     h3 {
       margin: 0;
+      font-size: 1rem;
+      color: #5a3e2b;
     }
     
     .copy-button {
       background: none;
       border: none;
-      color: white;
+      color: #5a3e2b;
       cursor: pointer;
       font-size: 1rem;
-      padding: 4px 8px;
-      border-radius: 4px;
-      transition: background-color 0.2s;
+      padding: 0.25rem;
       
       &:hover {
-        background-color: rgba(255, 255, 255, 0.1);
+        color: #432818;
       }
     }
   }
   
   .log-entries {
-    flex: 1;
+    padding: 0.5rem;
     overflow-y: auto;
-    padding: 10px;
-    background-color: rgba(44, 62, 80, 0.1);
-    border-radius: 4px;
-    max-height: 300px;
+    max-height: 150px;
     
     .log-entry {
       padding: 5px 0;

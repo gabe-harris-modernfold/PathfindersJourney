@@ -1,14 +1,16 @@
 <template>
   <ComponentWrapper componentName="PhaseFactory">
     <div class="phase-content" :class="`phase-${formatPhaseClass(currentPhase)}`">
-      <component :is="currentPhaseComponent" v-if="currentPhaseComponent" />
-      <div v-else class="fallback-phase">
-        <h2>Continue Your Journey</h2>
-        <p>There seems to be an issue loading the current phase.</p>
-        <button @click="skipToNextPhase" class="fallback-button">
-          Continue to Next Phase
-        </button>
-      </div>
+      <transition name="fade" mode="out-in">
+        <component :is="currentPhaseComponent" v-if="currentPhaseComponent" />
+        <div v-else class="fallback-phase">
+          <h2>Continue Your Journey</h2>
+          <p>There seems to be an issue loading the current phase.</p>
+          <button @click="skipToNextPhase" class="fallback-button">
+            Continue to Next Phase
+          </button>
+        </div>
+      </transition>
     </div>
   </ComponentWrapper>
 </template>
@@ -68,6 +70,7 @@ const skipToNextPhase = () => {
 <style lang="scss" scoped>
 .phase-content {
   position: relative;
+  min-height: 500px; // Ensure consistent height during transitions
   padding: 1rem;
   margin-top: 1rem;
   background-color: rgba(240, 230, 210, 0.3);
@@ -91,5 +94,21 @@ const skipToNextPhase = () => {
 
 .fallback-button:hover {
   background-color: #786c3b;
+}
+
+/* Fade transition */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
 }
 </style>

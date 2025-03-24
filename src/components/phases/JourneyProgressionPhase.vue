@@ -12,9 +12,6 @@
           @click="startNewTurn"
         >
           <p>{{ nextLandscape.description }}</p>
-          <div class="action-text">
-            Click to journey to this location
-          </div>
         </GameCard>
       </div>
       
@@ -89,35 +86,39 @@ const forceAdvanceToExploration = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100%;
-}
-
-.phase-title {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  color: #5a3e2b;
-}
-
-.phase-description {
-  text-align: center;
-  margin-bottom: 1.5rem;
-  width: 100%;
-}
-
-.next-landscape {
-  margin-top: 1rem;
-  width: 100%;
-}
-
-.action-text {
-  font-weight: bold;
-  margin-top: 10px;
-  text-align: center;
-  color: #5a3e2b;
-}
-
-.current-exploration {
-  margin-top: 1rem;
-  width: 100%;
+  justify-content: center;
+  
+  .phase-title {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-family: 'Cinzel', serif;
+    color: #4a7c59;
+  }
+  
+  .phase-description {
+    text-align: center;
+    margin-bottom: 2rem;
+    max-width: 720px;
+  }
+  
+  .next-landscape, 
+  .current-exploration {
+    display: flex;
+    justify-content: center;
+    margin: 2rem auto;
+    max-width: 300px;
+    
+    :deep(p) {
+      text-align: center;
+    }
+  }
+  
+  .landscape-button,
+  .exploration-button {
+    width: 100%;
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+  }
 }
 </style>

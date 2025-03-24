@@ -30,15 +30,17 @@
             :class="{ 'selected': selectedCharacter && selectedCharacter.id === character.id }"
             @click="startGame(character)"
           >
+            <template #header>
+              <div class="character-stats" style="font-size: 8pt; margin-top: 5px; background: transparent;">
+                <div class="stat" style="background: transparent;"><span class="stat-label" style="font-size: 8pt;">Health:</span> <span style="font-size: 8pt;">{{ character.healthPoints }}</span></div>
+                <div class="stat" style="background: transparent;"><span class="stat-label" style="font-size: 8pt;">Capacity:</span> <span style="font-size: 8pt;">{{ character.resourceCapacity }}</span></div>
+              </div>
+            </template>
+            
             <p style="font-size: 10pt;">{{ character.description }}</p>
             
-            <div class="character-stats" style="font-size: 10pt; background: transparent;">
-              <div class="stat" style="background: transparent;"><span class="stat-label" style="font-size: 9pt;">Health:</span> <span style="font-size: 9pt;">{{ character.healthPoints }}</span></div>
-              <div class="stat" style="background: transparent;"><span class="stat-label" style="font-size: 9pt;">Capacity:</span> <span style="font-size: 9pt;">{{ character.resourceCapacity }}</span></div>
-            </div>
-            
             <div class="character-abilities" style="font-size: 10pt;">
-              <strong>{{ getAbilityName(character) }}:</strong> {{ getAbilityDescription(character) }}
+              <strong>{{ getAbilityName(character) }}</strong> {{ getAbilityDescription(character) }}
             </div>
           </GameCard>
         </div>

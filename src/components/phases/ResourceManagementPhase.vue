@@ -18,9 +18,11 @@
             class="resource-card"
             @click="confirmResourceDiscard(resourceId)"
           >
-            <p>{{ getResourceDescription(resourceId) }}</p>
-            <div class="resource-action">
-              <small>Click to discard</small>
+            <div class="resource-content">
+              <p>{{ getResourceDescription(resourceId) }}</p>
+              <div class="resource-action">
+                <small>Click to discard</small>
+              </div>
             </div>
           </GameCard>
         </div>
@@ -309,37 +311,50 @@ const cancelDiscard = () => {
   overflow-x: auto;
 }
 
+.resource-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  
+  p {
+    flex-grow: 1;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+}
+
 .resource-card {
   height: 100%;
   flex: 0 0 auto;
   width: 250px;
   transition: transform 0.2s;
-  display: flex;
-  flex-direction: column;
+  margin-bottom: 20px;
   
   &:hover {
     transform: translateY(-5px);
   }
   
+  :deep(.game-card) {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 350px; /* Fixed height for consistency */
+  }
+  
   :deep(.game-card__body) {
     display: flex;
     flex-direction: column;
-    padding-top: 30px;
-    padding-bottom: 30px;
+    flex-grow: 1;
     position: relative;
-    
-    p {
-      margin-bottom: 5px;
-    }
   }
 }
 
 .resource-action {
-  position: absolute;
-  bottom: 8px;
-  left: 0;
-  right: 0;
+  margin-top: auto;
   text-align: center;
+  width: 100%;
+  padding-bottom: 10px;
   font-size: 0.8rem;
   color: #666;
 }
