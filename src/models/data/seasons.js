@@ -32,7 +32,7 @@ export const seasons = [
     resourceAbundance: ['forge_cinders', 'bog_iron'],
     resourceScarcity: ['sacred_water', 'horse_hair'],
     animalAffinity: ['wolf', 'raven', 'owl'],
-    image: 'winters_depth.jpg',
+    image: 'wintersDepth.jpg',
     modifiers: {
       spiritual: 0,
       physical: 2,
@@ -101,7 +101,7 @@ export const seasons = [
     benefit: 'Community support (double the effectiveness of healing)',
     resourceAbundance: ['horse_hair', 'woven_reeds', 'ogham_sticks'],
     resourceScarcity: ['bog_iron', 'silver_mistletoe'],
-    animalAffinity: ['boar'],
+    animalAffinity: ['boar', 'deer', 'hare'],
     image: 'lughnasadh.jpg',
     modifiers: {
       spiritual: 0,

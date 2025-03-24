@@ -8,7 +8,7 @@ const landscapes = [
     difficulty: 5,
     description: 'A circle of towering stones, humming with ancient power and guarded by spectral entities.',
     availableResources: ['standing_stone_chips', 'barrow_dust', 'amber_shards', 'ancient_crystal'],
-    image: 'stone_circle.jpg',
+    image: 'ancient_stone_circle.jpg',
     companions: ['raven']
   },
   {
@@ -19,7 +19,7 @@ const landscapes = [
     difficulty: 6,
     description: 'Rolling hills shrouded in mist, dotted with ancient burial mounds where ancestral spirits linger.',
     availableResources: ['barrow_dust', 'ogham_sticks', 'amber_shards'],
-    image: 'barrow_downs.jpg'
+    image: 'misty_barrow_downs.jpg'
   },
   {
     id: 'sacred_oak_grove',
@@ -29,7 +29,7 @@ const landscapes = [
     difficulty: 4,
     description: 'A grove of ancient oaks where wild beasts roam and protect the sacred trees.',
     availableResources: ['rowan_wood', 'oak_galls', 'silver_mistletoe'],
-    image: 'oak_grove.jpg',
+    image: 'sacred_oak_grove.jpg',
     companions: ['wolf', 'deer', 'bear', 'boar']
   },
   {
@@ -40,7 +40,7 @@ const landscapes = [
     difficulty: 5,
     description: 'A small settlement of thatched roundhouses where elders are wary of outsiders.',
     availableResources: ['woven_reeds', 'horse_hair', 'rowan_wood'],
-    image: 'village.jpg'
+    image: 'thatched_village.jpg'
   },
   {
     id: 'iron_forge_dell',
@@ -50,7 +50,7 @@ const landscapes = [
     difficulty: 7,
     description: 'A smoky valley where smiths work their forges, testing visitors with trials of heat and metal.',
     availableResources: ['bog_iron', 'forge_cinders', 'standing_stone_chips'],
-    image: 'forge.jpg',
+    image: 'iron_forge_dell.jpg',
     craftingBonus: ['bog_iron']
   },
   {
@@ -61,7 +61,7 @@ const landscapes = [
     difficulty: 5,
     description: 'A serene lake reflecting the moon, home to mysterious water spirits.',
     availableResources: ['sacred_water', 'woven_reeds', 'silver_mistletoe'],
-    image: 'loch.jpg',
+    image: 'moonlit_loch.jpg',
     companions: ['salmon', 'owl'],
     craftingBonus: ['sacred_water'],
     healing: 2
@@ -74,7 +74,7 @@ const landscapes = [
     difficulty: 6,
     description: 'A path lined with standing stones that seem to shift positions when not observed directly.',
     availableResources: ['standing_stone_chips', 'barrow_dust', 'ogham_sticks'],
-    image: 'menhir.jpg'
+    image: 'menhir_path.jpg'
   },
   {
     id: 'faerie_knoll',
@@ -95,7 +95,7 @@ const landscapes = [
     difficulty: 5,
     description: 'A vast heathland where whispers on the wind lead travelers astray.',
     availableResources: ['woven_reeds', 'rowan_wood', 'oak_galls'],
-    image: 'heath.jpg',
+    image: 'whispering_heath.jpg',
     companions: ['raven']
   },
   {
@@ -106,7 +106,7 @@ const landscapes = [
     difficulty: 6,
     description: 'A labyrinth of thorny blackthorn bushes that test a traveler\'s endurance and determination.',
     availableResources: ['rowan_wood', 'horse_hair', 'bog_iron'],
-    image: 'blackthorn.jpg'
+    image: 'blackthorn_maze.jpg'
   },
   {
     id: 'boggy_lowlands',
@@ -116,7 +116,7 @@ const landscapes = [
     difficulty: 5,
     description: 'Treacherous wetlands where the ground may give way beneath your feet at any moment.',
     availableResources: ['bog_iron', 'sacred_water', 'woven_reeds'],
-    image: 'bog.jpg'
+    image: 'boggy_lowlands.jpg'
   },
   {
     id: 'gathering_fair',
@@ -126,7 +126,7 @@ const landscapes = [
     difficulty: 4,
     description: 'A bustling market where various Celtic tribes gather to trade goods and stories.',
     availableResources: ['horse_hair', 'woven_reeds', 'ogham_sticks'],
-    image: 'fair.jpg'
+    image: 'gathering_fair.jpg'
   },
   {
     id: 'elder_bridge',
@@ -136,7 +136,7 @@ const landscapes = [
     difficulty: 7,
     description: 'An ancient bridge guarded by spirits who demand a toll from all who wish to cross.',
     availableResources: ['standing_stone_chips', 'amber_shards', 'barrow_dust'],
-    image: 'bridge.jpg'
+    image: 'elder_bridge.jpg'
   },
   {
     id: 'druids_sanctuary',
@@ -146,7 +146,7 @@ const landscapes = [
     difficulty: 8,
     description: 'A sacred grove where druids test visitors with trials of wisdom and knowledge.',
     availableResources: ['silver_mistletoe', 'oak_galls', 'ogham_sticks'],
-    image: 'sanctuary.jpg',
+    image: 'druids_sanctuary.jpg',
     craftingBonus: ['standing_stone_chips'],
     healing: 2
   },
@@ -158,7 +158,7 @@ const landscapes = [
     difficulty: 6,
     description: 'Vast grasslands where wild horses run free, embodying the untamed spirit of the land.',
     availableResources: ['horse_hair', 'woven_reeds', 'rowan_wood'],
-    image: 'horse_plain.jpg',
+    image: 'wild_horse_plain.jpg',
     companions: ['horse']
   }
 ]

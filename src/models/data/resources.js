@@ -33,7 +33,7 @@ export const resources = [
     effect: 'Enhances divination abilities',
     type: 'mystic',
     description: 'Small fragments from ancient standing stones, imbued with divinatory power.',
-    image: 'stone_chips.jpg',
+    image: 'standing_stone_chips.jpg',
     preferredBy: ['raven']
   },
   {
