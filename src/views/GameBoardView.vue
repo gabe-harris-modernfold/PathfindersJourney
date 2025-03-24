@@ -8,36 +8,36 @@
             <PhaseFactory />
           </section>
         </main>
-        
-        <aside class="game-sidebar">
-          <!-- Player Dashboard - Redesigned to be narrative and whimsical -->
-          <div class="player-dashboard narrative-style">
-            <h3>Your Journey's Tale</h3>
-            <div class="narrative-scroll">
-              <p>
-                You are a <span class="highlight">{{ currentCharacter?.name || 'Pathfinder' }}</span>, 
-                with <span class="highlight">{{ playerStore.health }}/{{ playerStore.maxHealth }}</span> vitality, 
-                currently in the season of <span class="highlight">{{ formatSeason(seasonStore.currentSeason) }}</span>.
-              </p>
-              <p>
-                Your pack holds <span class="highlight">{{ playerStore.resourceCount }}/{{ playerStore.resourceCapacity }}</span> treasures 
-                gathered during <span class="highlight">{{ gameStore.currentTurn }}</span> turns of adventure.
-              </p>
-              <p v-if="playerStore.animalCompanions.length > 0">
-                <span class="highlight">{{ playerStore.companionCount }}</span> loyal beasts walk beside you on this path.
-              </p>
-              <p v-if="playerStore.craftedItems.length > 0">
-                Your hands have crafted: 
-                <span v-for="itemId in playerStore.craftedItems" :key="itemId" class="crafted-item">
-                  {{ getCraftedItemName(itemId) }}{{ playerStore.craftedItems.indexOf(itemId) < playerStore.craftedItems.length - 1 ? ', ' : '' }}
-                </span>
-              </p>
-              <p>
-                The fates guide you to <span class="highlight">{{ formatPhase(gameStore.currentPhase) }}</span>.
-              </p>
-            </div>
+      </div>
+      
+      <!-- Player Dashboard - Redesigned to be narrative and whimsical -->
+      <div class="dashboard-container">
+        <div class="player-dashboard narrative-style">
+          <h3>Your Journey's Tale</h3>
+          <div class="narrative-scroll">
+            <p>
+              You are a <span class="highlight">{{ currentCharacter?.name || 'Pathfinder' }}</span>, 
+              with <span class="highlight">{{ playerStore.health }}/{{ playerStore.maxHealth }}</span> vitality, 
+              currently in the season of <span class="highlight">{{ formatSeason(seasonStore.currentSeason) }}</span>.
+            </p>
+            <p>
+              Your pack holds <span class="highlight">{{ playerStore.resourceCount }}/{{ playerStore.resourceCapacity }}</span> treasures 
+              gathered during <span class="highlight">{{ gameStore.currentTurn }}</span> turns of adventure.
+            </p>
+            <p v-if="playerStore.animalCompanions.length > 0">
+              <span class="highlight">{{ playerStore.companionCount }}</span> loyal beasts walk beside you on this path.
+            </p>
+            <p v-if="playerStore.craftedItems.length > 0">
+              Your hands have crafted: 
+              <span v-for="itemId in playerStore.craftedItems" :key="itemId" class="crafted-item">
+                {{ getCraftedItemName(itemId) }}{{ playerStore.craftedItems.indexOf(itemId) < playerStore.craftedItems.length - 1 ? ', ' : '' }}
+              </span>
+            </p>
+            <p>
+              The fates guide you to <span class="highlight">{{ formatPhase(gameStore.currentPhase) }}</span>.
+            </p>
           </div>
-        </aside>
+        </div>
       </div>
       
       <!-- Game Log at bottom spanning full width -->
@@ -881,56 +881,49 @@ const showChallengeRating = () => {
 .game-board {
   height: 100%;
   display: grid;
-  grid-template-columns: 1fr 300px;
+  grid-template-columns: 1fr;
   grid-template-rows: 1fr auto;
-  gap: 1rem;
-  padding: 1rem;
+  gap: 0.25rem;
+  padding: 0.25rem;
   background-color: #f5f5f5;
-  
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto;
-  }
+}
+
+.dashboard-container {
+  grid-column: 1 / -1;
+  padding: 0.5rem;
+  background-color: #fff;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .main-content-area {
-  display: grid;
-  grid-template-columns: 1fr 300px;
   grid-column: 1 / -1;
-  gap: 1rem;
-  
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto;
-  }
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.25rem;
 }
 
 .game-content {
   background-color: white;
   border-radius: 0.5rem;
-  padding: 1rem;
+  padding: 0.25rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   overflow: auto;
 }
 
-.game-sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  height: 100%;
-}
-
 .phase-content {
   height: 100%;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
 }
 
 .player-dashboard {
   background-color: #f2e9d8;
   border-radius: 5px;
-  padding: 15px;
+  padding: 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 
   &.narrative-style {
@@ -942,7 +935,7 @@ const showChallengeRating = () => {
   h3 {
     font-size: 1.2rem;
     margin-top: 0;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     color: #5a3e2b;
     text-align: center;
     font-family: 'Garamond', serif;
@@ -955,7 +948,7 @@ const showChallengeRating = () => {
   color: #432818;
   
   p {
-    margin: 8px 0;
+    margin: 4px 0;
   }
   
   .highlight {

@@ -1,14 +1,14 @@
 <template>
   <div class="resource-management-phase">
-    <h2 class="phase-title">RESOURCE MANAGEMENT</h2>
+    <h2 class="phase-title">TREASURES OF THE JOURNEY</h2>
     <div class="phase-description">
-      <p>Manage your resources and gather new ones.</p>
+      <p>The whispers of the wild call you to gather mystical bounties and arrange your curious collection...</p>
     </div>
     
     <div class="resource-management-container">
       <div class="resource-panel">
-        <h3>Your Resources ({{ playerStore.resourceCount }}/{{ playerStore.resourceCapacity }})</h3>
-        <p v-if="!playerStore.resources.length">You have no resources.</p>
+        <h3>Your Traveling Pack ({{ playerStore.resourceCount }}/{{ playerStore.resourceCapacity }})</h3>
+        <p v-if="!playerStore.resources.length">Your pack lies empty, awaiting wondrous finds...</p>
         <div v-else class="resource-grid">
           <GameCard 
             v-for="resourceId in playerStore.resources" 
@@ -272,22 +272,25 @@ const cancelDiscard = () => {
   flex-direction: column;
   align-items: center;
   width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
 }
 
 .phase-title {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
+  font-size: 1.8rem;
   color: #5a3e2b;
+  margin: 0 0 0.25rem 0;
 }
 
 .phase-description {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #665e52;
 }
 
 .resource-management-container {
   width: 100%;
-  max-width: 600px;
   background-color: rgba(245, 245, 220, 0.5);
   border: 1px solid #8b4513;
   border-radius: 8px;
@@ -361,11 +364,16 @@ const cancelDiscard = () => {
 
 .resource-actions {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-direction: row;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
   width: 100%;
-  max-width: 600px;
-  margin-bottom: 2rem;
+  
+  .game-card {
+    flex: 0 1 300px;  /* Allow cards to grow but start at 300px */
+    max-width: 400px;
+  }
 }
 
 /* Modal styling */

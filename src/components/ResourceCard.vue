@@ -4,7 +4,7 @@
       :subtitle="resource.rarity" 
       :cardType="CardType.RESOURCE"
       :selected="selected"
-      @click="$emit('select', resource.id)"
+      @click.prevent="$emit('select', resource.id)"
     >
       <div class="resource-card__content">
         <p>{{ truncateDescription(resource.description) }}</p>
@@ -31,14 +31,14 @@
         <div class="resource-card__actions">
           <button 
             class="btn btn--primary"
-            @click.stop="$emit('use', resource.id)"
+            @click.stop.prevent="$emit('use', resource.id)"
             :disabled="!resource.specialEffect"
           >
             Use
           </button>
           <button 
             class="btn"
-            @click.stop="$emit('discard', resource.id)"
+            @click.stop.prevent="$emit('discard', resource.id)"
           >
             Discard
           </button>
@@ -104,25 +104,25 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    gap: 8px;
+    gap: 4px;
     font-size: 0.9rem;
   }
   
   .resource-seasons {
-    margin-top: 6px;
+    margin-top: 4px;
   }
   
   .season-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 2px;
     justify-content: center;
   }
   
   .season-tag {
     font-size: 0.7rem;
-    padding: 2px 6px;
-    border-radius: 10px;
+    padding: 1px 4px;
+    border-radius: 8px;
     
     &.imbolc {
       background-color: #e6f7ff;
@@ -151,7 +151,7 @@
   }
   
   .resource-special {
-    margin-top: 6px;
+    margin-top: 4px;
     
     .special-effect {
       font-style: italic;
@@ -162,11 +162,11 @@
   
   .resource-card__actions {
     display: flex;
-    gap: 4px;
+    gap: 2px;
     
     .btn {
       flex: 1;
-      padding: 4px;
+      padding: 3px;
       border-radius: 4px;
       font-size: 0.8rem;
       background: #e6d7b9;

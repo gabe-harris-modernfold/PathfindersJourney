@@ -2,55 +2,11 @@
   <div class="challenge-resolution-phase">
     <h2 class="phase-title">{{ currentLandscape ? currentLandscape.name : 'LANDSCAPE' }} - {{ currentLandscape ? currentLandscape.challenge : 'CHALLENGE' }}</h2>
     
-    <div v-if="lastChallengeResult" class="challenge-result" :class="{ 
-      'success': lastChallengeResult.success, 
-      'partial-success': lastChallengeResult.partialSuccess,
-      'failure': !lastChallengeResult.success && !lastChallengeResult.partialSuccess
-    }">
-      <h3>{{ getOutcomeTitle() }}</h3>
-      
-      <!-- Challenge Description from model -->
-      <p>{{ currentLandscape?.description }}</p>
-      
-      <!-- Challenge outcome details -->
-      <div class="challenge-details">
-        <div class="detail-item">
-          <span class="label">Challenge:</span>
-          <span>{{ currentLandscape?.challenge }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">Type:</span>
-          <span>{{ currentLandscape?.challengeType }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">Difficulty:</span>
-          <span>{{ lastChallengeResult.difficulty }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">Roll:</span>
-          <span>{{ lastChallengeResult.roll }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">Total:</span>
-          <span>{{ lastChallengeResult.total }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">Result:</span>
-          <span class="result" :class="{
-            'success-text': lastChallengeResult.success,
-            'partial-text': lastChallengeResult.partialSuccess,
-            'failure-text': !lastChallengeResult.success && !lastChallengeResult.partialSuccess
-          }">
-            {{ lastChallengeResult.success ? 'Glorious Victory' : lastChallengeResult.partialSuccess ? 'Bittersweet Outcome' : 'Valiant Struggle' }}
-          </span>
-        </div>
-      </div>
-    </div>
-    
     <div class="narrative-outcome" v-if="lastChallengeResult && currentLandscape">
       <GameCard 
         :title="getNarrativeTitle()"
         cardType="STORY"
+        @click="advancePhase"
       >
         <div class="narrative-content">
           <!-- Dynamic narrative based on challenge type and outcome -->
@@ -110,21 +66,6 @@
         </div>
       </GameCard>
     </div>
-    
-    <GameCard 
-      title="Continue Your Quest" 
-      cardType="ACTION"
-      @click="advancePhase"
-    >
-      <div class="narrative-content">
-        <p v-if="currentLandscape">
-          Leave the {{ currentLandscape.name }} behind and carry its lessons to the next chapter of your journey.
-        </p>
-        <p v-else>
-          The path calls you onward to new horizons and untold adventures.
-        </p>
-      </div>
-    </GameCard>
   </div>
 </template>
 
@@ -195,87 +136,29 @@ const advancePhase = () => {
   text-align: center;
 }
 
-.challenge-result {
-  margin: 1rem 0;
+.narrative-outcome {
+  margin: 1rem auto;
   padding: 1.5rem;
-  width: 100%;
   max-width: 600px;
-  text-align: center;
-  border-radius: 0.5rem;
-  
-  h3 {
-    margin-bottom: 1rem;
-    font-size: 1.3rem;
-  }
+  display: flex;
+  justify-content: center;
+}
+
+.narrative-content {
+  padding: 0.5rem;
+  text-align: left;
   
   p {
-    line-height: 1.5;
-    margin-bottom: 1.5rem;
-    text-align: left;
-  }
-  
-  &.success {
-    background-color: rgba(0, 128, 0, 0.1);
-    border-left: 5px solid rgba(0, 128, 0, 0.5);
-  }
-  
-  &.partial-success {
-    background-color: rgba(255, 165, 0, 0.1);
-    border-left: 5px solid rgba(255, 165, 0, 0.5);
-  }
-  
-  &.failure {
-    background-color: rgba(255, 0, 0, 0.1);
-    border-left: 5px solid rgba(255, 0, 0, 0.5);
-  }
-}
-
-.challenge-details {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  text-align: left;
-  margin-top: 1rem;
-  
-  .detail-item {
-    padding: 0.5rem;
-    background-color: rgba(255, 255, 255, 0.6);
-    border-radius: 0.25rem;
+    margin-bottom: 0;
+    padding: 0;
     
-    .label {
-      font-weight: bold;
-      margin-right: 0.5rem;
+    span {
+      font-size: 0.85rem;
+      display: block;
+      width: 100%;
+      margin: 0;
+      padding: 0;
     }
-    
-    .result {
-      font-weight: bold;
-      
-      &.success-text {
-        color: green;
-      }
-      
-      &.partial-text {
-        color: orange;
-      }
-      
-      &.failure-text {
-        color: red;
-      }
-    }
-  }
-}
-
-.narrative-outcome {
-  margin: 1rem 0;
-  padding: 1.5rem;
-  width: 100%;
-  max-width: 600px;
-  text-align: center;
-  border-radius: 0.5rem;
-  
-  .narrative-content {
-    padding: 1rem;
-    text-align: left;
   }
 }
 </style>

@@ -6,7 +6,7 @@
         `game-card--${cardTypeClass}`,
         { 'game-card--disabled': disabled, 'game-card--selected': selected }
       ]"
-      @click="!disabled && $emit('click', $event)"
+      @click="handleClick"
     >
       <!-- Card Header -->
       <div class="game-card__header">
@@ -92,6 +92,11 @@ export default defineComponent({
         case CardType.ACTION: return '➜';
         default: return '•';
       }
+    },
+    handleClick(event) {
+      if (!this.disabled) {
+        this.$emit('click', event);
+      }
     }
   },
   emits: ['click']
@@ -139,7 +144,7 @@ export default defineComponent({
   &__header {
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
-    padding: 10px;
+    padding: 8px;
     text-align: center;
     background-color: rgba(140, 120, 81, 0.25);
     z-index: 2;
@@ -165,7 +170,7 @@ export default defineComponent({
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 15px;
+    padding: 8px;
     z-index: 1;
     color: #5a3e2b;
     position: relative;
@@ -186,7 +191,7 @@ export default defineComponent({
   &__footer {
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
-    padding: 10px;
+    padding: 6px;
     text-align: center;
     background-color: rgba(140, 120, 81, 0.15);
     z-index: 2;

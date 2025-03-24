@@ -424,7 +424,27 @@ class CompanionService {
    */
   getAvailableCompanions(): AnimalCompanionCard[] {
     const cardStore = useCardStore();
-    return cardStore.animalCompanions;
+    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
+    
+    return cardStore.animalCompanions.filter(companion => {
+      // If companion has no preferred resources, don't show it
+      if (!companion.preferredResources || companion.preferredResources.length === 0) {
+        return false;
+      }
+      
+      // Check if player has any of the preferred resources
+      return playerStore.resources.some(resourceId => {
+        const resource = cardStore.getResourceById(resourceId);
+        if (!resource) return false;
+        
+        // Check if this resource is preferred by the companion
+        return companion.preferredResources.some(prefResource => {
+          // Check both exact match and resource type match
+          const resourceType = resource.id.split('_').slice(0, -1).join('_');
+          return resourceType === prefResource || resource.id === prefResource;
+        });
+      });
+    });
   }
 
   /**

@@ -5,56 +5,48 @@
       <p>The ancient whispers reveal the veil of danger around you...</p>
     </div>
     
-    <!-- Threat information card with narrative style -->
-    <div class="threat-assessment">
-      <GameCard 
-        :title="getThreatLevelTitle()" 
-        cardType="WARNING"
-      >
-        <div class="threat-content narrative-style">
-          <p v-if="gameStore.threatTokens === 0">
-            The winds are calm and the spirits silent. Your path seems clear of immediate dangers, though a wise traveler remains ever vigilant.
-          </p>
-          
-          <template v-else>
-            <p v-if="currentLandscape">
-              <span v-if="gameStore.threatTokens >= 7" class="threat-warning">
-                The ancient stones tremble with warning. A powerful entity known as <strong>{{ currentLandscape.challenge }}</strong> haunts this place, its presence unmistakable to one with your senses.
-              </span>
-              <span v-else-if="gameStore.threatTokens >= 3" class="threat-warning">
-                The air grows thick with foreboding. Your intuition whispers of <strong>{{ currentLandscape.challengeType }}</strong> trials ahead, though their exact nature remains shrouded.
-              </span>
-              <span v-else class="threat-warning">
-                A subtle unease settles upon your shoulders. Something lurks beyond your perception, like shadows glimpsed from the corner of your eye.
-              </span>
+    <!-- Threat assessment and action container side by side -->
+    <div class="threat-action-row">
+      <!-- Threat information card with narrative style -->
+      <div class="threat-assessment">
+        <GameCard 
+          :title="getThreatLevelTitle()" 
+          cardType="WARNING"
+          @click="advancePhase"
+        >
+          <div class="threat-content narrative-style">
+            <p v-if="gameStore.threatTokens === 0">
+              The winds are calm and the spirits silent. Your path seems clear of immediate dangers, though a wise traveler remains ever vigilant.
             </p>
             
-            <p v-if="gameStore.threatTokens >= 9 && currentLandscape">
-              Ancient symbols flash across your vision, revealing this as a formidable trial of strength <strong>{{ currentLandscape.difficulty }}</strong>. It will test your {{ currentLandscape.challengeType }} resolve to its very limits.
-            </p>
-            
-            <p v-if="gameStore.threatTokens >= 5">
-              The pattern of leaves scattered by the wind forms unusual signs. The path ahead may hold unexpected twists of fate that no seer could foretell.
-            </p>
-            
-            <p v-if="gameStore.threatTokens >= 10" class="otherworldly-warning">
-              The borders between worlds fray like worn cloth! Creatures of mist and shadow gather just beyond sight, waiting for the moment when the veil parts completely!
-            </p>
-          </template>
-        </div>
-      </GameCard>
-    </div>
-    
-    <div class="action-container">
-      <GameCard 
-        title="Continue the Journey" 
-        cardType="ACTION"
-        @click="advancePhase"
-      >
-        <div class="narrative-style">
-          <p>With a deep breath, you steel your resolve and press forward on your path, come what may.</p>
-        </div>
-      </GameCard>
+            <template v-else>
+              <p v-if="currentLandscape">
+                <span v-if="gameStore.threatTokens >= 7" class="threat-warning">
+                  The ancient stones tremble with warning. A powerful entity known as <strong>{{ currentLandscape.challenge }}</strong> haunts this place, its presence unmistakable to one with your senses.
+                </span>
+                <span v-else-if="gameStore.threatTokens >= 3" class="threat-warning">
+                  The air grows thick with foreboding. Your intuition whispers of <strong>{{ currentLandscape.challengeType }}</strong> trials ahead, though their exact nature remains shrouded.
+                </span>
+                <span v-else class="threat-warning">
+                  A subtle unease settles upon your shoulders. Something lurks beyond your perception, like shadows glimpsed from the corner of your eye.
+                </span>
+              </p>
+              
+              <p v-if="gameStore.threatTokens >= 9 && currentLandscape">
+                Ancient symbols flash across your vision, revealing this as a formidable trial of strength <strong>{{ currentLandscape.difficulty }}</strong>. It will test your {{ currentLandscape.challengeType }} resolve to its very limits.
+              </p>
+              
+              <p v-if="gameStore.threatTokens >= 5">
+                The pattern of leaves scattered by the wind forms unusual signs. The path ahead may hold unexpected twists of fate that no seer could foretell.
+              </p>
+              
+              <p v-if="gameStore.threatTokens >= 10" class="otherworldly-warning">
+                The borders between worlds fray like worn cloth! Creatures of mist and shadow gather just beyond sight, waiting for the moment when the veil parts completely!
+              </p>
+            </template>
+          </div>
+        </GameCard>
+      </div>
     </div>
   </div>
 </template>
@@ -146,8 +138,18 @@ const advancePhase = () => {
   margin-bottom: 1.5rem;
 }
 
-.threat-assessment {
+.threat-action-row {
+  display: flex;
+  gap: 20px;
   margin-bottom: 20px;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+}
+
+.threat-assessment {
+  flex: 1;
 }
 
 .threat-content {
@@ -178,10 +180,6 @@ const advancePhase = () => {
 .highlight {
   color: #6b4226;
   font-weight: bold;
-}
-
-.action-container {
-  margin-top: 20px;
 }
 
 .narrative-style {

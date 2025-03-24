@@ -207,7 +207,7 @@ const advancePhase = () => {
   width: 100%;
   
   @media (min-width: 768px) {
-    flex-direction: row;
+    flex-direction: column;
   }
 }
 

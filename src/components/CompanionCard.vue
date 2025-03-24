@@ -6,7 +6,7 @@
       :cardType="CardType.ANIMAL_COMPANION"
       :selected="selected"
       :disabled="isCompanionWary || abilityUsed"
-      @click="$emit('select', companionId)"
+      @click.prevent="$emit('select', companionId)"
     >
       <div class="companion-card__content">
         <div class="companion-loyalty">
@@ -36,13 +36,13 @@
           <button 
             v-if="canFeed"
             class="btn btn--primary"
-            @click.stop="openFeedDialog"
+            @click.stop.prevent="openFeedDialog"
           >
             Feed
           </button>
           <button 
             class="btn"
-            @click.stop="$emit('use-ability', companionId)"
+            @click.stop.prevent="$emit('use-ability', companionId)"
             :disabled="abilityUsed || isCompanionWary"
           >
             {{ isCompanionWary ? 'Wary' : (abilityUsed ? 'Used' : 'Use') }}

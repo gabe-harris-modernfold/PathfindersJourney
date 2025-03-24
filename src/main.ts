@@ -22,6 +22,12 @@ app.use(ComponentDebugPlugin)
 
 // Set up global error handler
 app.config.errorHandler = (err, instance, info) => {
+  // Skip logging empty errors that come from native event handlers
+  // These are often harmless and related to event bubbling
+  if (info === 'native event handler' && (!err || Object.keys(err).length === 0)) {
+    return;
+  }
+  
   console.error('Global error:', err)
   console.error('Error info:', info)
 }

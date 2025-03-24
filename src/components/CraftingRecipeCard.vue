@@ -5,7 +5,7 @@
       :cardType="CardType.CRAFTED_ITEM"
       :selected="selected"
       :disabled="!canCraft"
-      @click="$emit('select', recipe.id)"
+      @click.prevent="$emit('select', recipe.id)"
     >
       <div class="recipe-card__content">
         <p>{{ truncateDescription(recipe.description) }}</p>
@@ -33,14 +33,14 @@
         <div class="recipe-card__actions">
           <button 
             class="btn btn--primary"
-            @click.stop="$emit('craft', recipe.id)"
+            @click.stop.prevent="$emit('craft', recipe.id)"
             :disabled="!canCraft"
           >
             Craft
           </button>
           <button 
             class="btn"
-            @click.stop="$emit('cancel')"
+            @click.stop.prevent="$emit('cancel')"
           >
             Cancel
           </button>
