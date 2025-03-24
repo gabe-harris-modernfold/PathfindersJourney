@@ -18,7 +18,7 @@
       <div v-else class="current-exploration">
         <GameCard 
           title="Explore Current Area" 
-          cardType="ACTION"
+          :cardType="CardType.ACTION"
           @click="advanceToExploration"
         >
           <div style="font-size: 1.1rem; padding: 10px;">
@@ -37,7 +37,7 @@ import { computed } from 'vue';
 import { useGameStore } from '@/stores/gameStore';
 import { useCardStore } from '@/stores/cardStore';
 import { useServices } from '@/composables/useServices';
-import GameCard from '../GameCard.vue';  
+import GameCard from '@/components/GameCard.vue';  
 import { CardType } from '@/models/enums/cardTypes';
 
 const gameStore = useGameStore();

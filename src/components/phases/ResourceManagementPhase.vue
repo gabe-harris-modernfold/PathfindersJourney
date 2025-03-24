@@ -14,7 +14,7 @@
             v-for="resourceId in playerStore.resources" 
             :key="resourceId"
             :title="getResourceName(resourceId)"
-            cardType="RESOURCE"
+            :cardType="CardType.RESOURCE"
             class="resource-card"
             @click="confirmResourceDiscard(resourceId)"
           >
@@ -32,7 +32,7 @@
     <div class="resource-actions">
       <GameCard 
         title="Gather Resources" 
-        cardType="ACTION"
+        :cardType="CardType.ACTION"
         :disabled="cannotGatherResources"
         @click="gatherResources"
       >
@@ -46,7 +46,7 @@
       
       <GameCard 
         title="Continue Journey" 
-        cardType="ACTION"
+        :cardType="CardType.ACTION"
         @click="advancePhase"
       >
         <div style="font-size: 1.1rem; padding: 10px;">
@@ -77,6 +77,7 @@ import { useCardStore } from '@/stores/cardStore';
 import { useLogStore } from '@/stores/logStore';
 import { useServices } from '@/composables/useServices';
 import GameCard from '@/components/GameCard.vue';
+import { CardType } from '@/models/enums/cardTypes';
 
 const gameStore = useGameStore();
 const playerStore = usePlayerStore();

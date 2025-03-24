@@ -11,7 +11,7 @@
       <div class="threat-assessment">
         <GameCard 
           :title="getThreatLevelTitle()" 
-          cardType="WARNING"
+          :cardType="CardType.WARNING"
           @click="advancePhase"
         >
           <div class="threat-content narrative-style">
@@ -58,6 +58,7 @@ import { useLogStore } from '@/stores/logStore';
 import { useCardStore } from '@/stores/cardStore';
 import { useServices } from '@/composables/useServices';
 import GameCard from '@/components/GameCard.vue';
+import { CardType } from '@/models/enums/cardTypes';
 
 const gameStore = useGameStore();
 const logStore = useLogStore();

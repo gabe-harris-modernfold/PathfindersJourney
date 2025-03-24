@@ -41,7 +41,7 @@
     
     <GameCard 
       title="Continue Journey" 
-      cardType="ACTION"
+      :cardType="CardType.ACTION"
       @click="advancePhase"
     >
       <div style="font-size: 1.1rem; padding: 10px;">
@@ -59,6 +59,7 @@ import { useServices } from '@/composables/useServices';
 import { computed, onMounted } from 'vue';
 import GameCard from '@/components/GameCard.vue';
 import { Season } from '@/models/enums/seasons';
+import { CardType } from '@/models/enums/cardTypes';
 
 const gameStore = useGameStore();
 const cardStore = useCardStore();

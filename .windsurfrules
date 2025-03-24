@@ -1,16 +1,24 @@
-mportant Restrictions
-All tests are made in the @tests directory
-No mocking tests
+Important Restrictions
+
 
 do not execute git commands
-
 do not create new files
 do not create new css styles
-work with the existing design
+
+work with the existing files
+
+do not make new components
 use existing componets
+
 do not run tests
+
 report only minial descricptions of work performed back to the user
+
 maintain consistancy with models in src\models\data use using 
+
 Do not hard code game values. They are in src\models\data.
+
 minimize ruinning shell commands
+
+Review the current game architecture in 
 AI\Current Game Architecture.md

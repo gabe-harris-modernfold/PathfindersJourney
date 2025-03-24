@@ -5,7 +5,11 @@ export enum CardType {
   RESOURCE = 'RESOURCE',
   CRAFTED_ITEM = 'CRAFTED_ITEM',
   SEASON = 'SEASON',
-  ACTION = 'ACTION'
+  ACTION = 'ACTION',
+  WARNING = 'WARNING',
+  SUCCESS = 'SUCCESS',
+  DANGER = 'DANGER',
+  STORY = 'STORY'
 }
 
 export enum ChallengeType {

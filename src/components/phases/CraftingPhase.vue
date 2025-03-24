@@ -14,7 +14,7 @@
             v-for="resourceId in playerStore.resources" 
             :key="resourceId"
             :title="getResourceName(resourceId)"
-            cardType="RESOURCE"
+            :cardType="CardType.RESOURCE"
             class="resource-card"
             @click="selectResourceToDiscard(resourceId)"
           >
@@ -57,7 +57,7 @@
     
     <GameCard 
       title="Continue Journey" 
-      cardType="ACTION"
+      :cardType="CardType.ACTION"
       @click="advancePhase"
     >
       <div style="font-size: 1.1rem; padding: 10px;">
@@ -75,6 +75,7 @@ import { useCardStore } from '@/stores/cardStore';
 import { useLogStore } from '@/stores/logStore';
 import { useServices } from '@/composables/useServices';
 import GameCard from '@/components/GameCard.vue';
+import { CardType } from '@/models/enums/cardTypes';
 import { craftedItems } from '@/models/data/crafted-items';
 
 const gameStore = useGameStore();

@@ -5,7 +5,7 @@
     <div class="narrative-outcome" v-if="lastChallengeResult && currentLandscape">
       <GameCard 
         :title="getNarrativeTitle()"
-        cardType="STORY"
+        :cardType="CardType.STORY"
         @click="advancePhase"
       >
         <div class="narrative-content">
@@ -75,6 +75,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { useCardStore } from '@/stores/cardStore';
 import { useServices } from '@/composables/useServices';
 import GameCard from '@/components/GameCard.vue';
+import { CardType } from '@/models/enums/cardTypes';
 
 const gameStore = useGameStore();
 const cardStore = useCardStore();

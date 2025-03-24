@@ -6,8 +6,8 @@ import { useGameStore } from '@/stores/gameStore';
 import { usePlayerStore } from '@/stores/playerStore';
 import { useCardStore } from '@/stores/cardStore';
 import { CompanionState } from '@/models/types/player';
-import { ExtendedGameStore, ExtendedPlayerStore } from '@/types/store-extensions';
 import { AnimalCompanionCard } from '@/models/types/cards';
+import { Season } from '@/models/enums/seasons';
 
 class CompanionService {
   private _lastBondedCompanionId: string | null = null;
@@ -19,9 +19,9 @@ class CompanionService {
    * @returns True if bonding was successful
    */
   bondWithCompanion(companionId: string, resourceId: string): boolean {
-    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
+    const playerStore = usePlayerStore();
     const cardStore = useCardStore();
-    const gameStore = useGameStore() as unknown as ExtendedGameStore;
+    const gameStore = useGameStore();
     
     // Check if player already has this companion
     if (playerStore.animalCompanions.includes(companionId)) {
@@ -60,7 +60,7 @@ class CompanionService {
    * @returns True if feeding was successful
    */
   feedCompanion(companionId: string, resourceId: string): boolean {
-    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
+    const playerStore = usePlayerStore();
     
     // Check if player has this companion
     if (!playerStore.animalCompanions.includes(companionId)) {
@@ -72,8 +72,8 @@ class CompanionService {
       return false;
     }
     
-    // Use feedAnimalCompanion from playerStore
-    return playerStore.feedAnimalCompanion(companionId, resourceId);
+    // Use the feedCompanion method from playerStore
+    return playerStore.feedCompanion(companionId, resourceId);
   }
 
   /**
@@ -82,14 +82,14 @@ class CompanionService {
    * @returns The loyalty level (0-5) or -1 if not found
    */
   getLoyalty(companionId: string): number {
-    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
+    const playerStore = usePlayerStore();
     
     // Check if the companion exists
     if (!playerStore.animalCompanions.includes(companionId)) {
       return -1;
     }
     
-    return playerStore.companionLoyalty(companionId);
+    return playerStore.companionLoyalty[companionId]?.loyalty || 0;
   }
 
   /**
@@ -98,24 +98,27 @@ class CompanionService {
    * @returns New loyalty level
    */
   increaseLoyalty(companionId: string): number {
-    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
+    const playerStore = usePlayerStore();
     
     // Check if the companion exists
     if (!playerStore.animalCompanions.includes(companionId)) {
       return -1;
     }
     
-    // Get current loyalty
-    const currentLoyalty = playerStore.companionLoyalty(companionId);
-    
-    // Max loyalty is 5
-    if (currentLoyalty >= 5) {
-      return currentLoyalty;
+    // Check if companion loyalty data exists
+    if (!playerStore.companionLoyalty[companionId]) {
+      playerStore.companionLoyalty[companionId] = {
+        loyalty: 1,
+        state: CompanionState.LOYAL,
+        turnsSinceLastFed: 0,
+        turnsWary: 0
+      };
     }
     
-    // Set new loyalty
-    const newLoyalty = currentLoyalty + 1;
-    playerStore.setCompanionLoyalty(companionId, newLoyalty);
+    // Increase loyalty and cap at 10
+    const currentLoyalty = playerStore.companionLoyalty[companionId].loyalty;
+    const newLoyalty = Math.min(10, currentLoyalty + 1);
+    playerStore.companionLoyalty[companionId].loyalty = newLoyalty;
     
     // Apply effects for reaching new loyalty level
     this.applyLoyaltyEffects(companionId, newLoyalty);
@@ -129,26 +132,32 @@ class CompanionService {
    * @returns New loyalty level
    */
   decreaseLoyalty(companionId: string): number {
-    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
+    const playerStore = usePlayerStore();
     
     // Check if the companion exists
     if (!playerStore.animalCompanions.includes(companionId)) {
       return -1;
     }
     
-    // Get current loyalty
-    const currentLoyalty = playerStore.companionLoyalty(companionId);
-    
-    // Min loyalty is 0 (companion leaves when it hits 0)
-    if (currentLoyalty <= 0) {
-      // Remove companion
-      playerStore.removeCompanion(companionId);
-      return -1;
+    // Check if companion loyalty data exists
+    if (!playerStore.companionLoyalty[companionId]) {
+      playerStore.companionLoyalty[companionId] = {
+        loyalty: 5,
+        state: CompanionState.LOYAL,
+        turnsSinceLastFed: 0,
+        turnsWary: 0
+      };
     }
     
-    // Set new loyalty
-    const newLoyalty = currentLoyalty - 1;
-    playerStore.setCompanionLoyalty(companionId, newLoyalty);
+    // Decrease loyalty and ensure it doesn't go below 0
+    const currentLoyalty = playerStore.companionLoyalty[companionId].loyalty;
+    const newLoyalty = Math.max(0, currentLoyalty - 1);
+    playerStore.companionLoyalty[companionId].loyalty = newLoyalty;
+    
+    // Remove companion if loyalty reaches 0
+    if (newLoyalty === 0) {
+      playerStore.removeCompanion(companionId);
+    }
     
     return newLoyalty;
   }
@@ -159,9 +168,9 @@ class CompanionService {
    * @returns Array of companion IDs that provide bonuses
    */
   getCompanionsForChallengeType(challengeType: string): string[] {
-    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
+    const playerStore = usePlayerStore();
     const cardStore = useCardStore();
-    const gameStore = useGameStore() as unknown as ExtendedGameStore;
+    const gameStore = useGameStore();
     
     return playerStore.animalCompanions.filter(companionId => {
       const companion = cardStore.getCompanionById(companionId);
@@ -173,22 +182,45 @@ class CompanionService {
   }
 
   /**
+   * Get the loyalty status of a companion
+   * @param companionId ID of the companion
+   * @returns True if the companion is wary
+   */
+  isCompanionWary(companionId: string): boolean {
+    const playerStore = usePlayerStore();
+    
+    // Check if the companion exists
+    if (!playerStore.animalCompanions.includes(companionId)) {
+      return false;
+    }
+    
+    // Check loyalty status
+    const status = playerStore.companionLoyalty[companionId];
+    if (!status) {
+      return false;
+    }
+    
+    return status.state === CompanionState.WARY;
+  }
+
+  /**
    * Select a random companion based on current location and season
    */
   selectRandomCompanion(): string {
     const cardStore = useCardStore();
-    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
-    const gameStore = useGameStore() as unknown as ExtendedGameStore;
+    const playerStore = usePlayerStore();
+    const gameStore = useGameStore();
 
     // Get current location ID and season
     const locationId = gameStore.currentLandscapeId;
-    const season = gameStore.currentSeason;
+    const season = gameStore.currentSeason as keyof typeof Season;
     
     // Get all available companions for this location/season
     const availableCompanions = cardStore.animalCompanions.filter(companion => {
       // Filter by season
-      if (companion.affinitySeasons && companion.affinitySeasons.length > 0) {
-        if (!companion.affinitySeasons.includes(season)) {
+      if (companion.affinitySeasons && Array.isArray(companion.affinitySeasons)) {
+        // If the companion has specific seasons, check if current season is included
+        if (!companion.affinitySeasons.some(s => s.toString().toLowerCase() === season.toLowerCase())) {
           return false;
         }
       }
@@ -212,32 +244,12 @@ class CompanionService {
   }
 
   /**
-   * Check if a companion is in a wary state (loyalty < 3)
-   * @param companionId ID of the companion
-   * @returns True if the companion is wary
-   */
-  isCompanionWary(companionId: string): boolean {
-    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
-    
-    // Check if the companion exists
-    if (!playerStore.animalCompanions.includes(companionId)) {
-      return false;
-    }
-    
-    // Get loyalty
-    const loyalty = playerStore.companionLoyalty(companionId);
-    
-    // Wary if loyalty < 3
-    return loyalty < 3;
-  }
-
-  /**
    * Apply effects when bonding with a companion
    * @param companionId ID of the companion
    */
   private applyBondingEffects(companionId: string): void {
     const cardStore = useCardStore();
-    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
+    const playerStore = usePlayerStore();
     
     const companion = cardStore.getCompanionById(companionId);
     if (!companion || !companion.bondingEffect) {
@@ -255,7 +267,7 @@ class CompanionService {
    */
   private applyLoyaltyEffects(companionId: string, loyaltyLevel: number): void {
     const cardStore = useCardStore();
-    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
+    const playerStore = usePlayerStore();
     
     const companion = cardStore.getCompanionById(companionId);
     if (!companion || !companion.loyaltyEffects) {
@@ -279,7 +291,7 @@ class CompanionService {
    */
   getCompatibleResources(companionId: string): any[] {
     const cardStore = useCardStore();
-    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
+    const playerStore = usePlayerStore();
     
     // Get all player resources
     const playerResourceIds = playerStore.resources;
@@ -312,7 +324,7 @@ class CompanionService {
    * @returns Resource ID or null if none available
    */
   getBestFoodResource(companionId: string): string | null {
-    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
+    const playerStore = usePlayerStore();
     
     // Get compatible resources
     const compatibleResources = this.getCompatibleResources(companionId);
@@ -358,17 +370,18 @@ class CompanionService {
    */
   getPotentialCompanions(): AnimalCompanionCard[] {
     const cardStore = useCardStore();
-    const gameStore = useGameStore() as unknown as ExtendedGameStore;
+    const gameStore = useGameStore();
     
     // Get current location ID and season
     const locationId = gameStore.currentLandscapeId;
-    const season = gameStore.currentSeason;
+    const season = gameStore.currentSeason as keyof typeof Season;
     
     // Filter companions based on season only
     return cardStore.animalCompanions.filter(companion => {
-      // Match season
-      if (companion.affinitySeasons && companion.affinitySeasons.length > 0) {
-        if (!companion.affinitySeasons.includes(season)) {
+      // Filter by season
+      if (companion.affinitySeasons && Array.isArray(companion.affinitySeasons)) {
+        // If the companion has specific seasons, check if current season is included
+        if (!companion.affinitySeasons.some(s => s.toString().toLowerCase() === season.toLowerCase())) {
           return false;
         }
       }
@@ -384,8 +397,8 @@ class CompanionService {
    */
   hasPotentialCompanions(): boolean {
     const cardStore = useCardStore();
-    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
-    const gameStore = useGameStore() as unknown as ExtendedGameStore;
+    const playerStore = usePlayerStore();
+    const gameStore = useGameStore();
     
     // Get all potential companions for current location and season
     const potentialCompanions = this.getPotentialCompanions();
@@ -424,7 +437,7 @@ class CompanionService {
    */
   getAvailableCompanions(): AnimalCompanionCard[] {
     const cardStore = useCardStore();
-    const playerStore = usePlayerStore() as unknown as ExtendedPlayerStore;
+    const playerStore = usePlayerStore();
     
     return cardStore.animalCompanions.filter(companion => {
       // If companion has no preferred resources, don't show it

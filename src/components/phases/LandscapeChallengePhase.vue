@@ -11,7 +11,7 @@
     <div v-if="!rollResult" class="challenge-actions">
       <GameCard 
         title="Roll D8 and Resolve Challenge" 
-        cardType="ACTION"
+        :cardType="CardType.ACTION"
         @click="rollForChallenge"
       >
         <div style="font-size: 0.85rem; padding: 5px;">
@@ -22,7 +22,7 @@
       
       <GameCard 
         title="Avoid Challenge" 
-        cardType="ACTION"
+        :cardType="CardType.ACTION"
         @click="avoidChallenge"
       >
         <div style="font-size: 1rem; padding: 5px;">
@@ -34,7 +34,7 @@
     <div v-else class="challenge-result">
       <GameCard 
         :title="rollResult.success ? 'Challenge Passed!' : 'Challenge Failed'" 
-        :cardType="rollResult.success ? 'SUCCESS' : 'DANGER'"
+        :cardType="rollResult.success ? CardType.SUCCESS : CardType.DANGER"
         @click="advanceToNextPhase"
       >
         <div class="roll-result">
@@ -61,6 +61,7 @@ import { useCardStore } from '@/stores/cardStore';
 import { useServices } from '@/composables/useServices';
 import { ChallengeOutcome } from '@/models/types/game';
 import GameCard from '@/components/GameCard.vue';
+import { CardType } from '@/models/enums/cardTypes';
 
 const gameStore = useGameStore();
 const playerStore = usePlayerStore();

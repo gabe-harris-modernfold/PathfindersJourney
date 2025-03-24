@@ -8,38 +8,29 @@
         <p>Choose a companion to accompany you on your journey.</p>
         
         <div class="companions-grid">
-          <div 
+          <GameCard
             v-for="companion in availableCompanions" 
             :key="companion.id" 
+            :title="companion.name"
+            :subtitle="'Animal Companion'"
+            :cardType="CardType.ANIMAL_COMPANION"
             class="companion-card"
             @click="selectCompanion(companion.id)"
           >
-            <h4>{{ companion.name }}</h4>
             <div class="companion-narrative">
-              <p>{{ parseJsonString(companion.abilityDescription) }}</p>
               <p>{{ parseJsonString(companion.ability) }}</p>
-              
-              <p v-if="companion.preferredResources && companion.preferredResources.length > 0">
-                <span class="label">Preferred Resources</span>
-                {{ getResourceNames(companion.preferredResources).join(', ') }}
-              </p>
-              
-              <p v-if="companion.seasonalAffinity && companion.seasonalAffinity.length > 0">
-                <span class="label">Seasonal Affinity</span>
-                {{ formatSeasons(companion.seasonalAffinity) }}
-              </p>
             </div>
-          </div>
+          </GameCard>
         </div>
       </div>
       
-      <div class="action-buttons mt-4">
-        <div class="game-card action-card" @click="advancePhase">
-          <h4>Skip Animal Companion</h4>
-          <div style="font-size: 1rem; padding: 5px;">
-            Continue without a companion
-          </div>
-        </div>
+      <div class="action-buttons bottom-actions">
+        <GameCard
+          title="Skip Animal Companion"
+          :cardType="CardType.ACTION"
+          class="action-card"
+          @click="advancePhase"
+        />
       </div>
     </div>
     
@@ -47,61 +38,34 @@
       <div class="companion-management">
         <h3>Your Animal Companion</h3>
         <div v-for="companionId in playerStore.animalCompanions" :key="companionId" class="selected-companion">
-          <div v-if="getCompanion(companionId) && hasCompatibleResources(companionId)" class="companion-narrative">
-            <h4>{{ getCompanion(companionId).name }}</h4>
-            <p>{{ parseJsonString(getCompanion(companionId).abilityDescription) }}</p>
-            <p>{{ parseJsonString(getCompanion(companionId).ability) }}</p>
+          <div v-if="getCompanion(companionId) && hasCompatibleResources(companionId)">
+            <!-- Main Companion Card -->
+            <GameCard
+              :title="getCompanion(companionId).name"
+              :subtitle="'Animal Companion'"
+              :cardType="CardType.ANIMAL_COMPANION"
+              class="selected-companion-card"
+            >
+              <p>{{ parseJsonString(getCompanion(companionId).ability) }}</p>
+            </GameCard>
             
-            <p v-if="getCompanion(companionId).preferredResources && getCompanion(companionId).preferredResources.length > 0">
-              <span class="label">Preferred Resources</span>
-              {{ getResourceNames(getCompanion(companionId).preferredResources).join(', ') }}
-            </p>
-            
-            <p v-if="getCompanion(companionId).seasonalAffinity && getCompanion(companionId).seasonalAffinity.length > 0">
-              <span class="label">Seasonal Affinity</span>
-              {{ formatSeasons(getCompanion(companionId).seasonalAffinity) }}
-            </p>
-            
-            <p>
-              <span class="label">Compatible Resources in Your Pack</span>
-              {{ getPlayerCompatibleResourcesText(companionId) }}
-            </p>
-            
-            <div v-if="isResourcesRunningLow(companionId)" class="resource-warning">
-              <p>⚠️ <strong>Warning:</strong> Resources for this companion are running low!</p>
-            </div>
-            
-            <div class="action-buttons mt-4">
-              <div class="game-card action-card" @click="useCompanionAbility(companionId)">
-                <h4>Use Ability</h4>
-              </div>
-              <div class="game-card action-card warning" @click="dismissCompanion(companionId)">
-                <h4>Dismiss</h4>
-              </div>
-            </div>
-            
-            <div v-if="getCompatibleResources(companionId).length > 0" class="mt-4">
-              <h4>Feed with Resources</h4>
-              <div class="resource-grid">
-                <GameCard 
-                  v-for="resourceId in getCompatibleResources(companionId)" 
-                  :key="resourceId"
-                  :title="getResourceName(resourceId)"
-                  cardType="RESOURCE"
-                  class="resource-card"
-                  @click="feedCompanionWithResource(companionId, resourceId)"
-                >
-                  <div class="resource-content">
-                    <p>{{ getResourceDescription(resourceId) }}</p>
-                    <div class="resource-action">
-                      <small>Click to feed companion</small>
+            <!-- Resource feeding with cleaner UI -->
+            <div class="resource-offerings">
+              <h4>Make an Offering to your companions</h4>
+              <div class="compatible-resources" v-if="hasCompatibleResources(companionId)">
+                <div class="resource-item" v-for="resourceId in getCompatibleResourceIds(companionId)" :key="resourceId">
+                  <GameCard 
+                    :title="getResourceName(resourceId)" 
+                    :cardType="CardType.RESOURCE"
+                    @click="feedCompanionWithResource(companionId, resourceId)"
+                  >
+                    <div class="resource-details">
+                      <p>{{ getResourceDescription(resourceId) }}</p>
+                      <p class="action-text">Offer this resource</p>
                     </div>
-                  </div>
-                </GameCard>
+                  </GameCard>
+                </div>
               </div>
-            </div>
-            <div v-else class="mt-4">
-              <p><em>No compatible resources to feed this companion.</em></p>
             </div>
           </div>
           <div v-else-if="getCompanion(companionId)">No compatible resources found for {{ getCompanion(companionId).name }}</div>
@@ -109,13 +73,13 @@
         </div>
       </div>
       
-      <div class="action-buttons mt-4">
-        <div class="game-card action-card" @click.prevent="advancePhase">
-          <h4>Continue Journey</h4>
-          <div style="font-size: 1rem; padding: 5px;">
-            Proceed to the next phase
-          </div>
-        </div>
+      <div class="action-buttons bottom-actions">
+        <GameCard
+          title="Continue Journey"
+          :cardType="CardType.ACTION"
+          class="action-card"
+          @click="advancePhase"
+        />
       </div>
     </div>
   </div>
@@ -129,6 +93,8 @@ import { useLogStore } from '@/stores/logStore';
 import { useServices } from '@/composables/useServices';
 import { parseJsonString } from '@/utils/stringUtils';
 import { onMounted } from 'vue';
+import GameCard from '@/components/GameCard.vue';
+import { CardType } from '@/models/enums/cardTypes';
 
 const gameStore = useGameStore();
 const playerStore = usePlayerStore();
@@ -175,8 +141,9 @@ const selectCompanion = (companionId: string) => {
   playerStore.addCompanion(companionId);
 };
 
-// Advance to the next phase
+// Navigate to next phase
 const advancePhase = () => {
+  console.log('Advancing to next phase');
   phaseService.advancePhase();
 };
 
@@ -274,16 +241,6 @@ const isResourcesRunningLow = (companionId: string) => {
   return compatibleResources.length > 0 && compatibleResources.length <= 2;
 };
 
-// Use companion ability
-const useCompanionAbility = (companionId: string) => {
-  const success = playerStore.useCompanionAbility(companionId);
-  if (success) {
-    logStore.addToGameLog(`You used ${getCompanion(companionId)?.name}'s special ability.`, true, 'companion');
-  } else {
-    logStore.addToGameLog(`Unable to use ${getCompanion(companionId)?.name}'s special ability.`, true, 'error');
-  }
-};
-
 // Get resource name
 const getResourceName = (resourceId: string) => {
   const resource = cardStore.getResourceById(resourceId);
@@ -312,6 +269,11 @@ const getCompatibleResources = (companionId: string) => {
   });
 };
 
+// Get compatible resource IDs for a companion
+const getCompatibleResourceIds = (companionId: string) => {
+  return getCompatibleResources(companionId).map(resourceId => resourceId);
+};
+
 // Feed companion with specific resource
 const feedCompanionWithResource = (companionId: string, resourceId: string) => {
   const companion = getCompanion(companionId);
@@ -321,19 +283,18 @@ const feedCompanionWithResource = (companionId: string, resourceId: string) => {
   const success = companionService.feedCompanion(companionId, resourceId);
   
   if (success) {
-    logStore.addToGameLog(`You fed ${resource.name} to your ${companion.name}.`, true, 'companion');
+    logStore.addToGameLog(`You offered ${resource.name} to your ${companion.name}.`, true, 'companion');
+    const loyalty = companionService.getLoyalty(companionId);
+    logStore.addToGameLog(`${companion.name} now has a loyalty level of ${loyalty}.`, true, 'companion');
   } else {
     logStore.addToGameLog(`Failed to feed your companion.`, true, 'error');
   }
 };
 
-// Dismiss companion
-const dismissCompanion = (companionId: string) => {
-  const companion = getCompanion(companionId);
-  if (!companion) return;
-  
-  playerStore.removeCompanion(companionId);
-  logStore.addToGameLog(`You bid farewell to your ${companion.name}.`, true, 'companion');
+// Continue journey 
+const continueJourney = () => {
+  console.log('Continue journey button clicked');
+  advancePhase();
 };
 </script>
 
@@ -343,139 +304,134 @@ const dismissCompanion = (companionId: string) => {
   flex-direction: column;
   min-height: 100%;
   text-align: center;
+  padding: 1rem;
   
-  @media (min-width: 768px) {
-    padding: 0 1rem;
+  .phase-title {
+    text-align: center;
+    margin-bottom: 1.5rem;
   }
-}
-
-.phase-title {
-  font-family: 'Cinzel', serif;
-  font-size: 1.8rem;
-  margin-bottom: 0.3rem;
-  color: #3c2415;
-  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
-}
-
-.phase-description {
-  margin-bottom: 1rem;
-  font-style: italic;
-  color: #5a4534;
-}
-
-.companion-selection {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   
-  @media (min-width: 768px) {
-    flex-direction: row;
+  .companion-selection {
+    margin-bottom: 2rem;
+  }
+  
+  .companions-grid {
+    display: flex;
     flex-wrap: wrap;
-    justify-content: center;
-  }
-}
-
-.companion-card {
-  margin: 0.25rem;
-  width: 100%;
-  max-width: 300px;
-  cursor: pointer;
-  
-  @media (min-width: 768px) {
-    width: calc(33.333% - 0.5rem);
-  }
-}
-
-.companion-management {
-  margin-top: 1rem;
-  border: 1px solid #e0d2c3;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  background-color: rgba(255, 255, 255, 0.8);
-}
-
-.selected-companion {
-  margin-top: 0.5rem;
-  text-align: left;
-}
-
-.companion-narrative {
-  h4 {
-    margin-bottom: 0.25rem;
-    color: #3c2415;
+    gap: 0.5rem;
+    justify-content: flex-start;
+    margin-left: 1rem;
+    
+    .companion-card {
+      flex: 0 0 calc(25% - 0.5rem);
+      max-width: calc(25% - 0.5rem);
+      transform: scale(0.5);
+      transform-origin: top left;
+      margin-bottom: -2rem;
+      margin-right: -4rem;
+      
+      :deep(.game-card__title) {
+        font-size: 0.9rem;
+      }
+      
+      :deep(.game-card__subtitle) {
+        font-size: 0.75rem;
+      }
+      
+      :deep(.game-card__body) {
+        font-size: 0.75rem;
+      }
+    }
   }
   
-  p {
-    margin-bottom: 0.25rem;
-    color: #5a4534;
+  .selected-companion {
+    margin-bottom: 2rem;
+    margin-left: 1rem;
+    
+    .selected-companion-card {
+      transform: scale(0.5);
+      transform-origin: top left;
+      margin-bottom: -2rem;
+      margin-right: -4rem;
+      
+      :deep(.game-card__title) {
+        font-size: 0.9rem;
+      }
+      
+      :deep(.game-card__subtitle) {
+        font-size: 0.75rem;
+      }
+      
+      :deep(.game-card__body) {
+        font-size: 0.75rem;
+      }
+    }
+  }
+  
+  .resource-offerings {
+    margin-top: 1rem;
+  }
+  
+  .compatible-resources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-left: 1rem;
+    
+    .resource-item {
+      .resource-card {
+        flex: 0 0 calc(25% - 0.5rem);
+        max-width: calc(25% - 0.5rem);
+        transform: scale(0.5);
+        transform-origin: top left;
+        margin-bottom: -2rem;
+        margin-right: -4rem;
+        cursor: pointer;
+        
+        :deep(.game-card__title) {
+          font-size: 0.9rem;
+        }
+        
+        :deep(.game-card__body) {
+          font-size: 0.75rem;
+        }
+      }
+    }
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    
+    &.bottom-actions {
+      margin-top: 2rem;
+      justify-content: center;
+      display: flex;
+      
+      .action-card {
+        transform: scale(0.5);
+        transform-origin: center;
+        margin: 0 auto;
+        
+        :deep(.game-card__title) {
+          font-size: 1.1rem;
+        }
+      }
+    }
   }
   
   .label {
     font-weight: bold;
-    color: #8b4513;
-    margin-right: 0.25rem;
+    margin-right: 0.5rem;
   }
-}
-
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.action-btn {
-  background: #8b4513;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
   
-  &:hover {
-    background: #654321;
+  .resource-warning {
+    color: #e74c3c;
+    margin-top: 0.5rem;
   }
-}
-
-.warning {
-  background: #ffc107;
   
-  &:hover {
-    background: #ff9900;
+  .mt-4 {
+    margin-top: 1rem;
   }
-}
-
-.mt-4 {
-  margin-top: 0.5rem;
-}
-
-.resource-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.resource-card {
-  cursor: pointer;
-  transition: transform 0.2s;
-  
-  &:hover {
-    transform: translateY(-4px);
-  }
-}
-
-.resource-content {
-  font-size: 0.9rem;
-}
-
-.resource-action {
-  font-size: 0.8rem;
-  color: #999;
-  margin-top: 0.25rem;
-}
-
-.resource-warning {
-  color: #ff9900;
-  font-weight: bold;
-  margin-top: 0.25rem;
 }
 </style>

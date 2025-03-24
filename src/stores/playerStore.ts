@@ -166,25 +166,26 @@ export const usePlayerStore = defineStore('player', {
     
     // Feed an animal companion
     feedCompanion(companionId: string, resourceId: string): boolean {
-      // Check if the companion exists
+      // Validate inputs
       if (!this.animalCompanions.includes(companionId)) {
         return false;
       }
       
-      // Check if the player has the resource
       if (!this.resources.includes(resourceId)) {
         return false;
       }
       
-      // Remove the resource
+      // Remove the resource (consumed by feeding)
       this.removeResource(resourceId);
       
-      // Get companion status
-      const status = this.companionLoyalty[companionId];
-      if (!status) {
-        // Initialize if missing
+      // Initialize companion loyalty data if it doesn't exist or is just a number
+      if (!this.companionLoyalty[companionId] || typeof this.companionLoyalty[companionId] === 'number') {
+        const currentLoyalty = typeof this.companionLoyalty[companionId] === 'number' 
+          ? this.companionLoyalty[companionId] 
+          : 1;
+          
         this.companionLoyalty[companionId] = {
-          loyalty: 5,
+          loyalty: currentLoyalty,
           state: CompanionState.LOYAL,
           turnsSinceLastFed: 0,
           turnsWary: 0
@@ -209,14 +210,21 @@ export const usePlayerStore = defineStore('player', {
       const logStore = useLogStore();
       const cardStore = useCardStore();
       
-      // Get the resource name for better log messages
+      // Log the feeding action
+      const companion = cardStore.getAnimalCompanionById(companionId);
       const resource = cardStore.getResourceById(resourceId);
-      logStore.addToGameLog(`You fed your animal companion with ${resource ? resource.name : resourceId}.`, true, 'companion');
+      
+      if (companion && resource) {
+        logStore.addToGameLog(
+          `You offered ${resource.name} to your ${companion.name}. Their loyalty has increased!`,
+          true,
+          'companion'
+        );
+      }
       
       return true;
     },
     
-    // Handle companions at end of turn
     updateCompanionStatus(): void {
       const logStore = useLogStore();
       const cardStore = useCardStore();
