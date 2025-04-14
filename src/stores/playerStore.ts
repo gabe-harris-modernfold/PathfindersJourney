@@ -23,8 +23,10 @@ export const usePlayerStore = defineStore('player', {
     uniqueCraftedItemsCount: 0,
     companionLoyalty: {},
     wisdom: 0,
-    equippedItems: [], // Add equippedItems property
-    selectedCharacter: null, // Add selectedCharacter property
+    equippedItems: [], 
+    selectedCharacter: null, 
+    hasResourceForagingAction: true, 
+    hasPerformedCrafting: false, 
   }),
   
   getters: {

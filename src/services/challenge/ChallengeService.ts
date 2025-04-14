@@ -259,7 +259,15 @@ class ChallengeService {
     const challenge = currentLandscape.challenges[0];
     
     // Resolve the challenge
-    const outcome = this.resolveChallenge(challenge);
+    const outcome = this.resolveChallenge({
+      id: 'landscape-challenge',
+      name: (challenge as any).name || 'Landscape Challenge',
+      description: (challenge as any).description || 'A challenge presented by the landscape',
+      type: (challenge as any).type as ChallengeType,
+      difficulty: challenge.difficulty,
+      requiredSkill: (challenge as any).requiredSkill || 'survival',
+      reward: (challenge as any).reward || { experience: 1 }
+    });
     
     // Handle landscape-specific outcomes
     if (outcome.success === true) {

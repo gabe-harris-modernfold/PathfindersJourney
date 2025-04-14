@@ -98,9 +98,9 @@
 <script>
 import { defineComponent, computed, ref } from 'vue';
 import { CardType } from '@/models/enums/cardTypes';
-import GameCard from '@/components/core/GameCard.vue';
+import GameCard from '@/components/GameCard.vue';
 import { useServices } from '@/composables/useServices';
-import ComponentWrapper from '@/components/core/ComponentWrapper.vue';
+import { ComponentWrapper } from '@/components/common';
 import { parseJsonAbility } from '@/utils/stringUtils';
 
 export default defineComponent({

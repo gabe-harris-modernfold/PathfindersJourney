@@ -249,8 +249,8 @@ class ChallengeService {
     }
     
     // Check for 'all' modifier that applies to all challenge types
-    if (seasonData.modifiers.all) {
-      return seasonData.modifiers.all;
+    if (seasonData.modifiers && 'all' in seasonData.modifiers) {
+      return Number(seasonData.modifiers['all']);
     }
     
     return 0;

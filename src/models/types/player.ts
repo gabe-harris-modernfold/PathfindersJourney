@@ -41,6 +41,8 @@ export interface PlayerState {
   wisdom: number;
   equippedItems?: string[];
   selectedCharacter?: any;
+  hasResourceForagingAction: boolean;
+  hasPerformedCrafting: boolean;
 }
 
 export interface PlayerActionResult {

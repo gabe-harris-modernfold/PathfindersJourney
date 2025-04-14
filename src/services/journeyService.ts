@@ -280,12 +280,12 @@ class JourneyService extends BaseService {
     
     // Apply landscape special effects
     if (landscape.specialFeature) {
-      gameStore.addTempEffect(
-        landscape.specialFeature.name, 
-        landscape.specialFeature.description,
-        landscape.specialFeature.effect,
-        1
-      );
+      gameStore.addTempEffect({
+        name: landscape.specialFeature.name,
+        description: landscape.specialFeature.description,
+        magnitude: 1,
+        type: landscape.specialFeature.effect
+      }, 1);
       gameStore.addToGameLog(`The landscape applies ${landscape.specialFeature.name}`);
     }
     

@@ -94,8 +94,8 @@ class VictoryService extends BaseService {
    */
   checkBondsFormed(): boolean {
     const playerStore = this.storeRegistry.getPlayerStore();
-    // Fix: call the companionCount method instead of treating it as a property
-    return playerStore.companionCount() >= 1;
+    // Fix: access the companionCount property instead of calling it as a method
+    return playerStore.companionCount >= 1;
   }
   
   /**
@@ -118,7 +118,7 @@ class VictoryService extends BaseService {
       case 'giant_beastfriend':
         // Bond with at least 4 different Animal Companions
         // Using companionCount getter instead of animalCompanions array
-        return playerStore.companionCount() >= 4;
+        return playerStore.companionCount >= 4;
         
       case 'hedge_witch':
         // Create at least 3 different Crafted Items
@@ -262,5 +262,14 @@ export function getVictoryService(): VictoryService {
 export const victoryService = {
   get instance() {
     return getVictoryService();
+  },
+  checkVictoryConditions() {
+    return getVictoryService().checkVictoryConditions();
+  },
+  checkDefeatConditions() {
+    return getVictoryService().checkDefeatConditions();
+  },
+  processDefeat(reason: string) {
+    return getVictoryService().processDefeat(reason);
   }
 };

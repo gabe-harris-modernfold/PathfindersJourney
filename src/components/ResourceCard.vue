@@ -1,4 +1,5 @@
 <template>
+  <ComponentWrapper componentName="ResourceCard">
     <GameCard 
       :title="resource.name" 
       :subtitle="resource.rarity" 
@@ -45,143 +46,146 @@
         </div>
       </template>
     </GameCard>
-  </template>
+  </ComponentWrapper>
+</template>
   
-  <script>
-  import { defineComponent } from 'vue';
-  import { CardType } from '@/models/enums/cardTypes';
-  import GameCard from '@/components/core/GameCard.vue';
-  import { resourceService } from '@/services/resourceService';
+<script>
+import { defineComponent } from 'vue';
+import { CardType } from '@/models/enums/cardTypes';
+import GameCard from '@/components/GameCard.vue';
+import { resourceService } from '@/services/resourceService';
+import { ComponentWrapper } from '@/components/common';
   
-  export default defineComponent({
-    name: 'ResourceCard',
-    components: {
-      GameCard
+export default defineComponent({
+  name: 'ResourceCard',
+  components: {
+    GameCard,
+    ComponentWrapper
+  },
+  props: {
+    resource: {
+      type: Object,
+      required: true
     },
-    props: {
-      resource: {
-        type: Object,
-        required: true
-      },
-      selected: {
-        type: Boolean,
-        default: false
-      },
-      showActions: {
-        type: Boolean,
-        default: false
-      }
+    selected: {
+      type: Boolean,
+      default: false
     },
-    emits: ['select', 'use', 'discard'],
-    setup(props) {
-      // Truncate description for display - use the service method
-      const truncateDescription = (text) => {
-        return resourceService.truncateDescription(text);
-      };
-      
-      // Format season name for display - use the service method
-      const formatSeasonName = (season) => {
-        return resourceService.formatSeasonName(season);
-      };
-      
-      // Get CSS class for season - use the service method
-      const getSeasonClassName = (season) => {
-        return resourceService.getSeasonClassName(season);
-      };
-      
-      return {
-        CardType,
-        truncateDescription,
-        formatSeasonName,
-        getSeasonClassName
-      };
+    showActions: {
+      type: Boolean,
+      default: false
     }
-  });
-  </script>
+  },
+  emits: ['select', 'use', 'discard'],
+  setup(props) {
+    // Truncate description for display - use the service method
+    const truncateDescription = (text) => {
+      return resourceService.truncateDescription(text);
+    };
+    
+    // Format season name for display - use the service method
+    const formatSeasonName = (season) => {
+      return resourceService.formatSeasonName(season);
+    };
+    
+    // Get CSS class for season - use the service method
+    const getSeasonClassName = (season) => {
+      return resourceService.getSeasonClassName(season);
+    };
+    
+    return {
+      CardType,
+      truncateDescription,
+      formatSeasonName,
+      getSeasonClassName
+    };
+  }
+});
+</script>
   
-  <style lang="scss" scoped>
-  .resource-card__content {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    gap: 4px;
-    font-size: 0.9rem;
+<style lang="scss" scoped>
+.resource-card__content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 4px;
+  font-size: 0.9rem;
+}
+
+.resource-seasons {
+  margin-top: 4px;
+}
+
+.season-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  justify-content: center;
+}
+
+.season-tag {
+  font-size: 0.7rem;
+  padding: 1px 4px;
+  border-radius: 8px;
+  
+  &.imbolc {
+    background-color: #e6f7ff;
+    color: #0066cc;
   }
   
-  .resource-seasons {
-    margin-top: 4px;
+  &.beltane {
+    background-color: #f0fff0;
+    color: #228b22;
   }
   
-  .season-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2px;
-    justify-content: center;
+  &.lughnasadh {
+    background-color: #fff0e0;
+    color: #b25900;
   }
   
-  .season-tag {
-    font-size: 0.7rem;
-    padding: 1px 4px;
-    border-radius: 8px;
-    
-    &.imbolc {
-      background-color: #e6f7ff;
-      color: #0066cc;
-    }
-    
-    &.beltane {
-      background-color: #f0fff0;
-      color: #228b22;
-    }
-    
-    &.lughnasadh {
-      background-color: #fff0e0;
-      color: #b25900;
-    }
-    
-    &.samhain {
-      background-color: #f9e6ff;
-      color: #5a008a;
-    }
-    
-    &.winters-depth {
-      background-color: #e6f0ff;
-      color: #0047b3;
-    }
+  &.samhain {
+    background-color: #f9e6ff;
+    color: #5a008a;
   }
   
-  .resource-special {
-    margin-top: 4px;
-    
-    .special-effect {
-      font-style: italic;
-      font-size: 0.8rem;
-      color: #5a3e2b;
-    }
+  &.winters-depth {
+    background-color: #e6f0ff;
+    color: #0047b3;
   }
+}
+
+.resource-special {
+  margin-top: 4px;
   
-  .resource-card__actions {
-    display: flex;
-    gap: 2px;
+  .special-effect {
+    font-style: italic;
+    font-size: 0.8rem;
+    color: #5a3e2b;
+  }
+}
+
+.resource-card__actions {
+  display: flex;
+  gap: 2px;
+  
+  .btn {
+    flex: 1;
+    padding: 3px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    background: #e6d7b9;
+    border: 1px solid #8c7851;
+    cursor: pointer;
     
-    .btn {
-      flex: 1;
-      padding: 3px;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      background: #e6d7b9;
-      border: 1px solid #8c7851;
-      cursor: pointer;
-      
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-      
-      &--primary {
-        background: #5a3e2b;
-        color: white;
-      }
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    &--primary {
+      background: #5a3e2b;
+      color: white;
     }
   }
-  </style>
+}
+</style>

@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pathfinder's Journey: The Celtic Realm (Three.js Concept)</title>
+    <style>
+        body { margin: 0; font-family: sans-serif; background-color: #222; color: #eee; overflow: hidden; }
+        #game-canvas { display: block; }
+        #ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: 200px 1fr 250px;
+            grid-template-rows: 100px 1fr 150px 50px;
+            gap: 10px;
+            padding: 10px;
+            box-sizing: border-box;
+            pointer-events: none; /* Allow clicks to pass through to canvas if needed, but buttons will override */
+            color: #fff;
+            text-shadow: 1px 1px 2px black;
+        }
+        .ui-panel {
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 5px;
+            padding: 10px;
+            overflow-y: auto;
+            pointer-events: auto; /* Allow interaction with panels */
+            font-size: 0.9em;
+        }
+        #character-info { grid-column: 1 / 2; grid-row: 1 / 2; }
+        #location-info { grid-column: 2 / 3; grid-row: 1 / 2; text-align: center; }
+        #season-info { grid-column: 3 / 4; grid-row: 1 / 2; }
+        #inventory { grid-column: 1 / 2; grid-row: 2 / 4; }
+        #companions { grid-column: 3 / 4; grid-row: 2 / 3; }
+        #crafted-items { grid-column: 3 / 4; grid-row: 3 / 4; }
+        #game-log { grid-column: 1 / 4; grid-row: 4 / 5; background-color: rgba(0, 0, 0, 0.8); font-size: 0.8em; white-space: pre-wrap; }
+        #actions {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            pointer-events: auto;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #5a4a3a;
+            color: #eee;
+            border: 1px solid #8a7a6a;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover { background-color: #7a6a5a; }
+        button:disabled { background-color: #444; color: #888; cursor: not-allowed; }
+        ul { list-style: none; padding: 0; margin: 0; }
+        li { margin-bottom: 5px; }
+        h3 { margin-top: 0; border-bottom: 1px solid #555; padding-bottom: 5px; }
+        #victory-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 1.5em;
+            z-index: 100;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="game-canvas"></canvas>
+
+    <div id="ui-overlay">
+        <div id="character-info" class="ui-panel">
+            <h3>Character</h3>
+            <div id="char-name">Name: -</div>
+            <div>Health: <span id="char-health">-</span></div>
+            <div>Max Resources: <span id="char-max-resources">-</span></div>
+            <div>Blessings: <span id="char-blessings">-</span></div>
+            <div>Threat: <span id="char-threat">-</span></div>
+            <div>Journey: <span id="char-progress">-</span> / 15</div>
+        </div>
+
+        <div id="location-info" class="ui-panel">
+            <h3>Current Location</h3>
+            <div id="loc-name">-</div>
+            <div id="loc-challenge">Challenge: -</div>
+            <div id="loc-resources">Resources: -</div>
+        </div>
+
+        <div id="season-info" class="ui-panel">
+            <h3>Season</h3>
+            <div id="season-name">-</div>
+            <div>Effect: <span id="season-effect">-</span></div>
+            <div>Benefit: <span id="season-benefit">-</span></div>
+        </div>
+
+        <div id="inventory" class="ui-panel">
+            <h3>Inventory (<span id="inv-count">0</span>/<span id="inv-max">0</span>)</h3>
+            <ul id="inv-list"></ul>
+        </div>
+
+        <div id="companions" class="ui-panel">
+            <h3>Companions</h3>
+            <ul id="comp-list"></ul>
+        </div>
+
+        <div id="crafted-items" class="ui-panel">
+            <h3>Crafted Items</h3>
+            <ul id="craft-list"></ul>
+            <button id="craft-button" onclick="tryCrafting()" style="margin-top: 10px;">Attempt Craft</button>
+        </div>
+
+        <div id="game-log" class="ui-panel"></div>
+    </div>
+
+    <div id="actions">
+        <button id="start-game-button" onclick="startGame()">Start Game</button>
+        <button id="challenge-button" onclick="attemptChallenge()" disabled>Face Challenge</button>
+        <button id="companion-button" onclick="showCompanionOptions()" disabled>Use Companion</button>
+        </div>
+
+    <div id="victory-screen">
+        <h2 id="victory-title">Game Over</h2>
+        <p id="victory-message"></p>
+        <button onclick="location.reload()">Play Again</button>
+    </div>
+
+    <div id="char-select-modal" style="position:absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.9); padding: 20px; border: 1px solid #ccc; display: none; z-index: 50; pointer-events: auto;">
+        <h3>Choose Your Pathfinder</h3>
+        <select id="char-select-dropdown">
+            </select>
+        <button onclick="selectCharacter()">Confirm</button>
+    </div>
+
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.163.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.163.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        // import { OrbitControls } from 'three/addons/controls/OrbitControls.js'; // Optional controls
+
+        // --- Game Data ---
+        const LANDSCAPES = [
+            { id: 1, name: "Ancient Stone Circle", challenge: "Spectral Guardians (Wisdom)", difficulty: 6, resources: ["Standing Stone Chips", "Barrow Dust"] },
+            { id: 2, name: "Misty Barrow Downs", challenge: "Ancestral Spirits (Courage)", difficulty: 5, resources: ["Barrow Dust", "Sacred Water"] },
+            { id: 3, name: "Sacred Oak Grove", challenge: "Wild Beasts (Stealth)", difficulty: 5, resources: ["Rowan Wood", "Oak Galls"], companionSite: ["Wolf", "Deer", "Bear", "Boar"], heal: 2 },
+            { id: 4, name: "Thatched Village", challenge: "Suspicious Elders (Charm)", difficulty: 6, resources: ["Woven Reeds", "Horse Hair"] },
+            { id: 5, name: "Iron Forge Dell", challenge: "Molten Trials (Strength)", difficulty: 7, resources: ["Bog Iron", "Forge Cinders"], craftBonus: "metal" },
+            { id: 6, name: "Moonlit Loch", challenge: "Water Spirits (Patience)", difficulty: 5, resources: ["Sacred Water", "Silver Mistletoe"], companionSite: ["Salmon", "Owl"], threatReduction: 2, heal: 1 },
+            { id: 7, name: "Menhir Path", challenge: "Stone Sentinels (Perception)", difficulty: 6, resources: ["Standing Stone Chips", "Amber Shards"] },
+            { id: 8, name: "Faerie Knoll", challenge: "Trickster Beings (Cunning)", difficulty: 7, resources: ["Silver Mistletoe", "Oak Galls"], companionSite: ["Fox", "Hare"] },
+            { id: 9, name: "Whispering Heath", challenge: "Deceptive Paths (Navigation)", difficulty: 6, resources: ["Woven Reeds", "Ogham Sticks"], companionSite: ["Raven"] },
+            { id: 10, name: "Blackthorn Maze", challenge: "Thorny Barriers (Endurance)", difficulty: 5, resources: ["Rowan Wood", "Bog Iron"] },
+            { id: 11, name: "Boggy Lowlands", challenge: "Sinking Ground (Agility)", difficulty: 6, resources: ["Woven Reeds", "Sacred Water"] },
+            { id: 12, name: "Gathering Fair", challenge: "Rival Seekers (Trade)", difficulty: 4, resources: ["Horse Hair", "Amber Shards", "Ogham Sticks"] },
+            { id: 13, name: "Elder Bridge", challenge: "Guardian Toll (Sacrifice)", difficulty: 7, resources: ["Standing Stone Chips", "Forge Cinders"] }, // Return Journey
+            { id: 14, name: "Druid's Sanctuary", challenge: "Wisdom Trial (Knowledge)", difficulty: 6, resources: ["Ogham Sticks", "Silver Mistletoe"], threatReduction: 2, heal: 2, craftBonus: "spiritual" }, // Return Journey
+            { id: 15, name: "Wild Horse Plain", challenge: "Untamed Spirits (Connection)", difficulty: 5, resources: ["Horse Hair", "Amber Shards"], companionSite: ["Horse"] } // Return Journey
+        ];
+
+        const COMPANIONS = {
+            "Raven Scout": { ability: "Reveal next Landscape card (Not Implemented)", feedCost: 1, bonusType: "Perception", bonusValue: 1 },
+            "Wolf Guardian": { ability: "+2 to combat challenges", feedCost: 1, bonusType: "Combat", bonusValue: 2, season: "Winter" },
+            "Deer Guide": { ability: "Move extra Landscape (Not Implemented)", feedCost: 1, season: "Spring" },
+            "Bear Protector": { ability: "Prevent 2 damage", feedCost: 1, bonusType: "Defense", bonusValue: 2, season: "Summer" },
+            "Hare Pathfinder": { ability: "Re-roll one failed challenge roll (Simplified: +2 on fail)", feedCost: 1, bonusType: "Reroll", bonusValue: 2, season: "Spring" },
+            "Boar Digger": { ability: "Collect one extra Resource card", feedCost: 1, bonusType: "Resource", bonusValue: 1, season: "Harvest" },
+            "Fox Trickster": { ability: "Manipulate one die roll by ±2 (Simplified: +2 bonus)", feedCost: 1, bonusType: "General", bonusValue: 2, season: "Summer" },
+            "Owl Sage": { ability: "Bypass one challenge (Not Implemented)", feedCost: 1, season: "Winter" },
+            "Salmon Journeyer": { ability: "Return to previous Landscape (Not Implemented)", feedCost: 1, season: "Spring" },
+            "Horse Carrier": { ability: "Carry 2 extra Resources temporarily", feedCost: 1, bonusType: "Capacity", bonusValue: 2, season: "Summer" },
+        };
+
+        const RESOURCES = [
+            "Rowan Wood", "Bog Iron", "Silver Mistletoe", "Standing Stone Chips", "Woven Reeds",
+            "Horse Hair", "Oak Galls", "Amber Shards", "Barrow Dust", "Forge Cinders",
+            "Sacred Water", "Ogham Sticks"
+        ];
+
+        const CRAFTED_ITEMS = {
+            "Beast Speaker Charm": { recipe: ["Horse Hair", "Amber Shards", "Oak Galls"], ability: "Use any companion (passive)", drawback: "-1 Health per 3 turns (Not Implemented)", uses: 3 },
+            "Colossal Whistle": { recipe: ["Rowan Wood", "Silver Mistletoe"], ability: "Auto-succeed physical challenge", drawback: "+2 Threat on use", uses: 1 },
+            "Earth Speaker Staff": { recipe: ["Rowan Wood", "Standing Stone Chips", "Barrow Dust"], ability: "Auto-succeed wisdom/knowledge challenge", drawback: "-1 Max Resource on use (Not Implemented)", uses: 2 },
+            // Add more items, simplified...
+            "Seasonal Compass": { recipe: ["Amber Shards", "Standing Stone Chips", "Forge Cinders"], ability: "Ignore seasonal penalty for 1 turn", drawback: "+1 Threat on use", uses: 2 },
+            "Spirit Bridge Tokens": { recipe: ["Barrow Dust", "Sacred Water", "Amber Shards"], ability: "Move back 1 space", drawback: "-2 to next challenge", uses: 1 },
+            "Ogham Divining Set": { recipe: ["Oak Galls", "Sacred Water", "Ogham Sticks"], ability: "+3 bonus to next challenge", drawback: "+1 Threat on use", uses: 2},
+        };
+
+        const SEASONS = [
+            { name: "Samhain", landscapes: [1, 2, 3], effect: "Spiritual challenges +1 diff", benefit: "Can check discard (Not Implemented)", abundant: ["Barrow Dust", "Standing Stone Chips"], scarce: ["Woven Reeds", "Rowan Wood"] },
+            { name: "Winter's Depth", landscapes: [4, 5, 6], effect: "Physical challenges +1 diff", benefit: "+1 to wisdom challenges", abundant: ["Forge Cinders", "Bog Iron"], scarce: ["Sacred Water", "Horse Hair"] },
+            { name: "Imbolc", landscapes: [7, 8, 9], effect: "Healing +1", benefit: "+1 to all challenge rolls", abundant: ["Silver Mistletoe", "Sacred Water"], scarce: ["Barrow Dust", "Forge Cinders"] },
+            { name: "Beltane", landscapes: [10, 11, 12], effect: "Crafted items +1 use (Not Implemented)", benefit: "Max Health +1", abundant: ["Rowan Wood", "Oak Galls"], scarce: ["Standing Stone Chips", "Amber Shards"] },
+            { name: "Lughnasadh", landscapes: [13, 14, 15], effect: "+1 Resource on success", benefit: "Healing x2 (Simplified: +1)", abundant: ["Horse Hair", "Woven Reeds", "Ogham Sticks"], scarce: ["Bog Iron", "Silver Mistletoe"] }
+        ];
+
+        const CHARACTERS = {
+            "Giant Beastfriend": { health: 7, resourceCap: 8, ability: "Companions cost 0 resources (Simplified)", weakness: "Bog Iron items unusable (Not Implemented)", special: "Can use 2 companions (Not Implemented)" },
+            "Hedge Witch/Warlock": { health: 5, resourceCap: 7, ability: "Can substitute 1 resource in crafting (Simplified: -1 resource cost)", weakness: "-1 on social challenges", special: "Can craft 1 extra item (Not Implemented)" },
+            "Iron Crafter": { health: 6, resourceCap: 6, ability: "Crafting requires 1 fewer resource", weakness: "Cannot use companions effectively (Not Implemented)", special: "Items +1 use (Not Implemented)" },
+            "Village Elder": { health: 5, resourceCap: 5, ability: "Knows journey path (Not Implemented)", weakness: "+1 diff physical challenges", special: "Auto-succeed once per season (Not Implemented)" }
+        };
+
+        // --- Game State ---
+        let gameState = {
+            character: null,
+            health: 0,
+            maxHealth: 0,
+            resources: [],
+            maxResources: 0,
+            companions: [],
+            craftedItems: [],
+            currentLocationIndex: -1, // Start before the first location
+            currentSeasonIndex: 0,
+            journeyProgress: 0,
+            threat: 0,
+            blessings: 1,
+            isGameOver: false,
+            activeCompanionBonus: null, // { type: '...', value: X }
+            tempResourceBonus: 0,
+            lastChallengeResult: null,
+        };
+
+        // --- Three.js Setup ---
+        let scene, camera, renderer, cube, ground;
+
+        function initThree() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x334455);
+            scene.fog = new THREE.Fog(0x334455, 10, 50);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 5, 10);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('game-canvas'), antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+
+            // Basic Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 10, 7);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+
+            // Simple Ground
+            const groundGeo = new THREE.PlaneGeometry(50, 50);
+            const groundMat = new THREE.MeshStandardMaterial({ color: 0x556B2F, side: THREE.DoubleSide }); // Dark Olive Green
+            ground = new THREE.Mesh(groundGeo, groundMat);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+
+            // Simple Representation (e.g., a cube for current focus)
+            const cubeGeo = new THREE.BoxGeometry(1, 1, 1);
+            const cubeMat = new THREE.MeshStandardMaterial({ color: 0x8B4513 }); // Saddle Brown
+            cube = new THREE.Mesh(cubeGeo, cubeMat);
+            cube.position.y = 0.5;
+            cube.castShadow = true;
+            scene.add(cube);
+
+            // Optional Controls
+            // const controls = new OrbitControls(camera, renderer.domElement);
+            // controls.enableDamping = true;
+
+            animate();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            cube.rotation.y += 0.005; // Simple animation
+            // controls.update(); // If using OrbitControls
+            renderer.render(scene, camera);
+        }
+
+        // --- UI Management ---
+        const logElement = document.getElementById('game-log');
+        const invList = document.getElementById('inv-list');
+        const compList = document.getElementById('comp-list');
+        const craftList = document.getElementById('craft-list');
+
+        function logMessage(message) {
+            console.log(message); // Log to console for debugging
+            logElement.textContent = message + '\n' + logElement.textContent.substring(0, 500); // Keep log short
+        }
+
+        function updateUI() {
+            if (!gameState.character || gameState.isGameOver) return;
+
+            const char = gameState.character;
+            const location = LANDSCAPES[gameState.currentLocationIndex];
+            const season = SEASONS[gameState.currentSeasonIndex];
+
+            document.getElementById('char-name').textContent = `Name: ${char.name}`;
+            document.getElementById('char-health').textContent = `${gameState.health} / ${gameState.maxHealth}`;
+            document.getElementById('char-max-resources').textContent = `${gameState.maxResources}`;
+            document.getElementById('char-blessings').textContent = `${gameState.blessings}`;
+            document.getElementById('char-threat').textContent = `${gameState.threat}`;
+            document.getElementById('char-progress').textContent = `${gameState.journeyProgress}`;
+
+            document.getElementById('loc-name').textContent = location ? location.name : "Journey Start";
+            document.getElementById('loc-challenge').textContent = location ? `Challenge: ${location.challenge} (Diff: ${calculateChallengeDifficulty(location)})` : "-";
+             document.getElementById('loc-resources').textContent = location ? `Resources: ${location.resources.join(', ')}` : "-";
+
+
+            document.getElementById('season-name').textContent = season.name;
+            document.getElementById('season-effect').textContent = season.effect;
+            document.getElementById('season-benefit').textContent = season.benefit;
+
+            // Inventory
+            document.getElementById('inv-count').textContent = gameState.resources.length;
+            document.getElementById('inv-max').textContent = gameState.maxResources + gameState.tempResourceBonus;
+            invList.innerHTML = '';
+            const resourceCounts = {};
+            gameState.resources.forEach(r => { resourceCounts[r] = (resourceCounts[r] || 0) + 1; });
+            for (const res in resourceCounts) {
+                const li = document.createElement('li');
+                li.textContent = `${res} x${resourceCounts[res]}`;
+                invList.appendChild(li);
+            }
+
+            // Companions
+            compList.innerHTML = '';
+            gameState.companions.forEach(compName => {
+                const li = document.createElement('li');
+                const compData = COMPANIONS[compName];
+                li.textContent = `${compName} (${compData.ability.split('(')[0]})`; // Show name and basic ability
+                compList.appendChild(li);
+            });
+             document.getElementById('companion-button').disabled = gameState.companions.length === 0 || gameState.currentLocationIndex < 0;
+
+
+            // Crafted Items
+            craftList.innerHTML = '';
+            gameState.craftedItems.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = `${item.name} (${item.usesLeft}/${item.data.uses} uses)`;
+                craftList.appendChild(li);
+            });
+            document.getElementById('craft-button').disabled = gameState.currentLocationIndex < 0; // Can craft anytime maybe?
+
+            // Action Buttons
+             document.getElementById('challenge-button').disabled = gameState.currentLocationIndex < 0 || gameState.isGameOver;
+
+             // Simple 3D update based on location (e.g., change cube color)
+             if (location) {
+                const hash = location.name.split("").reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
+                const color = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+                cube.material.color.setHex( "0x" + ("000000" + color).slice(-6) );
+             }
+        }
+
+
+        // --- Game Logic ---
+
+        function rollD8() {
+            return Math.floor(Math.random() * 8) + 1;
+        }
+
+        function calculateChallengeDifficulty(location) {
+            if (!location) return 0;
+            let difficulty = location.difficulty;
+            const season = SEASONS[gameState.currentSeasonIndex];
+            const charData = CHARACTERS[gameState.character.name];
+
+            // Seasonal Modifier (Simplified)
+            if (season.effect.includes("Spiritual") && location.challenge.includes("Wisdom|Courage|Patience|Connection")) difficulty++;
+            if (season.effect.includes("Physical") && location.challenge.includes("Strength|Stealth|Endurance|Agility")) difficulty++;
+
+             // Character Weakness Modifier (Simplified)
+             if (charData.weakness.includes("physical") && location.challenge.includes("Strength|Stealth|Endurance|Agility")) difficulty++;
+              if (charData.weakness.includes("social") && location.challenge.includes("Charm|Trade|Cunning")) difficulty++;
+
+
+            // Threat Modifier
+            difficulty += Math.floor(gameState.threat / 3);
+
+            return Math.max(1, difficulty); // Difficulty cannot be less than 1
+        }
+
+        function calculatePlayerBonus(location) {
+            let bonus = 0;
+            const season = SEASONS[gameState.currentSeasonIndex];
+            const charData = CHARACTERS[gameState.character.name];
+
+            // Seasonal Benefit (Simplified)
+             if (season.benefit.includes("wisdom") && location.challenge.includes("Wisdom|Knowledge")) bonus++;
+             if (season.benefit.includes("all challenge rolls")) bonus++;
+
+            // Blessings
+            bonus += gameState.blessings; // Consume blessings? For now, just add them.
+
+             // Active Companion Bonus (Simplified Check)
+             if (gameState.activeCompanionBonus) {
+                 if (gameState.activeCompanionBonus.type === 'General' ||
+                     (gameState.activeCompanionBonus.type === 'Combat' && location.challenge.includes("Strength|Stealth")) || // Simple check
+                     (gameState.activeCompanionBonus.type === 'Perception' && location.challenge.includes("Perception|Navigation")) ) {
+                     bonus += gameState.activeCompanionBonus.value;
+                     logMessage(`Used ${gameState.activeCompanionBonus.name}'s bonus: +${gameState.activeCompanionBonus.value}`);
+                 }
+             }
+
+            // Active Item Bonus (Needs implementation if items give direct bonus)
+
+            return bonus;
+        }
+
+        function addResource(resourceName, count = 1) {
+            for (let i = 0; i < count; i++) {
+                 if (gameState.resources.length < gameState.maxResources + gameState.tempResourceBonus) {
+                    gameState.resources.push(resourceName);
+                } else {
+                    logMessage("Resource capacity full. Cannot gain more " + resourceName);
+                    break; // Stop adding if full
+                }
+            }
+            checkResourceCapacity(); // Ensure discard happens if somehow overfilled (shouldn't with check above)
+        }
+
+        function removeResource(resourceName, count = 1) {
+             let removedCount = 0;
+             for(let i = 0; i < count; i++) {
+                const index = gameState.resources.indexOf(resourceName);
+                if (index > -1) {
+                    gameState.resources.splice(index, 1);
+                    removedCount++;
+                } else {
+                    return false; // Could not remove requested amount
+                }
+             }
+             return true; // Successfully removed requested amount
+        }
+
+         function checkResourceCapacity() {
+             const capacity = gameState.maxResources + gameState.tempResourceBonus;
+             while (gameState.resources.length > capacity) {
+                 const discarded = gameState.resources.pop(); // Discard the last added resource
+                 logMessage(`Resource capacity exceeded. Discarded ${discarded}.`);
+             }
+         }
+
+         function gainCompanion(companionName) {
+            if (!gameState.companions.includes(companionName) && COMPANIONS[companionName]) {
+                gameState.companions.push(companionName);
+                logMessage(`You bonded with ${companionName}!`);
+            }
+         }
+
+        function changeHealth(amount) {
+            const season = SEASONS[gameState.currentSeasonIndex];
+            let actualHeal = amount;
+
+             // Healing boost from season/benefit
+             if (amount > 0) { // Only boost healing
+                 if (season.effect.includes("Healing +1")) actualHeal++;
+                 if (season.benefit.includes("Healing x2")) actualHeal *= 2; // Apply Lughnasadh benefit
+             }
+
+             // Apply active companion bonus (Bear Protector)
+             if (amount < 0 && gameState.activeCompanionBonus && gameState.activeCompanionBonus.type === 'Defense') {
+                 const prevented = Math.min(Math.abs(amount), gameState.activeCompanionBonus.value);
+                 logMessage(`Bear Protector prevented ${prevented} damage.`);
+                 amount += prevented;
+             }
+
+
+            gameState.health = Math.max(0, Math.min(gameState.maxHealth, gameState.health + actualHeal));
+            logMessage(`Health changed by ${actualHeal}. Current health: ${gameState.health}`);
+            if (gameState.health <= 0) {
+                logMessage("Your health has reached zero!");
+                handleDefeat("Ran out of health!");
+            }
+        }
+
+        function addThreat(amount) {
+            gameState.threat += amount;
+            logMessage(`Threat increased by ${amount}. Current threat: ${gameState.threat}`);
+            if (gameState.threat >= 10) {
+                logMessage("High threat! Otherworldly Manifestation possible (Not Implemented)");
+                // Roll on manifestation table here if implemented
+            }
+             if (gameState.threat >= 6 && gameState.journeyProgress === 15) {
+                 // Check defeat condition immediately if at end
+                 checkVictory();
+             }
+        }
+
+        function removeThreat(amount) {
+            gameState.threat = Math.max(0, gameState.threat - amount);
+            logMessage(`Threat reduced by ${amount}. Current threat: ${gameState.threat}`);
+        }
+
+        function updateSeason() {
+            const currentProgress = gameState.journeyProgress;
+            let newSeasonIndex = -1;
+
+            for(let i=0; i < SEASONS.length; i++) {
+                if (SEASONS[i].landscapes.includes(currentProgress)) {
+                    newSeasonIndex = i;
+                    break;
+                }
+            }
+
+            if (newSeasonIndex !== -1 && newSeasonIndex !== gameState.currentSeasonIndex) {
+                gameState.currentSeasonIndex = newSeasonIndex;
+                const newSeason = SEASONS[newSeasonIndex];
+                logMessage(`The season changes to ${newSeason.name}.`);
+
+                // Apply Beltane max health bonus
+                const charData = CHARACTERS[gameState.character.name];
+                gameState.maxHealth = charData.health + (newSeason.name === "Beltane" ? 1 : 0);
+                if (gameState.health > gameState.maxHealth) gameState.health = gameState.maxHealth; // Adjust if needed
+
+                // Check for resource spoilage/change (Not Implemented)
+                // Add threat for unprepared boundary crossing? (Not Implemented)
+            }
+        }
+
+         function useCraftedItem(itemName) {
+             const itemIndex = gameState.craftedItems.findIndex(i => i.name === itemName);
+             if (itemIndex === -1) {
+                 logMessage(`You don't have ${itemName}.`);
+                 return;
+             }
+             const item = gameState.craftedItems[itemIndex];
+
+             if (item.usesLeft <= 0) {
+                 logMessage(`${itemName} is depleted.`);
+                 return;
+             }
+
+             logMessage(`Using ${itemName}...`);
+             item.usesLeft--;
+
+             // Apply Ability (Simplified)
+             const ability = item.data.ability.toLowerCase();
+             if (ability.includes("auto-succeed physical")) {
+                 gameState.lastChallengeResult = 'auto-success-physical'; // Flag for challenge resolution
+             } else if (ability.includes("auto-succeed wisdom")) {
+                  gameState.lastChallengeResult = 'auto-success-mental';
+             } else if (ability.includes("ignore seasonal penalty")) {
+                 // Need a flag or temporary state change (Not Implemented fully)
+                 logMessage("Ignoring seasonal penalties for this turn.");
+             } else if (ability.includes("move back 1 space")) {
+                 if (gameState.currentLocationIndex > 0) {
+                     gameState.currentLocationIndex--;
+                     gameState.journeyProgress--; // Adjust progress too
+                     logMessage("Moved back one landscape.");
+                 } else {
+                      logMessage("Cannot move back from the start.");
+                 }
+             } else if (ability.includes("+3 bonus")) {
+                // Apply to next challenge only - need a temporary state
+                 logMessage("Gaining +3 bonus for the next challenge (Not fully implemented).");
+             }
+             // Add more item effects...
+
+
+             // Apply Drawback (Simplified)
+             const drawback = item.data.drawback.toLowerCase();
+             if (drawback.includes("+2 threat")) {
+                 addThreat(2);
+             } else if (drawback.includes("+1 threat")) {
+                 addThreat(1);
+             } else if (drawback.includes("-2 to next challenge")) {
+                  // Apply to next challenge - need a temporary state
+                 logMessage("Suffering -2 penalty on the next challenge (Not fully implemented).");
+             }
+             // Add more drawbacks...
+
+
+             if (item.usesLeft <= 0) {
+                 logMessage(`${itemName} has been depleted and is discarded.`);
+                 gameState.craftedItems.splice(itemIndex, 1);
+             }
+
+             updateUI();
+         }
+
+
+         // --- Turn Flow ---
+
+         window.startGame = function() {
+            // Show character selection
+             const select = document.getElementById('char-select-dropdown');
+             select.innerHTML = ''; // Clear previous options
+             Object.keys(CHARACTERS).forEach(charName => {
+                 const option = document.createElement('option');
+                 option.value = charName;
+                 option.textContent = charName;
+                 select.appendChild(option);
+             });
+             document.getElementById('char-select-modal').style.display = 'block';
+             document.getElementById('start-game-button').disabled = true;
+         }
+
+         window.selectCharacter = function() {
+            const selectedName = document.getElementById('char-select-dropdown').value;
+            if (!selectedName) return;
+
+            const charData = CHARACTERS[selectedName];
+            gameState.character = { name: selectedName, ...charData }; // Store chosen character data
+            gameState.health = charData.health;
+            gameState.maxHealth = charData.health;
+            gameState.resources = [];
+            gameState.maxResources = charData.resourceCap;
+            gameState.companions = [];
+            gameState.craftedItems = [];
+            gameState.currentLocationIndex = -1; // Start before the first location
+            gameState.currentSeasonIndex = 0; // Start in Samhain
+            gameState.journeyProgress = 0;
+            gameState.threat = 0;
+            gameState.blessings = 1;
+            gameState.isGameOver = false;
+             gameState.activeCompanionBonus = null;
+             gameState.tempResourceBonus = 0;
+             gameState.lastChallengeResult = null;
+
+            document.getElementById('char-select-modal').style.display = 'none';
+            logMessage(`Welcome, ${selectedName}! Your journey begins.`);
+            logMessage("The season is Samhain.");
+            moveForward(); // Move to the first landscape
+         }
+
+        function moveForward() {
+             if (gameState.isGameOver) return;
+
+             gameState.currentLocationIndex++;
+             gameState.journeyProgress++;
+
+             if (gameState.journeyProgress > LANDSCAPES.length) {
+                 checkVictory(); // Reached the end
+                 return;
+             }
+
+             const location = LANDSCAPES[gameState.currentLocationIndex];
+             logMessage(`You arrive at ${location.name}.`);
+
+             // Reset temporary bonuses for the new location
+              gameState.activeCompanionBonus = null;
+              gameState.tempResourceBonus = 0;
+              gameState.lastChallengeResult = null;
+
+
+             // Check for season change
+             updateSeason();
+
+             // Check location specific actions (Healing, Threat Reduction) - simplified auto-trigger
+             if (location.heal) {
+                 logMessage(`This place feels restorative. Healing ${location.heal}.`);
+                 changeHealth(location.heal);
+             }
+             if (location.threatReduction) {
+                 logMessage(`The spirits here calm the imbalance. Threat reduced by ${location.threatReduction}.`);
+                 removeThreat(location.threatReduction);
+             }
+
+
+             updateUI();
+             document.getElementById('challenge-button').disabled = false; // Enable challenge button
+        }
+
+         window.attemptChallenge = function() {
+             if (gameState.currentLocationIndex < 0 || gameState.isGameOver) return;
+
+             const location = LANDSCAPES[gameState.currentLocationIndex];
+             const difficulty = calculateChallengeDifficulty(location);
+             const bonus = calculatePlayerBonus(location); // Includes blessings, season, companion bonus
+             const roll = rollD8();
+             const total = roll + bonus;
+
+             logMessage(`Facing ${location.challenge} (Difficulty: ${difficulty})`);
+             logMessage(`Rolling D8: ${roll} + Bonus: ${bonus} = Total: ${total}`);
+
+             // Check for Auto-Success from items
+             let autoSuccess = false;
+             if (gameState.lastChallengeResult === 'auto-success-physical' && location.challenge.toLowerCase().includes("strength|stealth|endurance|agility")) {
+                 autoSuccess = true;
+                 logMessage("Auto-succeeded due to Colossal Whistle!");
+             } else if (gameState.lastChallengeResult === 'auto-success-mental' && location.challenge.toLowerCase().includes("wisdom|knowledge|perception")) {
+                 autoSuccess = true;
+                 logMessage("Auto-succeeded due to Earth Speaker Staff!");
+             }
+             // Reset item flag
+              gameState.lastChallengeResult = null;
+
+              // Check for auto-success from Village Elder (Simplified: Just assume used if available)
+              // if (gameState.character.name === "Village Elder" && !gameState.elderAbilityUsedThisSeason) { ... }
+
+             if (autoSuccess || total >= difficulty || roll === 8) {
+                 logMessage(`Success! (Roll ${roll}, Total ${total} vs Difficulty ${difficulty})`);
+                 handleSuccess(location);
+             } else if (total === difficulty - 1) {
+                 logMessage(`Partial Success! (Roll ${roll}, Total ${total} vs Difficulty ${difficulty})`);
+                 handlePartialSuccess(location);
+             } else {
+                 logMessage(`Failure! (Roll ${roll}, Total ${total} vs Difficulty ${difficulty})`);
+                 handleFailure(location);
+             }
+
+             // Reset companion bonus after use
+             gameState.activeCompanionBonus = null;
+             document.getElementById('challenge-button').disabled = true; // Disable until moving
+             updateUI();
+         }
+
+         function handleSuccess(location) {
+             const season = SEASONS[gameState.currentSeasonIndex];
+             let resourceGain = 2;
+             if (season.effect.includes("+1 Resource on success")) resourceGain++;
+             if (gameState.activeCompanionBonus && gameState.activeCompanionBonus.type === 'Resource') {
+                 resourceGain += gameState.activeCompanionBonus.value; // Boar Digger
+             }
+
+
+             logMessage(`Gaining ${resourceGain} resources.`);
+             location.resources.forEach((res, index) => {
+                if (index < resourceGain) { // Gain up to the allowed amount from the location's list
+                    // Check seasonal abundance/scarcity (Simplified: just log)
+                     if (season.abundant.includes(res)) logMessage(`${res} is abundant this season.`);
+                     if (season.scarce.includes(res)) logMessage(`${res} is scarce this season.`);
+                     addResource(res);
+                }
+             });
+
+             // Potential Blessing Gain (Simplified: 10% chance on success)
+             if (Math.random() < 0.1) {
+                 gameState.blessings++;
+                 logMessage("The spirits smile upon you. Gained a Blessing!");
+             }
+
+             // Check for Companion Bonding Site
+             if (location.companionSite) {
+                const companionToGain = location.companionSite[Math.floor(Math.random() * location.companionSite.length)]; // Offer one random companion
+                 if (!gameState.companions.includes(companionToGain)) {
+                     // Simplified: Auto-bond on success at site
+                     logMessage(`You encounter a ${companionToGain} spirit!`);
+                     gainCompanion(companionToGain);
+                 }
+             }
+
+
+             moveForward();
+         }
+
+         function handlePartialSuccess(location) {
+             logMessage("Moving forward, but with a minor setback (e.g., discard 1 random resource).");
+              if (gameState.resources.length > 0) {
+                 const discardedIndex = Math.floor(Math.random() * gameState.resources.length);
+                 const discarded = gameState.resources.splice(discardedIndex, 1)[0];
+                 logMessage(`Discarded ${discarded}.`);
+             }
+
+             logMessage("Gaining 1 resource.");
+             if (location.resources.length > 0) {
+                 addResource(location.resources[0]); // Gain the first listed resource
+             }
+
+             moveForward();
+         }
+
+         function handleFailure(location) {
+             logMessage("You stay at the current location.");
+             const challengeType = location.challenge.toLowerCase();
+
+             if (challengeType.includes("strength") || challengeType.includes("endurance") || challengeType.includes("agility")) {
+                 const damage = Math.floor(Math.random() * 2) + 1; // 1-2 damage
+                 logMessage(`Physical challenge failed. Lost ${damage} health.`);
+                 changeHealth(-damage);
+             } else if (challengeType.includes("wisdom") || challengeType.includes("perception") || challengeType.includes("knowledge")) {
+                 const threatGain = Math.floor(Math.random() * 2) + 1; // 1-2 threat
+                 logMessage(`Mental challenge failed. Gained ${threatGain} threat.`);
+                 addThreat(threatGain);
+             } else if (challengeType.includes("charm") || challengeType.includes("trade") || challengeType.includes("cunning")) {
+                 logMessage("Social challenge failed. Resource access restricted (Not Implemented).");
+                 // Implement resource restriction if desired
+             } else if (challengeType.includes("courage") || challengeType.includes("patience") || challengeType.includes("connection")) {
+                 logMessage("Spiritual challenge failed. Companions become wary (Not Implemented).");
+                 // Implement companion wariness/leaving if desired
+             } else {
+                 // Generic failure
+                 logMessage("Challenge failed. Gained 1 threat.");
+                 addThreat(1);
+             }
+              document.getElementById('challenge-button').disabled = false; // Allow retry
+         }
+
+        window.showCompanionOptions = function() {
+             // Simple prompt for now - a proper modal would be better
+             if (gameState.companions.length === 0) return;
+
+             let promptText = "Choose companion to use (enter number):\n";
+             gameState.companions.forEach((name, index) => {
+                 promptText += `${index + 1}: ${name} (${COMPANIONS[name].ability})\n`;
+             });
+             promptText += "0: Cancel";
+
+             const choice = prompt(promptText);
+             const choiceIndex = parseInt(choice) - 1;
+
+             if (choiceIndex >= 0 && choiceIndex < gameState.companions.length) {
+                 useCompanion(gameState.companions[choiceIndex]);
+             }
+         }
+
+         function useCompanion(companionName) {
+             const compData = COMPANIONS[companionName];
+             const charData = CHARACTERS[gameState.character.name];
+             let feedCost = compData.feedCost;
+
+             // Character Ability Check
+             if (charData.ability.includes("Companions cost 0")) {
+                 feedCost = 0;
+             }
+
+             if (feedCost > 0) {
+                 if (gameState.resources.length < feedCost) {
+                     logMessage(`Not enough resources to feed ${companionName}. Companion becomes wary (Not Implemented).`);
+                     // Implement wariness/leaving
+                     return;
+                 }
+                 // Simplified: remove first available resource
+                 const fedWith = gameState.resources.shift();
+                 logMessage(`Fed ${companionName} with ${fedWith}.`);
+             } else {
+                 logMessage(`Used ${companionName} (no resource cost due to ability).`);
+             }
+
+             // Apply Bonus (Simplified: set active bonus for the challenge)
+             gameState.activeCompanionBonus = {
+                 name: companionName,
+                 type: compData.bonusType || 'General', // Default to General if no type
+                 value: compData.bonusValue || 0 // Default to 0 if no value
+             };
+
+              // Handle immediate effects
+              if (compData.ability.includes("extra Resource")) {
+                  // Grant immediately if applicable? Or apply on next success? Apply on next success is better.
+                  logMessage(`${companionName} will help gather extra resources on success.`);
+              }
+              if (compData.ability.includes("extra Resources temporarily")) {
+                  gameState.tempResourceBonus = compData.bonusValue;
+                  logMessage(`${companionName} allows carrying ${compData.bonusValue} extra resources this turn.`);
+              }
+               if (compData.ability.includes("Prevent")) {
+                  logMessage(`${companionName} is ready to protect you.`); // Handled in changeHealth
+               }
+
+
+             logMessage(`${companionName}'s ability activated: ${compData.ability}`);
+             document.getElementById('companion-button').disabled = true; // Used one this turn
+             updateUI();
+         }
+
+
+        window.tryCrafting = function() {
+             // Simple prompt for now
+             let promptText = "Choose item to craft (enter number):\n";
+             let craftableItems = [];
+             Object.entries(CRAFTED_ITEMS).forEach(([name, data], index) => {
+                 // Check if player has resources
+                 let hasResources = true;
+                 const needed = {};
+                 data.recipe.forEach(r => needed[r] = (needed[r] || 0) + 1);
+
+                 const current = {};
+                 gameState.resources.forEach(r => current[r] = (current[r] || 0) + 1);
+
+                 for (const res in needed) {
+                     if ((current[res] || 0) < needed[res]) {
+                         hasResources = false;
+                         break;
+                     }
+                 }
+
+                 if (hasResources) {
+                     promptText += `${craftableItems.length + 1}: ${name} (Needs: ${data.recipe.join(', ')})\n`;
+                     craftableItems.push({ name, data });
+                 }
+             });
+
+             if (craftableItems.length === 0) {
+                 logMessage("You don't have the resources to craft anything currently available.");
+                 return;
+             }
+             promptText += "0: Cancel";
+
+             const choice = prompt(promptText);
+             const choiceIndex = parseInt(choice) - 1;
+
+             if (choiceIndex >= 0 && choiceIndex < craftableItems.length) {
+                 const itemToCraft = craftableItems[choiceIndex];
+                 craftItem(itemToCraft.name, itemToCraft.data);
+             }
+        }
+
+         function craftItem(itemName, itemData) {
+            logMessage(`Attempting to craft ${itemName}...`);
+            const charData = CHARACTERS[gameState.character.name];
+             let recipe = [...itemData.recipe]; // Copy recipe
+
+             // Character Ability Adjustment (Hedge Witch/Iron Crafter)
+             if (charData.ability.includes("-1 resource cost") || charData.ability.includes("fewer resource")) {
+                if(recipe.length > 0) recipe.pop(); // Remove one resource requirement (simplistic)
+                logMessage("Crafting cost reduced due to character ability.");
+             }
+
+             // Verify resources again (after potential cost reduction)
+             let canCraft = true;
+             const resourcesToRemove = [...recipe]; // Copy again for removal tracking
+              for(const res of recipe) {
+                  if (!removeResource(res)) { // Try removing one
+                      canCraft = false;
+                      // Put back any resources removed so far if failed
+                      resourcesToRemove.forEach(r => addResource(r));
+                      break;
+                  }
+              }
+
+
+             if (canCraft) {
+                 logMessage(`Successfully crafted ${itemName}!`);
+                 gameState.craftedItems.push({
+                     name: itemName,
+                     data: itemData,
+                     usesLeft: itemData.uses // Add Beltane bonus here if implemented
+                 });
+                 // Optional: Add crafting XP if implemented
+                 // Optional: Apply immediate drawbacks if any?
+             } else {
+                 logMessage(`Failed to craft ${itemName} (Resource check failed after adjustments).`);
+             }
+
+             updateUI();
+         }
+
+
+        function checkVictory() {
+             if (gameState.journeyProgress >= LANDSCAPES.length) { // Completed the circle
+                 logMessage("You have completed the journey path!");
+                 const threatVictory = gameState.threat < 6;
+                 const itemVictory = gameState.craftedItems.length >= 2;
+                 // Companion victory condition missing from rules text, assuming >= 1
+                 const companionVictory = gameState.companions.length >= 1;
+
+                 if (threatVictory && itemVictory && companionVictory) {
+                     handleVictory();
+                 } else {
+                      let failReason = "Journey complete, but failed conditions:";
+                      if (!threatVictory) failReason += " Balance not maintained (Threat >= 6).";
+                      if (!itemVictory) failReason += " Insufficient knowledge acquired (< 2 Crafted Items).";
+                      if (!companionVictory) failReason += " Insufficient bonds formed (< 1 Companion).";
+                     handleDefeat(failReason);
+                 }
+             }
+        }
+
+        function handleVictory() {
+            logMessage("VICTORY! You have successfully navigated the Celtic Realm and maintained balance.");
+            gameState.isGameOver = true;
+             document.getElementById('victory-title').textContent = "Victory!";
+            document.getElementById('victory-message').textContent = "You completed your journey, returning with knowledge, allies, and having kept the forces of chaos at bay. The Wheel turns, and balance is preserved... for now.";
+             document.getElementById('victory-screen').style.display = 'flex';
+            disableActions();
+        }
+
+        function handleDefeat(reason) {
+             logMessage(`DEFEAT! ${reason}`);
+             gameState.isGameOver = true;
+             document.getElementById('victory-title').textContent = "Defeat";
+             document.getElementById('victory-message').textContent = `Your journey ends here. ${reason}`;
+             document.getElementById('victory-screen').style.display = 'flex';
+             disableActions();
+         }
+
+         function disableActions() {
+             document.getElementById('challenge-button').disabled = true;
+             document.getElementById('companion-button').disabled = true;
+             document.getElementById('craft-button').disabled = true;
+             // Disable others as needed
+         }
+
+
+        // --- Initialization ---
+        initThree();
+        logMessage("Game Initialized. Click 'Start Game' and choose your character.");
+        // Don't call updateUI until character is selected
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+    </script>
+</body>
+</html>
