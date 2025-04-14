@@ -5,20 +5,22 @@
 import { useGameStore } from '@/stores/gameStore';
 import { usePlayerStore } from '@/stores/playerStore';
 import { useCardStore } from '@/stores/cardStore';
-import { useSeasonStore } from '@/stores/seasonStore';
 import { Season } from '@/models/enums/seasons';
 import { LandscapeCard } from '@/models/types/cards';
 import { useJourneyStore } from '@/stores/journeyStore';
 import { useLogStore } from '@/stores/logStore';
 import { ExtendedGameStore, ExtendedPlayerStore } from '@/types/store-extensions';
+import { BaseService } from '@/services/core/BaseService';
+import { StoreRegistry } from '@/services/core/StoreRegistry';
+import { useSeasonStore } from '@/stores/seasonStore';
 
-class JourneyService {
+class JourneyService extends BaseService {
   /**
    * Initialize journey path with landscapes
    * @returns Array of landscape IDs representing the journey path
    */
   initializeJourney(): string[] {
-    const cardStore = useCardStore();
+    const cardStore = this.storeRegistry.getCardStore();
     const allLandscapes = cardStore.landscapes;
     
     // Ensure we have enough landscapes
@@ -37,7 +39,7 @@ class JourneyService {
     const journeyPath = selectedLandscapes.map(landscape => landscape.id);
     
     // Update game store
-    const gameStore = useGameStore() as any as ExtendedGameStore;
+    const gameStore = this.storeRegistry.getGameStore();
     gameStore.journeyPath = journeyPath;
     
     // Set initial landscape
@@ -58,7 +60,7 @@ class JourneyService {
    * @returns The name of the landscape
    */
   getLandscapeName(landscapeId: string): string {
-    const cardStore = useCardStore();
+    const cardStore = this.storeRegistry.getCardStore();
     const landscape = cardStore.getLandscapeById(landscapeId);
     return landscape?.name || 'Unknown Location';
   }
@@ -68,8 +70,7 @@ class JourneyService {
    * @returns The ID of the new current landscape
    */
   moveToNextLandscape(): string | null {
-    const gameStore = useGameStore() as any as ExtendedGameStore;
-    const journeyStore = useJourneyStore();
+    const gameStore = this.storeRegistry.getGameStore();
     
     // Get current position in journey
     const currentIndex = gameStore.journeyPath.indexOf(gameStore.currentLandscapeId);
@@ -102,8 +103,8 @@ class JourneyService {
    * @returns The ID of the new current landscape
    */
   startNewTurn(): string | null {
-    const gameStore = useGameStore();
-    const playerStore = usePlayerStore() as any as ExtendedPlayerStore;
+    const gameStore = this.storeRegistry.getGameStore();
+    const playerStore = this.storeRegistry.getPlayerStore();
     
     // Move to the next landscape
     const newLandscapeId = this.moveToNextLandscape();
@@ -131,8 +132,7 @@ class JourneyService {
    * @returns The initialized journey path or empty array if failed
    */
   ensureJourneyPathInitialized(): string[] {
-    const gameStore = useGameStore();
-    const journeyStore = useJourneyStore();
+    const gameStore = this.storeRegistry.getGameStore();
     
     // Check if journey path is missing or empty
     if (!gameStore.journeyPath || !Array.isArray(gameStore.journeyPath) || gameStore.journeyPath.length === 0) {
@@ -157,8 +157,7 @@ class JourneyService {
    * @returns The ID of the next landscape or null if at the end
    */
   getNextLandscapeId(): string | null {
-    const gameStore = useGameStore() as any as ExtendedGameStore;
-    const journeyStore = useJourneyStore();
+    const gameStore = this.storeRegistry.getGameStore();
     
     // Ensure journey path is initialized
     this.ensureJourneyPathInitialized();
@@ -192,8 +191,7 @@ class JourneyService {
    * @returns Array of available landscape IDs to move to
    */
   getAvailableMovementOptions(): string[] {
-    const gameStore = useGameStore() as any as ExtendedGameStore;
-    const journeyStore = useJourneyStore();
+    const gameStore = this.storeRegistry.getGameStore();
     
     // Get current position in journey
     const currentIndex = gameStore.journeyPath.indexOf(gameStore.currentLandscapeId);
@@ -212,9 +210,8 @@ class JourneyService {
    * @returns The next landscape object or null if at the end
    */
   getNextLandscape(): LandscapeCard | null {
-    const gameStore = useGameStore() as any as ExtendedGameStore;
-    const cardStore = useCardStore();
-    const journeyStore = useJourneyStore();
+    const gameStore = this.storeRegistry.getGameStore();
+    const cardStore = this.storeRegistry.getCardStore();
     
     const nextLandscapeId = this.getNextLandscapeId();
     if (!nextLandscapeId) {
@@ -229,19 +226,19 @@ class JourneyService {
    * @returns The current landscape object
    */
   getCurrentLandscape(): LandscapeCard | null {
-    const gameStore = useGameStore() as any as ExtendedGameStore;
-    const cardStore = useCardStore();
+    const gameStore = this.storeRegistry.getGameStore();
+    const cardStore = this.storeRegistry.getCardStore();
     
     return cardStore.getLandscapeById(gameStore.currentLandscapeId);
   }
   
   /**
    * Check if the current location provides shelter
-   * @param gameStore The game store instance
    * @returns True if the current location provides shelter
    */
-  isCurrentLocationShelter(gameStore = useGameStore() as any as ExtendedGameStore): boolean {
-    const cardStore = useCardStore();
+  isCurrentLocationShelter(): boolean {
+    const gameStore = this.storeRegistry.getGameStore();
+    const cardStore = this.storeRegistry.getCardStore();
     const landscape = cardStore.getLandscapeById(gameStore.currentLandscapeId);
     
     return landscape?.providesShelter || false;
@@ -251,8 +248,8 @@ class JourneyService {
    * Apply effects when entering a new landscape
    */
   private applyLandscapeEntryEffects(landscapeId: string): void {
-    const cardStore = useCardStore();
-    const gameStore = useGameStore() as any as ExtendedGameStore;
+    const cardStore = this.storeRegistry.getCardStore();
+    const gameStore = this.storeRegistry.getGameStore();
     const logStore = useLogStore();
     const landscape = cardStore.getLandscapeById(landscapeId);
     
@@ -328,6 +325,25 @@ class JourneyService {
         return "Unknown Season";
     }
   }
+  
+  constructor(storeRegistry: StoreRegistry) {
+    super(storeRegistry);
+  }
 }
 
-export const journeyService = new JourneyService();
+// Create and export a singleton instance with StoreRegistry
+let _journeyServiceInstance: JourneyService | null = null;
+
+export function getJourneyService(): JourneyService {
+  if (!_journeyServiceInstance) {
+    _journeyServiceInstance = new JourneyService(new StoreRegistry());
+  }
+  return _journeyServiceInstance;
+}
+
+// For backward compatibility with existing code
+export const journeyService = {
+  get instance() {
+    return getJourneyService();
+  }
+};

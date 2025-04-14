@@ -6,10 +6,12 @@ import { useGameStore } from '@/stores/gameStore';
 import { usePlayerStore } from '@/stores/playerStore';
 import { useCardStore } from '@/stores/cardStore';
 import { diceService } from '@/services/diceService';
+import { resourceService } from '@/services/resourceService';
 import { ChallengeOutcome, Challenge } from '@/models/types/game';
 import { ChallengeType } from '@/models/enums/cardTypes';
 import { ExtendedGameStore, ExtendedPlayerStore } from '@/types/store-extensions';
 import { Season } from '@/models/enums/seasons';
+import { seasons } from '@/models/data/seasons';
 
 class ChallengeService {
   // Private properties with consistent naming
@@ -158,7 +160,7 @@ class ChallengeService {
       
       // Apply any specific success effects
       if (challenge.successEffect) {
-        // Instead of calling the effect, just log it
+        // Record the effect in the game log
         gameStore.addToGameLog(`Success effect: ${challenge.successEffect.description}`, false);
       }
     } else if (outcome.success === 'partial') {
@@ -169,7 +171,7 @@ class ChallengeService {
       
       // Apply any specific partial success effects
       if (challenge.partialSuccessEffect) {
-        // Instead of calling the effect, just log it
+        // Record the effect in the game log
         gameStore.addToGameLog(`Partial success effect: ${challenge.partialSuccessEffect.description}`, false);
       }
     } else {
@@ -181,7 +183,7 @@ class ChallengeService {
       
       // Apply any specific failure effects
       if (challenge.failureEffect) {
-        // Instead of calling the effect, just log it
+        // Record the effect in the game log
         gameStore.addToGameLog(`Failure effect: ${challenge.failureEffect.description}`, false);
       }
     }
@@ -234,36 +236,24 @@ class ChallengeService {
    * @returns The seasonal modifier value
    */
   private _getSeasonalModifier(challengeType: ChallengeType, season: Season): number {
-    // Define seasonal challenge modifiers
-    const seasonalModifiers = {
-      'SAMHAIN': {
-        'spiritual': -1,
-        'physical': 1
-      },
-      'WINTERS_DEPTH': {
-        'physical': 1,
-        'mental': 0
-      },
-      'IMBOLC': {
-        'spiritual': -1,
-        'social': -1
-      },
-      'BELTANE': {
-        'social': -1,
-        'mental': 0
-      },
-      'LUGHNASADH': {
-        'physical': -1,
-        'spiritual': 0
-      }
-    };
+    // Get season data from the imported seasons data
+    const seasonData = seasons.find(s => s.id === season.toLowerCase());
     
-    // If no modifiers for this season or challenge type, return 0
-    if (!seasonalModifiers[season] || !seasonalModifiers[season][challengeType]) {
+    if (!seasonData || !seasonData.modifiers) {
       return 0;
     }
     
-    return seasonalModifiers[season][challengeType];
+    // Check for specific challenge type modifier
+    if (seasonData.modifiers[challengeType]) {
+      return seasonData.modifiers[challengeType];
+    }
+    
+    // Check for 'all' modifier that applies to all challenge types
+    if (seasonData.modifiers.all) {
+      return seasonData.modifiers.all;
+    }
+    
+    return 0;
   }
   
   /**
@@ -339,9 +329,14 @@ class ChallengeService {
    * @param count Number of resources to collect
    */
   private _collectResources(count: number): void {
-    // This would typically call resourceService.collectLandscapeResources
-    // For now, we'll just log it
-    console.log(`Collecting ${count} resources`);
+    // Use the resourceService to collect landscape resources
+    const collectedResources = resourceService.collectLandscapeResources(count);
+    
+    // Log the collected resources
+    if (collectedResources.length > 0) {
+      const gameStore = useGameStore() as unknown as ExtendedGameStore;
+      gameStore.addToGameLog(`Collected ${collectedResources.length} resources`, false);
+    }
   }
 }
 

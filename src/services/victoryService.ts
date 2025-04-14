@@ -2,13 +2,12 @@
  * Victory Service
  * Validates victory conditions based on game state
  */
-import { useGameStore } from '@/stores/gameStore';
-import { usePlayerStore } from '@/stores/playerStore';
-import { useCardStore } from '@/stores/cardStore';
 import { GamePhase } from '@/models/enums/phases';
 import { ExtendedGameStore, ExtendedPlayerStore } from '@/types/store-extensions';
+import { BaseService } from '@/services/core/BaseService';
+import { StoreRegistry } from '@/services/core/StoreRegistry';
 
-class VictoryService {
+class VictoryService extends BaseService {
   /**
    * Check all victory conditions
    * @returns Object with victory status and individual conditions
@@ -51,7 +50,7 @@ class VictoryService {
     const isVictory = Object.values(conditions).every(Boolean);
     
     // Update game state
-    const gameStore = useGameStore() as any as ExtendedGameStore;
+    const gameStore = this.storeRegistry.getGameStore();
     gameStore.victoryConditions = conditions;
     
     return {
@@ -65,7 +64,7 @@ class VictoryService {
    * @returns True if journey is complete
    */
   checkJourneyCompletion(): boolean {
-    const gameStore = useGameStore() as any as ExtendedGameStore;
+    const gameStore = this.storeRegistry.getGameStore();
     
     // Complete when all 15 landscapes have been visited
     return gameStore.visitedLandscapes.length >= 15;
@@ -76,7 +75,7 @@ class VictoryService {
    * @returns True if balance is maintained
    */
   checkBalanceMaintained(): boolean {
-    const gameStore = useGameStore() as any as ExtendedGameStore;
+    const gameStore = this.storeRegistry.getGameStore();
     return gameStore.threatTokens < 6;
   }
   
@@ -85,7 +84,7 @@ class VictoryService {
    * @returns True if knowledge is acquired
    */
   checkKnowledgeAcquired(): boolean {
-    const playerStore = usePlayerStore() as any as ExtendedPlayerStore;
+    const playerStore = this.storeRegistry.getPlayerStore();
     return playerStore.craftedItems.length >= 2;
   }
   
@@ -94,7 +93,7 @@ class VictoryService {
    * @returns True if bonds are formed
    */
   checkBondsFormed(): boolean {
-    const playerStore = usePlayerStore() as any as ExtendedPlayerStore;
+    const playerStore = this.storeRegistry.getPlayerStore();
     // Fix: call the companionCount method instead of treating it as a property
     return playerStore.companionCount() >= 1;
   }
@@ -104,9 +103,9 @@ class VictoryService {
    * @returns True if personal quest is fulfilled
    */
   checkPersonalQuest(): boolean {
-    const playerStore = usePlayerStore() as any as ExtendedPlayerStore;
-    const cardStore = useCardStore();
-    const gameStore = useGameStore() as any as ExtendedGameStore;
+    const playerStore = this.storeRegistry.getPlayerStore();
+    const cardStore = this.storeRegistry.getCardStore();
+    const gameStore = this.storeRegistry.getGameStore();
     
     const character = cardStore.getCharacterById(playerStore.characterId);
     if (!character) {
@@ -131,20 +130,10 @@ class VictoryService {
         // Since hasCraftedLegendaryItem doesn't exist, we'll assume this is based on having enough crafted items
         return playerStore.craftedItemCount >= 5;
         
-      case 'druid_seer':
-        // Complete 3 Ritual Sites
-        // Since completedRitualSites doesn't exist, we'll assume this is based on visited landscapes
+      case 'village_elder':
+        // Use ancestral wisdom to guide the journey
+        // Since we don't have specific tracking for this, we'll base it on visited landscapes
         return gameStore.visitedLandscapes.length >= 10;
-        
-      case 'celtic_warrior':
-        // Defeat 5 Challenges with Strength
-        // Since we don't have a way to track this, we'll assume this is based on visited landscapes
-        return gameStore.visitedLandscapes.length >= 12;
-        
-      case 'forest_guardian':
-        // Maintain perfect balance (0 threat tokens) for 5 consecutive turns
-        // Since we can't track consecutive turns, we'll check if threat tokens are at 0
-        return gameStore.threatTokens === 0;
         
       default:
         return false;
@@ -156,7 +145,7 @@ class VictoryService {
    * @returns True if landscapes traversed
    */
   checkLandscapesTraversed(): boolean {
-    const gameStore = useGameStore() as any as ExtendedGameStore;
+    const gameStore = this.storeRegistry.getGameStore();
     return gameStore.visitedLandscapes.length >= 10;
   }
   
@@ -165,7 +154,7 @@ class VictoryService {
    * @returns True if seasons experienced
    */
   checkSeasonsExperienced(): boolean {
-    const gameStore = useGameStore() as any as ExtendedGameStore;
+    const gameStore = this.storeRegistry.getGameStore();
     // Since experiencedSeasons doesn't exist, we'll assume this is always true for now
     // In a real implementation, we would track the seasons experienced
     return true;
@@ -176,7 +165,7 @@ class VictoryService {
    * @returns True if challenges overcome
    */
   checkChallengesOvercome(): boolean {
-    const gameStore = useGameStore() as any as ExtendedGameStore;
+    const gameStore = this.storeRegistry.getGameStore();
     // Since overcomeChallenges doesn't exist, we'll assume this is always true for now
     // In a real implementation, we would track the challenges overcome
     return true;
@@ -186,7 +175,7 @@ class VictoryService {
    * Process victory
    */
   processVictory(): void {
-    const gameStore = useGameStore() as any as ExtendedGameStore;
+    const gameStore = this.storeRegistry.getGameStore();
     
     // Use the endGame method instead of directly modifying state properties
     gameStore.endGame(true);
@@ -200,7 +189,7 @@ class VictoryService {
    * @param reason The reason for defeat
    */
   processDefeat(reason: string): void {
-    const gameStore = useGameStore() as any as ExtendedGameStore;
+    const gameStore = this.storeRegistry.getGameStore();
     
     // Use the endGame method instead of directly modifying state properties
     gameStore.endGame(false);
@@ -221,8 +210,8 @@ class VictoryService {
     isDefeat: boolean;
     reason: string | null;
   } {
-    const gameStore = useGameStore() as any as ExtendedGameStore;
-    const playerStore = usePlayerStore() as any as ExtendedPlayerStore;
+    const gameStore = this.storeRegistry.getGameStore();
+    const playerStore = this.storeRegistry.getPlayerStore();
     
     // Check health
     if (playerStore.health <= 0) {
@@ -253,6 +242,25 @@ class VictoryService {
       reason: null
     };
   }
+  
+  constructor(storeRegistry: StoreRegistry) {
+    super(storeRegistry);
+  }
 }
 
-export const victoryService = new VictoryService();
+// Create and export a singleton instance with StoreRegistry
+let _victoryServiceInstance: VictoryService | null = null;
+
+export function getVictoryService(): VictoryService {
+  if (!_victoryServiceInstance) {
+    _victoryServiceInstance = new VictoryService(new StoreRegistry());
+  }
+  return _victoryServiceInstance;
+}
+
+// For backward compatibility with existing code
+export const victoryService = {
+  get instance() {
+    return getVictoryService();
+  }
+};

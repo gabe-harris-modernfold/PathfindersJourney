@@ -76,7 +76,6 @@ export class CardRepository {
         description: char.specialAbility?.description || ''
       },
       startingResources: char.startingResources || [],
-      startingItems: char.startingItems || [],
       startingCompanion: char.startingCompanion,
       startingCompanions: char.startingCompanions
     }));
@@ -147,12 +146,7 @@ export class CardRepository {
       },
       affinitySeasons: (comp.seasonalAffinity || []).map(season => {
         // Convert string season to Season enum
-        if (season === 'samhain') return Season.SAMHAIN;
-        if (season === 'winters_depth') return Season.WINTERS_DEPTH;
-        if (season === 'imbolc') return Season.IMBOLC;
-        if (season === 'beltane') return Season.BELTANE;
-        if (season === 'lughnasadh') return Season.LUGHNASADH;
-        return Season.SAMHAIN; // Default
+        return this._mapSeasonStringToEnum(season);
       }),
       preferredResources: comp.preferredResources || [],
       challengeBonuses: {},  // Default empty object
@@ -199,9 +193,6 @@ export class CardRepository {
         resourceAbundance: season.resourceAbundance || [],
         resourceScarcity: season.resourceScarcity || [],
         animalAffinity: season.animalAffinity || [],
-        abundantResources: season.resourceAbundance || [],
-        scarceResources: season.resourceScarcity || [],
-        animalAffinities: season.animalAffinity || [],
         effects: season.effects || [],
         modifiers: season.modifiers || { spiritual: 0, physical: 0, mental: 0, social: 0 },
         quest: season.quest
@@ -219,6 +210,7 @@ export class CardRepository {
       case 'samhain':
         return Season.SAMHAIN;
       case 'wintersDepth':
+      case 'winters_depth':
         return Season.WINTERS_DEPTH;
       case 'imbolc':
         return Season.IMBOLC;
@@ -348,12 +340,7 @@ export class CardRepository {
       },
       affinitySeasons: (data.seasonalAffinity || []).map(season => {
         // Convert string season to Season enum
-        if (season === 'samhain') return Season.SAMHAIN;
-        if (season === 'winters_depth') return Season.WINTERS_DEPTH;
-        if (season === 'imbolc') return Season.IMBOLC;
-        if (season === 'beltane') return Season.BELTANE;
-        if (season === 'lughnasadh') return Season.LUGHNASADH;
-        return Season.SAMHAIN; // Default
+        return this._mapSeasonStringToEnum(season);
       }),
       preferredResources: data.preferredResources || [],
       challengeBonuses: {},  // Default empty object
@@ -400,55 +387,10 @@ export class CardRepository {
       resourceAbundance: data.resourceAbundance || [],
       resourceScarcity: data.resourceScarcity || [],
       animalAffinity: data.animalAffinity || [],
-      abundantResources: data.resourceAbundance || [],
-      scarceResources: data.resourceScarcity || [],
-      animalAffinities: data.animalAffinity || [],
       effects: data.effects || [],
       modifiers: data.modifiers || { spiritual: 0, physical: 0, mental: 0, social: 0 },
       quest: data.quest
     };
-  }
-
-  /**
-   * Gets all character cards
-   */
-  public get characters(): CharacterCard[] {
-    return this._characters;
-  }
-
-  /**
-   * Gets all landscape cards
-   */
-  public get landscapes(): LandscapeCard[] {
-    return this._landscapes;
-  }
-
-  /**
-   * Gets all animal companion cards
-   */
-  public get animalCompanions(): AnimalCompanionCard[] {
-    return this._animalCompanions;
-  }
-
-  /**
-   * Gets all resource cards
-   */
-  public get resources(): ResourceCard[] {
-    return this._resources;
-  }
-
-  /**
-   * Gets all crafted item cards
-   */
-  public get craftedItems(): CraftedItemCard[] {
-    return this._craftedItems;
-  }
-
-  /**
-   * Gets all season cards
-   */
-  public get seasons(): SeasonCard[] {
-    return this._seasons;
   }
 
   /**
@@ -500,14 +442,6 @@ export class CardRepository {
   }
 
   /**
-   * Gets all character cards
-   * @returns Array of all character cards
-   */
-  public getAllCharacters(): CharacterCard[] {
-    return this._characters;
-  }
-
-  /**
    * Gets a specific character by ID
    * @param id The ID of the character to find
    * @returns The character card or undefined if not found
@@ -527,28 +461,12 @@ export class CardRepository {
   }
 
   /**
-   * Gets all landscape cards
-   * @returns Array of all landscape cards
-   */
-  public getAllLandscapes(): LandscapeCard[] {
-    return this._landscapes;
-  }
-
-  /**
    * Gets a specific landscape by ID
    * @param id The ID of the landscape to find
    * @returns The landscape card or undefined if not found
    */
   public getLandscapeById(id: string): LandscapeCard | undefined {
     return this._landscapes.find(landscape => landscape.id === id);
-  }
-
-  /**
-   * Gets all resource cards
-   * @returns Array of all resource cards
-   */
-  public getAllResources(): ResourceCard[] {
-    return this._resources;
   }
 
   /**
@@ -565,18 +483,10 @@ export class CardRepository {
    * @param season The season to check for abundance
    * @returns Array of resources abundant in the given season
    */
-  public getResourcesBySeasonalAbundance(season: string): ResourceCard[] {
+  public getResourcesBySeasonalAbundance(season: Season): ResourceCard[] {
     return this._resources.filter(resource => 
-      resource.seasonalAbundance.includes(season as any)
+      resource.seasonalAbundance.includes(season)
     );
-  }
-
-  /**
-   * Gets all animal companion cards
-   * @returns Array of all animal companion cards
-   */
-  public getAllAnimalCompanions(): AnimalCompanionCard[] {
-    return this._animalCompanions;
   }
 
   /**
@@ -593,18 +503,10 @@ export class CardRepository {
    * @param season The season to check for affinity
    * @returns Array of animal companions with affinity for the given season
    */
-  public getAnimalCompanionsBySeasonAffinity(season: string): AnimalCompanionCard[] {
+  public getAnimalCompanionsBySeasonAffinity(season: Season): AnimalCompanionCard[] {
     return this._animalCompanions.filter(companion => 
-      companion.affinitySeasons.includes(season as any)
+      companion.affinitySeasons.includes(season)
     );
-  }
-
-  /**
-   * Gets all crafted item cards
-   * @returns Array of all crafted item cards
-   */
-  public getAllCraftedItems(): CraftedItemCard[] {
-    return this._craftedItems;
   }
 
   /**
@@ -617,28 +519,12 @@ export class CardRepository {
   }
 
   /**
-   * Gets all season cards
-   * @returns Array of all season cards
-   */
-  public getAllSeasons(): SeasonCard[] {
-    return this._seasons;
-  }
-
-  /**
    * Gets a specific season by ID
    * @param id The ID of the season to find
    * @returns The season card or undefined if not found
    */
   public getSeasonById(id: string): SeasonCard | undefined {
     return this._seasons.find(season => season.id === id);
-  }
-
-  /**
-   * Gets all season cards (alias for getAllSeasons)
-   * @returns Array of all season cards
-   */
-  public getSeasons(): SeasonCard[] {
-    return this._seasons;
   }
 
   /**
@@ -817,6 +703,30 @@ export class CardRepository {
     this._animalCompanions = this._initializeAnimalCompanions();
     this._craftedItems = this._initializeCraftedItems();
     this._seasons = this._initializeSeasons();
+  }
+
+  public get characters(): CharacterCard[] {
+    return this._characters;
+  }
+
+  public get landscapes(): LandscapeCard[] {
+    return this._landscapes;
+  }
+
+  public get animalCompanions(): AnimalCompanionCard[] {
+    return this._animalCompanions;
+  }
+
+  public get resources(): ResourceCard[] {
+    return this._resources;
+  }
+
+  public get craftedItems(): CraftedItemCard[] {
+    return this._craftedItems;
+  }
+
+  public get seasons(): SeasonCard[] {
+    return this._seasons;
   }
 }
 

@@ -292,6 +292,14 @@ export const useSeasonStore = defineStore('season', {
     },
     
     /**
+     * Update resource availability based on current season
+     * Public method to be called from other stores
+     */
+    updateResourceAvailability(): void {
+      this._updateResourceAvailability();
+    },
+    
+    /**
      * Format season name for display
      * @private
      */

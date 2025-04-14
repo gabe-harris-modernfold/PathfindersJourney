@@ -25,7 +25,7 @@ export const seasons = [
   },
   {
     id: 'wintersDepth',
-    name: 'Winter\'s Depth',
+    name: 'Imbolc Eve',
     description: 'The coldest and harshest part of winter tests your endurance.',
     effect: 'Physical challenges are harder (+2 difficulty)',
     benefit: 'Clearer thinking in stillness (+1 to wisdom challenges)',

@@ -91,7 +91,7 @@ export const characters = [
       spiritual: 1,
       social: 2
     },
-    weakness: 'Cannot use Animal Companions effectively (-1 to their abilities)'
+    weakness: 'Cannot use Animal Companions effectively (-1 to their spiritual and mental challenge bonuses)'
   },
   {
     id: 'village_elder',
@@ -104,7 +104,7 @@ export const characters = [
       },
       {
         name: 'Communal Aid',
-        description: 'Can invoke communal aid once per season (automatic success on one challenge)'
+        description: 'Can invoke communal aid once per season (automatic success on one physical, mental, spiritual, or social challenge)'
       }
     ],
     startingItems: ['ogham_sticks', 'barrow_dust'],

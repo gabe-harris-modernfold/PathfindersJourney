@@ -4,12 +4,7 @@ export enum CardType {
   ANIMAL_COMPANION = 'ANIMAL_COMPANION',
   RESOURCE = 'RESOURCE',
   CRAFTED_ITEM = 'CRAFTED_ITEM',
-  SEASON = 'SEASON',
-  ACTION = 'ACTION',
-  WARNING = 'WARNING',
-  SUCCESS = 'SUCCESS',
-  DANGER = 'DANGER',
-  STORY = 'STORY'
+  SEASON = 'SEASON'
 }
 
 export enum ChallengeType {

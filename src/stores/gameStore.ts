@@ -7,6 +7,7 @@ import { useJourneyStore } from './journeyStore';
 import { useChallenge } from './challengeStore';
 import { useLogStore } from './logStore';
 import { useCardStore } from './cardStore';
+import { LandscapeCard } from '@/models/types/cards';
 import { victoryService } from '@/services/victoryService';
 import { Season } from '@/models/enums/seasons'; // Import the Season enum
 
@@ -19,7 +20,7 @@ interface GameState {
   victoryConditions: VictoryConditions;
   currentLandscapeId: string;
   currentSeason?: string;
-  currentLandscape?: any;
+  currentLandscape?: LandscapeCard;
   currentChallenge?: any;
   journeyProgress?: number;
   journeyPath?: any[];
@@ -357,12 +358,11 @@ export const useGameStore = defineStore('game', {
     
     /**
      * Update resource availability based on current season
-     * This delegates to seasonStore._updateResourceAvailability
+     * This delegates to seasonStore.updateResourceAvailability
      */
     updateResourceAvailability(): void {
       const seasonStore = useSeasonStore();
-      // Using private method via any type cast
-      (seasonStore as any)._updateResourceAvailability();
+      seasonStore.updateResourceAvailability();
     },
     
     /**
@@ -546,7 +546,7 @@ export const useGameStore = defineStore('game', {
     _formatSeason(season: string): string {
       const nameMap: Record<string, string> = {
         'samhain': 'Samhain',
-        'winters_depth': 'Winter\'s Depth',
+        'wintersDepth': 'Winter\'s Depth',
         'imbolc': 'Imbolc',
         'beltane': 'Beltane',
         'lughnasadh': 'Lughnasadh'

@@ -6,7 +6,7 @@ const companions = [
     ability: 'Reveal next Landscape card',
     abilityDescription: 'The Raven flies ahead to scout the path, revealing the next landscape you will encounter.',
     preferredResources: ['standing_stone_chips', 'barrow_dust', 'ogham_sticks', 'sacred_water', 'amber_shards', 'horse_hair'],
-    seasonalAffinity: ['samhain', 'winters_depth'],
+    seasonalAffinity: ['samhain', 'wintersDepth'],
     image: 'raven.jpg',
     findLocation: 'ancient_stone_circle',
     abilityFunction: (gameState) => {
@@ -20,14 +20,14 @@ const companions = [
   {
     id: 'wolf',
     name: 'Wolf Guardian',
-    ability: '+2 to combat-related challenges',
-    abilityDescription: 'The Wolf stands by your side during combat, lending its strength and ferocity.',
+    ability: '+2 to physical challenges',
+    abilityDescription: 'The Wolf stands by your side during physical challenges, lending its strength and ferocity.',
     preferredResources: ['bog_iron'],
-    seasonalAffinity: ['samhain', 'winters_depth'],
+    seasonalAffinity: ['samhain', 'wintersDepth'],
     image: 'wolf.jpg',
     findLocation: 'sacred_oak_grove',
     abilityFunction: (gameState, challengeType) => {
-      if (['physical', 'combat'].includes(challengeType)) {
+      if (challengeType === 'physical') {
         return {
           bonus: 2,
           success: true,
@@ -132,18 +132,18 @@ const companions = [
   {
     id: 'owl',
     name: 'Owl Sage',
-    ability: 'Gain insight to bypass one challenge without rolling',
-    abilityDescription: 'The Owl\'s wisdom reveals the solution to a challenge, allowing you to bypass it entirely.',
+    ability: 'Gain insight to bypass one mental challenge without rolling',
+    abilityDescription: 'The Owl\'s wisdom reveals the solution to a mental challenge, allowing you to bypass it entirely.',
     preferredResources: ['barrow_dust'],
-    seasonalAffinity: ['samhain', 'winters_depth'],
+    seasonalAffinity: ['samhain', 'wintersDepth'],
     image: 'owl.jpg',
     findLocation: 'moonlit_loch',
     abilityFunction: (gameState, challengeType) => {
-      if (challengeType === 'mental' || challengeType === 'knowledge') {
+      if (challengeType === 'mental') {
         return {
           bypass: true,
           success: true,
-          message: 'The Owl Sage shares ancient wisdom, allowing you to bypass this challenge without rolling.'
+          message: 'The Owl Sage shares ancient wisdom, allowing you to bypass this mental challenge without rolling.'
         }
       }
       return {

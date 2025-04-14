@@ -79,14 +79,14 @@ class CompanionService {
   /**
    * Get the loyalty level of a companion
    * @param companionId ID of the companion
-   * @returns The loyalty level (0-5) or -1 if not found
+   * @returns The loyalty level (0-5) or null if not found
    */
-  getLoyalty(companionId: string): number {
+  getLoyalty(companionId: string): number | null {
     const playerStore = usePlayerStore();
     
     // Check if the companion exists
     if (!playerStore.animalCompanions.includes(companionId)) {
-      return -1;
+      return null;
     }
     
     return playerStore.companionLoyalty[companionId]?.loyalty || 0;
@@ -95,14 +95,14 @@ class CompanionService {
   /**
    * Increase the loyalty of a companion by 1
    * @param companionId ID of the companion
-   * @returns New loyalty level
+   * @returns New loyalty level or null if companion not found
    */
-  increaseLoyalty(companionId: string): number {
+  increaseLoyalty(companionId: string): number | null {
     const playerStore = usePlayerStore();
     
     // Check if the companion exists
     if (!playerStore.animalCompanions.includes(companionId)) {
-      return -1;
+      return null;
     }
     
     // Check if companion loyalty data exists
@@ -129,14 +129,14 @@ class CompanionService {
   /**
    * Decrease the loyalty of a companion by 1
    * @param companionId ID of the companion
-   * @returns New loyalty level
+   * @returns New loyalty level or null if companion not found
    */
-  decreaseLoyalty(companionId: string): number {
+  decreaseLoyalty(companionId: string): number | null {
     const playerStore = usePlayerStore();
     
     // Check if the companion exists
     if (!playerStore.animalCompanions.includes(companionId)) {
-      return -1;
+      return null;
     }
     
     // Check if companion loyalty data exists
@@ -205,8 +205,9 @@ class CompanionService {
 
   /**
    * Select a random companion based on current location and season
+   * @returns The companion id or null if none available
    */
-  selectRandomCompanion(): string {
+  selectRandomCompanion(): string | null {
     const cardStore = useCardStore();
     const playerStore = usePlayerStore();
     const gameStore = useGameStore();
@@ -231,7 +232,7 @@ class CompanionService {
     
     // No available companions
     if (availableCompanions.length === 0) {
-      return '';
+      return null;
     }
     
     // Select random companion
