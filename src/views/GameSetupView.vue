@@ -30,6 +30,10 @@
             :class="{ 'selected': selectedCharacter && selectedCharacter.id === character.id }"
             @click="startGame(character)"
           >
+            <div class="character-image-container">
+              <img :src="getCharacterImagePath(character)" class="character-image" />
+            </div>
+            <div class="character-overlay"></div>
             <template #header>
               <div class="character-stats" style="font-size: 8pt; margin-top: 5px; background: transparent;">
                 <div class="stat" style="background: transparent;"><span class="stat-label" style="font-size: 8pt;">Health:</span> <span style="font-size: 8pt;">{{ character.healthPoints }}</span></div>
@@ -50,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { usePlayerStore } from '@/stores/playerStore';
 import { useGameStore } from '@/stores/gameStore';
@@ -62,6 +66,12 @@ import type { CharacterCard } from '@/models/types/cards';
 import GameCard from '@/components/GameCard.vue'; // Import the GameCard component
 import { ComponentWrapper } from '@/components/common';
 
+// Import character images directly
+import giantBeastfriendImg from '@/assets/images/giant_beastfriend.jpg';
+import hedgeWitchImg from '@/assets/images/hedge_witch.jpg';
+import ironCrafterImg from '@/assets/images/iron_crafter.jpg';
+import villageElderImg from '@/assets/images/village_elder.jpg';
+
 // Initialize stores and router
 const router = useRouter();
 const playerStore = usePlayerStore();
@@ -71,6 +81,19 @@ const cardStore = useCardStore();
 // Initialize state
 const characters = ref<CharacterCard[]>([]);
 const selectedCharacter = ref<CharacterCard | null>(null);
+
+// Character image map
+const characterImages: Record<string, string> = {
+  'giant_beastfriend': giantBeastfriendImg,
+  'hedge_witch': hedgeWitchImg,
+  'iron_crafter': ironCrafterImg,
+  'village_elder': villageElderImg
+};
+
+// Get character image path
+const getCharacterImagePath = (character: CharacterCard) => {
+  return characterImages[character.id] || '';
+};
 
 // Load characters when component is mounted
 const loadCharacters = () => {
@@ -226,6 +249,44 @@ onMounted(() => {
     justify-content: center;
     gap: 1rem;
     margin-top: 1rem;
+  }
+  
+  .character-image-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  
+  .character-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .character-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(240, 230, 210, 0.7);
+    border-radius: 12px;
+    z-index: 1;
+  }
+  
+  :deep(.game-card--character) {
+    position: relative;
+    
+    .game-card__header, .game-card__body {
+      position: relative;
+      z-index: 2;
+      background-color: transparent;
+    }
   }
   
   .character-stats {
