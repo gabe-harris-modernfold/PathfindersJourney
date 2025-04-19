@@ -46,7 +46,7 @@ const { phaseService, journeyService } = useServices();
 
 // Get the next landscape
 const nextLandscape = computed(() => {
-  const nextId = journeyService.getNextLandscapeId();
+  const nextId = journeyService.instance.getNextLandscapeId();
   if (!nextId) return null;
   
   return cardStore.getLandscapeById(nextId);
@@ -55,7 +55,7 @@ const nextLandscape = computed(() => {
 // Start new turn by moving to the next landscape
 const startNewTurn = () => {
   // Start the new turn
-  journeyService.startNewTurn();
+  journeyService.instance.startNewTurn();
   
   // Force the game store to update in the UI by logging a state change
   const currentTurn = gameStore.currentTurn;

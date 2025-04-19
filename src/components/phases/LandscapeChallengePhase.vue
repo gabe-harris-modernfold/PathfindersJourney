@@ -1,5 +1,9 @@
 <template>
   <div class="landscape-challenge-phase">
+    <div class="landscape-image-container" v-if="currentLandscape">
+      <img :src="getLandscapeImagePath()" class="landscape-image" />
+    </div>
+    <div class="landscape-overlay"></div>
     <h2 class="phase-title">LANDSCAPE CHALLENGE</h2>
     <div class="phase-description">
       <p v-if="currentLandscape && !rollResult">
@@ -82,6 +86,12 @@ const challengeDifficulty = computed(() => {
   return currentLandscape.value?.difficulty || 5;
 });
 
+// Get landscape image path
+const getLandscapeImagePath = () => {
+  if (!currentLandscape.value || !currentLandscape.value.image) return '';
+  return require(`@/assets/images/${currentLandscape.value.image}`);
+};
+
 // Get a narrative description of the current challenge
 const getChallengeDescription = () => {
   if (!currentLandscape.value) return '';
@@ -149,12 +159,43 @@ const avoidChallenge = () => {
   flex-direction: column;
   align-items: center;
   width: 100%;
+  position: relative;
+  min-height: 500px;
+}
+
+.landscape-image-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.landscape-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.landscape-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(240, 230, 210, 0.75);
+  z-index: 1;
 }
 
 .phase-title {
   font-size: 1.5rem;
   margin-bottom: 1rem;
   color: #5a3e2b;
+  position: relative;
+  z-index: 2;
 }
 
 .phase-description {
@@ -162,12 +203,16 @@ const avoidChallenge = () => {
   margin-bottom: 1.5rem;
   line-height: 1.5;
   max-width: 600px;
+  position: relative;
+  z-index: 2;
 }
 
 .challenge-actions {
   display: flex;
   gap: 1rem;
   margin-top: 1rem;
+  position: relative;
+  z-index: 2;
 }
 
 .challenge-result {
@@ -176,6 +221,8 @@ const avoidChallenge = () => {
   width: 100%;
   max-width: 500px;
   margin: 0 auto;
+  position: relative;
+  z-index: 2;
 }
 
 .roll-result {
