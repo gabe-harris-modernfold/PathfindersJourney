@@ -441,6 +441,7 @@ const advancePhase = () => {
   height: 100%;
   object-fit: cover;
   border-radius: 4px;
+  opacity: 0.9; /* Make image slightly transparent */
 }
 
 .card-text-overlay {
@@ -479,6 +480,7 @@ const advancePhase = () => {
 .card-resource-description {
   font-size: 0.85rem;
   margin-bottom: 0.5rem;
+  color: #333; /* Set text color to dark grey */
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
 }
 
