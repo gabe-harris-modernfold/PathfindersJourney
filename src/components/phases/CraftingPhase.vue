@@ -449,7 +449,7 @@ const advancePhase = () => {
   left: 0;
   height: 100%;
   width: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: transparent;
   border-radius: 4px;
 }
 
