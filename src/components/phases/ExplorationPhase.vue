@@ -1,5 +1,9 @@
 <template>
   <div class="exploration-phase">
+    <div class="landscape-image-container" v-if="currentLandscape">
+      <img :src="getLandscapeImagePath()" class="landscape-image" />
+    </div>
+    <div class="landscape-overlay"></div>
     <h2 class="phase-title">EXPLORATION</h2>
     <div class="phase-description">
       <p v-if="currentLandscape">You are exploring {{ currentLandscape.name }}. What will you discover?</p>
@@ -42,6 +46,14 @@ const currentLandscape = computed(() => {
   if (!gameStore.currentLandscapeId) return null;
   return cardStore.getLandscapeById(gameStore.currentLandscapeId);
 });
+
+// Get landscape image path
+const getLandscapeImagePath = () => {
+  if (!currentLandscape.value || !currentLandscape.value.image) return '';
+  // Dynamically require the image based on the path stored in the landscape data
+  // Ensure the path in your data (e.g., 'landscapes/forest.jpg') matches the actual file structure
+  return require(`@/assets/images/${currentLandscape.value.image}`);
+};
 
 // Normal phase progression
 const completeExploration = () => {
@@ -100,16 +112,56 @@ const debugJumpToNextLandscape = () => {
   flex-direction: column;
   align-items: center;
   width: 100%;
+  position: relative; /* Added for positioning context */
+  min-height: 500px; /* Added to ensure container has height */
+}
+
+.landscape-image-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.landscape-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.landscape-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Adjust alpha (last value) for desired transparency */
+  background-color: rgba(240, 230, 210, 0.75); 
+  z-index: 1;
 }
 
 .phase-title {
   font-size: 1.5rem;
   margin-bottom: 1rem;
   color: #5a3e2b;
+  position: relative; /* Added for stacking */
+  z-index: 2; /* Ensure title is above overlay */
 }
 
 .phase-description {
   text-align: center;
   margin-bottom: 1.5rem;
+  position: relative; /* Added for stacking */
+  z-index: 2; /* Ensure description is above overlay */
+}
+
+/* Ensure GameCard is also above the overlay */
+:deep(.game-card) { 
+  position: relative;
+  z-index: 2;
 }
 </style>

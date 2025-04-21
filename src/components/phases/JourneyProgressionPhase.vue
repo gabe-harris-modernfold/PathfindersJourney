@@ -6,12 +6,32 @@
       
       <div v-if="nextLandscape" class="next-landscape">
         <GameCard 
-          :title="nextLandscape.name" 
-          subtitle="Next Landscape"
           :cardType="CardType.LANDSCAPE"
           @click="startNewTurn"
+          class="landscape-card-full-bg" 
         >
-          <p>{{ nextLandscape.description }}</p>
+          <!-- Use header slot with empty content to override default header -->
+          <template #header>
+            <!-- Intentionally empty to prevent default header rendering -->
+          </template>
+          
+          <!-- Wrapper for image and text overlay -->
+          <div class="card-image-overlay-wrapper">
+            <img 
+              v-if="getLandscapeImagePath()" 
+              :src="getLandscapeImagePath()" 
+              alt="Landscape image" 
+              class="card-landscape-image"
+            />
+            <div class="card-text-overlay"></div> 
+            
+            <!-- Manually render title, subtitle, description inside -->
+            <div class="card-content-over-image">
+              <h3 class="card-title-over-image">{{ nextLandscape.name }}</h3>
+              <h4 class="card-subtitle-over-image">Next Landscape</h4>
+              <p class="card-landscape-description">{{ nextLandscape.description }}</p>
+            </div>
+          </div>
         </GameCard>
       </div>
       
@@ -52,6 +72,13 @@ const nextLandscape = computed(() => {
   return cardStore.getLandscapeById(nextId);
 });
 
+// Get landscape image path
+const getLandscapeImagePath = () => {
+  if (!nextLandscape.value || !nextLandscape.value.image) return '';
+  // Dynamically require the image based on the path stored in the landscape data
+  return require(`@/assets/images/${nextLandscape.value.image}`);
+};
+
 // Start new turn by moving to the next landscape
 const startNewTurn = () => {
   // Start the new turn
@@ -82,6 +109,11 @@ const forceAdvanceToExploration = () => {
 </script>
 
 <style lang="scss" scoped>
+// Global style to target the specific header element
+:global(.next-landscape .game-card .game-card__header) {
+  display: none !important;
+}
+
 .journey-progression-phase {
   display: flex;
   flex-direction: column;
@@ -106,19 +138,109 @@ const forceAdvanceToExploration = () => {
     display: flex;
     justify-content: center;
     margin: 2rem auto;
-    max-width: 300px;
-    
-    :deep(p) {
-      text-align: center;
+    max-width: 300px; 
+  }
+
+  // Target the specific GameCard instance within .next-landscape
+  .next-landscape {
+    .game-card {
+      // Ensure the GameCard establishes a positioning context (it already does with position: relative)
+      
+      // Instead of display: none, explicitly collapse the header div
+      :deep(.game-card__header) {
+        padding: 0;
+        height: 0;
+        border: none; // Remove any border that might take space
+        overflow: hidden; // Ensure content doesn't spill if somehow present
+      }
+      
+      // Remove padding from the body so our absolute wrapper can align perfectly edge-to-edge
+      :deep(.game-card__body) {
+        padding: 0;
+        // Make body take full height relative to card content flow area (might not be strictly necessary with absolute wrapper)
+        height: 100%; 
+        // Hide the default symbol if present, as it would be under our wrapper
+        .game-card__symbol {
+          display: none;
+        }
+      }
     }
   }
-  
-  .landscape-button,
-  .exploration-button {
+
+  // Wrapper now positioned absolutely relative to the .game-card, covering the whole card
+  .card-image-overlay-wrapper {
+    position: absolute; 
+    top: 0;
+    left: 0;
     width: 100%;
-    margin-top: 2rem;
-    display: flex;
-    justify-content: center;
+    height: 100%; 
+    z-index: 1; // Sit above default card background/body (z-index 0/1) but below our content
+    border-radius: inherit; // Inherit rounding from parent GameCard
+    overflow: hidden; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    min-height: 0; // Reset min-height from previous attempts
+  }
+
+  // Style for the image (acts as background within the wrapper)
+  .card-landscape-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    z-index: 0; // Bottom layer within the wrapper
+  }
+
+  // Overlay for text readability
+  .card-text-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(240, 230, 210, 0.7); 
+    z-index: 1; // Above image within the wrapper
+  }
+
+  // Container for text content over the image
+  .card-content-over-image {
+      position: relative; // Position relative to the wrapper flow
+      z-index: 2; // Above overlay within the wrapper
+      color: white; 
+      text-align: center;
+      padding: 1rem; 
+      width: 100%;
+      box-sizing: border-box; 
+  }
+
+  // Style for the title over the image (remains the same)
+  .card-title-over-image {
+    font-size: 1.4rem; 
+    font-weight: bold;
+    margin: 0 0 0.25rem 0;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+  }
+
+  // Style for the subtitle over the image (remains the same)
+  .card-subtitle-over-image {
+    font-size: 0.9rem; 
+    font-weight: normal;
+    margin: 0 0 0.75rem 0;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+  }
+
+  // Style for the description text (on top) (remains the same)
+  .card-landscape-description {
+    font-size: 1rem; 
+    margin: 0; 
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); 
   }
 }
 </style>
