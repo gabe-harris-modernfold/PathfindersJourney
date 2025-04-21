@@ -14,14 +14,33 @@
             v-for="resourceId in playerStore.resources" 
             :key="resourceId"
             :title="getResourceName(resourceId)"
-            :cardType="CardType.RESOURCE"
-            class="resource-card"
+            :card-type="CardType.RESOURCE"
+            class="resource-card resource-card-full-bg"
             @click="confirmResourceDiscard(resourceId)"
+            :is-selected="resourceToDiscard === resourceId"
           >
-            <div class="resource-content">
-              <p>{{ getResourceDescription(resourceId) }}</p>
-              <div class="resource-action">
-                <small>Click to discard</small>
+            <template #header>
+              <!-- Intentionally empty -->
+            </template>
+            
+            <!-- Wrapper for image and text overlay -->
+            <div class="card-image-overlay-wrapper">
+              <img 
+                v-if="getResourceImagePath(resourceId)" 
+                :src="getResourceImagePath(resourceId)" 
+                :alt="`${getResourceName(resourceId)} image`" 
+                class="card-resource-image" 
+              />
+              <div class="card-text-overlay"></div> 
+              
+              <!-- Manually render title, subtitle, description, action inside -->
+              <div class="card-content-over-image">
+                <h3 class="card-title-over-image">{{ getResourceName(resourceId) }}</h3>
+                <h4 class="card-subtitle-over-image">{{ `Type: ${getResourceType(resourceId)}` }}</h4>
+                <p class="card-resource-description">{{ getResourceDescription(resourceId) }}</p>
+                <div class="resource-action-over-image">
+                  <small>Click to discard</small>
+                </div>
               </div>
             </div>
           </GameCard>
@@ -159,6 +178,24 @@ const getResourceName = (resourceId: string): string => {
 const getResourceDescription = (resourceId: string): string => {
   const resource = cardStore.getResourceById(resourceId);
   return resource ? resource.description : 'A mysterious resource.';
+};
+
+// Get resource image path from card store
+const getResourceImagePath = (resourceId: string): string => {
+  const resource = cardStore.getResourceById(resourceId);
+  if (!resource || !resource.image) return '';
+  try {
+    return require(`@/assets/images/${resource.image}`);
+  } catch (e) {
+    console.error(`Failed to load image for resource ${resourceId}: ${resource.image}`, e);
+    return '';
+  }
+};
+
+// Get resource type from card store
+const getResourceType = (resourceId: string): string => {
+  const resource = cardStore.getResourceById(resourceId);
+  return resource ? resource.type : 'Unknown';
 };
 
 // Advance to the next phase
@@ -315,52 +352,79 @@ const cancelDiscard = () => {
   overflow-x: auto;
 }
 
-.resource-content {
+.card-image-overlay-wrapper {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.card-resource-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+  opacity: 0.9; /* Keep slight transparency */
+}
+
+.card-text-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: transparent; /* No dark overlay */
+  border-radius: 4px;
+}
+
+.card-content-over-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: white; /* Keep default white for title/subtitle */
+}
+
+.card-title-over-image {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.card-subtitle-over-image {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.9;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.card-resource-description {
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+  color: #333333; /* Dark grey description text */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.resource-action-over-image {
+  font-size: 0.8rem;
+  margin-top: 10px;
+  opacity: 0.8;
+  color: white; /* Keep action text white */
+}
+
+.resource-card-full-bg {
+  padding: 0;
+  background: none;
+  border: 1px solid rgba(138, 69, 19, 0.5);
+  min-height: 200px; /* Ensure height */
   display: flex;
   flex-direction: column;
-  height: 100%;
-  width: 100%;
-  
-  p {
-    flex-grow: 1;
-    margin-bottom: 20px;
-    text-align: center;
-  }
 }
 
-.resource-card {
-  height: 100%;
-  flex: 0 0 auto;
-  width: 250px;
-  transition: transform 0.2s;
-  margin-bottom: 20px;
-  
-  &:hover {
-    transform: translateY(-5px);
-  }
-  
-  :deep(.game-card) {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    height: 350px; /* Fixed height for consistency */
-  }
-  
-  :deep(.game-card__body) {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    position: relative;
-  }
-}
-
-.resource-action {
-  margin-top: auto;
-  text-align: center;
-  width: 100%;
-  padding-bottom: 10px;
-  font-size: 0.8rem;
-  color: #666;
+.resource-card-full-bg :deep(.game-card__header) {
+  display: none !important; /* Hide default header */
 }
 
 .resource-actions {
