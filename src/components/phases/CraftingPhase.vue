@@ -13,22 +13,44 @@
           <GameCard 
             v-for="resourceId in playerStore.resources" 
             :key="resourceId"
-            :title="getResourceName(resourceId)"
-            :cardType="CardType.RESOURCE"
-            class="resource-card"
+            :title="getResourceName(resourceId)" 
+            :card-type="CardType.RESOURCE"
+            class="resource-card resource-card-full-bg"
             @click="selectResourceToDiscard(resourceId)"
+            :is-selected="isResourceSelectedForDiscard(resourceId)"
           >
-            <p>{{ getResourceDescription(resourceId) }}</p>
-            <div class="resource-action">
-              <small>Click to discard</small>
+            <!-- Use header slot with empty content to override default header -->
+            <template #header>
+              <!-- Intentionally empty -->
+            </template>
+            
+            <!-- Wrapper for image and text overlay -->
+            <div class="card-image-overlay-wrapper">
+              <img 
+                v-if="getResourceImagePath(resourceId)" 
+                :src="getResourceImagePath(resourceId)" 
+                :alt="`${getResourceName(resourceId)} image`" 
+                class="card-resource-image" 
+              />
+              <div class="card-text-overlay"></div> 
+              
+              <!-- Manually render title, subtitle, description, action inside -->
+              <div class="card-content-over-image">
+                <h3 class="card-title-over-image">{{ getResourceName(resourceId) }}</h3>
+                <h4 class="card-subtitle-over-image">{{ `Type: ${getResourceType(resourceId)}` }}</h4>
+                <p class="card-resource-description">{{ getResourceDescription(resourceId) }}</p>
+                <div class="resource-action-over-image">
+                  <small>Click to discard</small>
+                </div>
+              </div>
             </div>
           </GameCard>
         </div>
         <!-- Resource discard confirmation modal -->
-        <div v-if="resourceToDiscard" class="discard-confirmation">
+        <div v-if="resourceToDiscard.value" class="discard-confirmation">
           <div class="discard-modal">
             <h4>Discard Resource</h4>
-            <p>Are you sure you want to discard {{ getResourceName(resourceToDiscard) }}?</p>
+            <p>Are you sure you want to discard {{ discardResourceName }}?</p>
             <div class="discard-buttons">
               <button @click="confirmDiscard" class="confirm-button">Discard</button>
               <button @click="cancelDiscard" class="cancel-button">Cancel</button>
@@ -107,6 +129,25 @@ const getResourceDescription = (resourceId: string): string => {
   return resource ? resource.description : 'A mysterious resource.';
 };
 
+// Get resource image path from card store
+const getResourceImagePath = (resourceId: string): string => {
+  const resource = cardStore.getResourceById(resourceId);
+  try {
+    // Attempt to require the image. Assuming images are directly in assets/images/
+    // like in JourneyProgressionPhase
+    return require(`@/assets/images/${resource.image}`);
+  } catch (e) {
+    console.error(`Failed to load image for resource ${resourceId}: ${resource.image}`, e);
+    return ''; // Return empty string or a placeholder path on error
+  }
+};
+
+// Get resource type from card store
+const getResourceType = (resourceId: string): string => {
+  const resource = cardStore.getResourceById(resourceId);
+  return resource ? resource.type : 'Unknown';
+};
+
 // Check if player has all required resources for a recipe
 const hasRequiredResources = (requiredResources: string[]): boolean => {
   if (!requiredResources || requiredResources.length === 0) return false;
@@ -151,7 +192,17 @@ const craftItem = (recipeId: string) => {
 };
 
 // Select a resource to discard
-const resourceToDiscard = ref<string | null>(null);
+const resourceToDiscard = ref<string>('');
+
+// Helper function to check if a resource is selected for discard
+const isResourceSelectedForDiscard = (id: string): boolean => {
+  return resourceToDiscard.value === id;
+};
+
+// Computed property for the name of the resource to be discarded (for modal)
+const discardResourceName = computed(() => {
+  return resourceToDiscard.value ? getResourceName(resourceToDiscard.value) : '';
+});
 
 // Select a resource to discard
 const selectResourceToDiscard = (resourceId: string) => {
@@ -162,14 +213,14 @@ const selectResourceToDiscard = (resourceId: string) => {
 const confirmDiscard = () => {
   if (resourceToDiscard.value) {
     playerStore.removeResource(resourceToDiscard.value);
+    resourceToDiscard.value = ''; // Reset selection to empty string
     logStore.addToGameLog(`You discarded ${getResourceName(resourceToDiscard.value)}.`, true, 'resource');
-    resourceToDiscard.value = null;
   }
 };
 
 // Cancel discarding a resource
 const cancelDiscard = () => {
-  resourceToDiscard.value = null;
+  resourceToDiscard.value = ''; // Reset selection to empty string
 };
 
 // Advance to the next phase
@@ -351,5 +402,108 @@ const advancePhase = () => {
       }
     }
   }
+}
+
+.available-resources-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+  margin-bottom: 20px;
+}
+
+.resource-card-wrapper {
+  height: 100%;
+  transition: transform 0.2s;
+  
+  &:hover {
+    transform: translateY(-5px);
+  }
+}
+
+.available-resource-card {
+  background-color: rgba(255, 255, 255, 0.6);
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  border-left: 3px solid #8b4513;
+}
+
+.card-image-overlay-wrapper {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.card-resource-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.card-text-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+}
+
+.card-content-over-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: white;
+}
+
+.card-title-over-image {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.card-subtitle-over-image {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.9;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.card-resource-description {
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.card-resource-effect {
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.resource-action-over-image {
+  font-size: 0.8rem;
+  margin-top: 10px;
+  opacity: 0.8;
+}
+
+.resource-card-full-bg {
+  padding: 0;
+  background: none;
+  border: 1px solid rgba(138, 69, 19, 0.5);
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.resource-card :deep(.game-card__header),
+.resource-card-wrapper :deep(.game-card__header) {
+  display: none !important; /* Use !important to ensure override */
 }
 </style>
