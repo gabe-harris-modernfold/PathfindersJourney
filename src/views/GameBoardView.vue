@@ -12,32 +12,29 @@
       
       <!-- Player Dashboard - Redesigned to be narrative and whimsical -->
       <div class="dashboard-container">
-        <div class="player-dashboard narrative-style">
-          <h3>Your Journey's Tale</h3>
-          <div class="narrative-scroll">
-            <p>
-              You are a <span class="highlight">{{ currentCharacter?.name || 'Pathfinder' }}</span>, 
-              with <span class="highlight">{{ playerStore.health }}/{{ playerStore.maxHealth }}</span> vitality, 
-              currently in the season of <span class="highlight">{{ formatSeason(seasonStore.currentSeason) }}</span>.
-            </p>
-            <p>
-              Your pack holds <span class="highlight">{{ playerStore.resourceCount }}/{{ playerStore.resourceCapacity }}</span> treasures 
-              gathered during <span class="highlight">{{ gameStore.currentTurn }}</span> turns of adventure.
-            </p>
-            <p v-if="playerStore.animalCompanions.length > 0">
-              <span class="highlight">{{ playerStore.companionCount }}</span> loyal beasts walk beside you on this path.
-            </p>
-            <p v-if="playerStore.craftedItems.length > 0">
-              Your hands have crafted: 
+        <CardSection 
+          title="Your Journey's Tale" 
+          collapsible
+          layout="vertical"
+          :initiallyExpanded="false">
+          <div class="narrative-text">
+            You are a <span class="highlight">{{ currentCharacter?.name || 'Pathfinder' }}</span>, 
+            a traveler braving the season of <span class="highlight">{{ formatSeason(seasonStore.currentSeason) }}</span>.
+            Your journey has led you through <span class="highlight">{{ gameStore.currentTurn }}</span> turns of adventure,
+            leaving you with <span class="highlight">{{ playerStore.health }}/{{ playerStore.maxHealth }}</span> vitality
+            and a pack filled with <span class="highlight">{{ playerStore.resourceCount }}/{{ playerStore.resourceCapacity }}</span> treasures.
+            <span v-if="playerStore.animalCompanions.length > 0">
+              Accompanied by <span class="highlight">{{ playerStore.companionCount }}</span> loyal beasts,
+            </span>
+            <span v-if="playerStore.craftedItems.length > 0">
+              your skilled hands have crafted
               <span v-for="itemId in playerStore.craftedItems" :key="itemId" class="crafted-item">
                 {{ getCraftedItemName(itemId) }}{{ playerStore.craftedItems.indexOf(itemId) < playerStore.craftedItems.length - 1 ? ', ' : '' }}
-              </span>
-            </p>
-            <p>
-              The fates guide you to <span class="highlight">{{ formatPhase(gameStore.currentPhase) }}</span>.
-            </p>
+              </span>.
+            </span>
+            The fates now guide you towards <span class="highlight">{{ formatPhase(gameStore.currentPhase) }}</span>.
           </div>
-        </div>
+        </CardSection>
       </div>
       
       <!-- Game Log at bottom spanning full width -->
@@ -62,6 +59,7 @@ import { GamePhase } from '@/models/enums/phases';
 import { Season } from '@/models/enums/seasons';
 import PhaseFactory from '@/components/phases/PhaseFactory.vue';
 import { ComponentWrapper } from '@/components/common';
+import CardSection from '@/components/CardSection.vue';
 
 // Interface for challenge result
 interface ChallengeResult {
@@ -1001,5 +999,18 @@ const showChallengeRating = () => {
   margin-top: 1rem;
   border-radius: 0.5rem;
   overflow: hidden;
+}
+
+.full-width {
+  width: 100%;
+  display: block;
+  white-space: normal;
+  text-align: left;
+}
+
+.narrative-text {
+  width: 100%;
+  text-align: left;
+  line-height: 1.6;
 }
 </style>
