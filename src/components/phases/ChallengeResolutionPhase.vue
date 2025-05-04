@@ -1,5 +1,13 @@
 <template>
   <div class="challenge-resolution-phase">
+    <!-- Added Landscape Background -->
+    <div class="landscape-image-container" v-if="currentLandscape">
+      <img :src="getLandscapeImagePath()" class="landscape-image" />
+    </div>
+    <div class="landscape-overlay"></div>
+    <!-- End Added Landscape Background -->
+
+    <!-- Existing Content (Needs z-index) -->
     <h2 class="phase-title">{{ currentLandscape ? currentLandscape.name : 'LANDSCAPE' }} - {{ currentLandscape ? currentLandscape.challenge : 'CHALLENGE' }}</h2>
     
     <div class="narrative-outcome" v-if="lastChallengeResult && currentLandscape">
@@ -92,6 +100,18 @@ const currentLandscape = computed(() => {
   return cardStore.getLandscapeById(gameStore.currentLandscapeId);
 });
 
+// Get landscape image path (ADDED)
+const getLandscapeImagePath = () => {
+  if (!currentLandscape.value || !currentLandscape.value.image) return '';
+  try {
+    return require(`@/assets/images/${currentLandscape.value.image}`);
+  } catch (e) {
+     console.warn(`Background image not found for ChallengeResolutionPhase: ${currentLandscape.value.image}`);
+     // Optionally return a default path here
+     return ''; 
+  }
+};
+
 // Get outcome title based on success/failure
 const getOutcomeTitle = () => {
   if (!lastChallengeResult.value) return '';
@@ -126,23 +146,64 @@ const advancePhase = () => {
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 800px;
+  // Removed max-width to allow full background coverage
   margin: 0 auto;
+  position: relative; // Added for absolute positioning context
+  min-height: 500px; // Added for consistent height
+  padding: 1rem; // Added for consistency
+  box-sizing: border-box; // Added for consistency
+  overflow: hidden; // Added for consistency
 }
 
+// Added Background Styles
+.landscape-image-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0; // Behind content
+}
+
+.landscape-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.landscape-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(240, 230, 210, 0.75); // Standard overlay
+  z-index: 1; // Above image, below content
+}
+// End Added Background Styles
+
 .phase-title {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  color: #5a3e2b;
+  font-size: 1.8rem; // Increased size
+  margin-bottom: 1.5rem; // Adjusted margin
+  color: #4a2e1a; // Darker brown for contrast
   text-align: center;
+  font-family: 'Cinzel', serif; // Added font
+  font-weight: bold; // Added weight
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); // Added shadow
+  position: relative; // Added for z-index
+  z-index: 2; // Added: Ensure title is above overlay
 }
 
 .narrative-outcome {
   margin: 1rem auto;
-  padding: 1.5rem;
+  // padding: 1.5rem; // Padding might conflict with card styles
   max-width: 600px;
   display: flex;
   justify-content: center;
+  width: 100%; // Ensure it takes width
+  position: relative; // Added for z-index
+  z-index: 2; // Added: Ensure card is above overlay
 }
 
 .narrative-content {
