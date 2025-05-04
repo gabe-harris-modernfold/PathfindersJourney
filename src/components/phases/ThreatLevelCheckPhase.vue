@@ -1,5 +1,13 @@
 <template>
   <div class="threat-level-check-phase">
+    <!-- Background Elements Added -->
+    <div class="landscape-image-container">
+      <img :src="require('@/assets/images/threat-level-check.jpg')" class="landscape-image" alt="Threat level background" />
+    </div>
+    <div class="landscape-overlay"></div>
+    <!-- End Background Elements -->
+
+    <!-- Existing Content (Needs z-index) -->
     <h2 class="phase-title">THREAT LEVEL CHECK</h2>
     <div class="phase-description">
       <p>The ancient whispers reveal the veil of danger around you...</p>
@@ -126,17 +134,63 @@ const advancePhase = () => {
   flex-direction: column;
   align-items: center;
   width: 100%;
+  position: relative;
+  min-height: 500px;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+// Added Background Styles
+.landscape-image-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.landscape-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.landscape-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(240, 230, 210, 0.75);
+  z-index: 1;
+}
+// End Added Background Styles
+
+// Ensure content is above overlay
+.phase-title,
+.phase-description,
+.threat-action-row {
+  position: relative;
+  z-index: 2;
 }
 
 .phase-title {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   margin-bottom: 1rem;
-  color: #5a3e2b;
+  color: #4a2e1a;
+  font-family: 'Cinzel', serif;
+  font-weight: bold;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .phase-description {
   text-align: center;
   margin-bottom: 1.5rem;
+  color: #5a3e2b;
+  max-width: 720px;
 }
 
 .threat-action-row {

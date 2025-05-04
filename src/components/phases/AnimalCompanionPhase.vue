@@ -1,5 +1,12 @@
 <template>
   <div class="animal-companion-phase">
+    <!-- Background Elements Added -->
+    <div class="landscape-image-container">
+      <img :src="require('@/assets/images/animal-barn.jpg')" class="landscape-image" alt="Animal companions background" />
+    </div>
+    <div class="landscape-overlay"></div>
+    <!-- End Background Elements -->
+
     <h2 class="phase-title">ANIMAL COMPANION</h2>
     
     <div v-if="playerStore.animalCompanions.length === 0">
@@ -326,24 +333,61 @@ const continueJourney = () => {
 .animal-companion-phase {
   display: flex;
   flex-direction: column;
-  min-height: 100%;
-  text-align: center;
-  padding: 1rem;
+  align-items: center;
+  width: 100%;
+  position: relative; 
+  min-height: 500px; 
+  padding: 1rem; 
+  box-sizing: border-box; 
+  overflow: hidden; 
   
+  .landscape-image-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0; 
+  }
+
+  .landscape-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; 
+    object-position: center;
+  }
+
+  .landscape-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(240, 230, 210, 0.75); 
+    z-index: 1; 
+  }
+
   .phase-title {
     text-align: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem; 
+    font-family: 'Cinzel', serif; 
+    color: #4a2e1a; 
+    font-size: 1.8rem; 
+    font-weight: bold; 
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); 
+    position: relative; 
+    z-index: 2; 
   }
-  
+
   .companion-selection {
     margin-bottom: 2rem;
   }
-  
+
   .companions-grid {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
     justify-content: flex-start;
+    gap: 0.5rem;
     margin-left: 1rem;
     
     .companion-card {
@@ -367,7 +411,7 @@ const continueJourney = () => {
       }
     }
   }
-  
+
   .selected-companion {
     margin-bottom: 2rem;
     margin-left: 1rem;
@@ -391,11 +435,11 @@ const continueJourney = () => {
       }
     }
   }
-  
+
   .resource-offerings {
     margin-top: 1rem;
   }
-  
+
   .compatible-resources {
     display: flex;
     flex-wrap: wrap;
@@ -422,7 +466,7 @@ const continueJourney = () => {
       }
     }
   }
-  
+
   .action-buttons {
     display: flex;
     gap: 0.5rem;
@@ -443,17 +487,17 @@ const continueJourney = () => {
       }
     }
   }
-  
+
   .label {
     font-weight: bold;
     margin-right: 0.5rem;
   }
-  
+
   .resource-warning {
     color: #e74c3c;
     margin-top: 0.5rem;
   }
-  
+
   .mt-4 {
     margin-top: 1rem;
   }
@@ -537,7 +581,7 @@ const continueJourney = () => {
     font-size: 1.4rem; 
     font-weight: bold;
     margin: 0 0 0.5rem 0; 
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
   }
 
   // Style for the description text
