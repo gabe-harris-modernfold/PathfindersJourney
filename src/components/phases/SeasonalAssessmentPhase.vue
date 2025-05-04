@@ -1,52 +1,48 @@
 <template>
   <div class="seasonal-assessment-phase">
+    <!-- Background Elements Added -->
+    <div class="landscape-image-container">
+      <img src="@/assets/images/seasonal-assement.jpg" 
+           class="landscape-image" 
+           alt="Seasonal background" />
+    </div>
+    <div class="landscape-overlay"></div>
+    <!-- End Background Elements -->
+
+    <!-- Existing Content (Needs z-index) -->
     <h2 class="phase-title">SEASONAL ASSESSMENT</h2>
     
     <!-- Modified Season Card -->
-    <div class="season-card" v-if="currentSeasonData">
-      <!-- Wrapper for image and text overlay -->
-      <div class="card-image-overlay-wrapper">
-        <img 
-          :src="require('@/assets/images/seasonal-assement.jpg')" 
-          alt="Seasonal Assessment" 
-          class="card-landscape-image"
-        />
-        <div class="card-text-overlay"></div> 
-        
-        <!-- Manually render content inside -->
-        <div class="card-content-over-image">
-          <h3 class="card-title-over-image">{{ currentSeasonData.name }}</h3>
-          <div class="season-narrative">
-            <p class="card-landscape-description">{{ currentSeasonData.description }}</p>
-            <p class="card-landscape-description" v-if="currentSeasonData.effect">
-              The conditions this season are challenging: {{ currentSeasonData.effect }}.
-            </p>
-            <p class="card-landscape-description" v-if="currentSeasonData.benefit">
-              However, this season also brings advantages: {{ currentSeasonData.benefit }}.
-            </p>
-            <p class="card-landscape-description" v-if="currentSeasonData.resourceAbundance && currentSeasonData.resourceAbundance.length > 0">
-              During this time, {{ getResourceNamesText(currentSeasonData.resourceAbundance) }} can be found in abundance.
-            </p>
-            <p class="card-landscape-description" v-if="currentSeasonData.resourceScarcity && currentSeasonData.resourceScarcity.length > 0">
-              However, {{ getResourceNamesText(currentSeasonData.resourceScarcity) }} are much harder to find.
-            </p>
-            <p class="card-landscape-description" v-if="currentSeasonData.animalAffinity && currentSeasonData.animalAffinity.length > 0">
-              The {{ getCompanionNamesText(currentSeasonData.animalAffinity) }} are particularly active during this season.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Fallback message if current season data is not available -->
-    <div class="season-card" v-else>
-      <h3>{{ formatSeason(seasonStore.currentSeason) }}</h3>
+    <div v-if="currentSeasonData" class="season-card">
+      <!-- Restore original structure and data binding -->
+      <h3>{{ currentSeasonData.name }}</h3>
       <div class="season-narrative">
-        <p>The seasons continue to change, affecting the world around you.</p>
-        <p>Each season brings different challenges and opportunities for your journey.</p>
+        <p>{{ currentSeasonData.description }}</p>
+        <p v-if="currentSeasonData.effect">
+          The conditions this season are challenging: {{ currentSeasonData.effect }}.
+        </p>
+        <p v-if="currentSeasonData.benefit">
+          However, this season also brings advantages: {{ currentSeasonData.benefit }}.
+        </p>
+        <p v-if="currentSeasonData.resourceAbundance && currentSeasonData.resourceAbundance.length > 0">
+          During this time, {{ getResourceNamesText(currentSeasonData.resourceAbundance) }} can be found in abundance.
+        </p>
+        <p v-if="currentSeasonData.resourceScarcity && currentSeasonData.resourceScarcity.length > 0">
+          However, {{ getResourceNamesText(currentSeasonData.resourceScarcity) }} are much harder to find.
+        </p>
+        <p v-if="currentSeasonData.animalAffinity && currentSeasonData.animalAffinity.length > 0">
+          The {{ getCompanionNamesText(currentSeasonData.animalAffinity) }} are particularly active during this season.
+        </p>
       </div>
     </div>
-    
+    <!-- Fallback Content (if no season data) -->
+    <div v-else class="season-card season-card-fallback">
+      <h3>Current Season</h3>
+      <div class="season-narrative">
+        <p>Seasonal details are currently unavailable.</p>
+      </div>
+    </div>
+
     <!-- Modified GameCard -->
     <GameCard 
       title="Continue Journey" 
@@ -179,32 +175,142 @@ const advancePhase = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative; // Added for absolute positioning context
   width: 100%;
-}
+  min-height: 500px; // Consistent height
+  padding: 1rem; // Consistent padding
+  box-sizing: border-box; // Include padding in width/height
+  overflow: hidden; // Prevent potential overflow
 
-.phase-title {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  color: #5a3e2b;
-}
+  // Added Background Styles
+  .landscape-image-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0; // Behind content
+  }
 
-.season-card {
-  background-color: transparent; 
-  border: none;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); // Keep shadow
-  padding: 0; // Remove padding, handled by inner content
-  margin-bottom: 1.5rem;
-  width: 90%;
-  max-width: 800px;
-  position: relative; // Context for absolute children
-  border-radius: 0.5rem; // Keep rounding
-  overflow: hidden; // Ensure image stays rounded
-  min-height: 250px; // Ensure it has some height
-  display: flex; // Use flex to center content vertically if needed
-  align-items: stretch; // Stretch wrapper to fill card
+  .landscape-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
 
-  // Image Overlay Styles (adapted from memory pattern)
-  .card-image-overlay-wrapper {
+  .landscape-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(240, 230, 210, 0.75); // Standard light overlay
+    z-index: 1; // Above image, below content
+  }
+  // End Added Background Styles
+
+  // Ensure existing content is above the background/overlay
+  .phase-title,
+  .season-card,
+  .seasonal-continue-card {
+    position: relative; // Establish stacking context
+    z-index: 2; // Make sure it's above the overlay (z-index 1)
+  }
+
+  .phase-title {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-family: 'Cinzel', serif;
+    color: #4a2e1a; // Dark color for contrast
+    font-size: 1.8rem;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); // Add shadow for readability
+  }
+
+  // Modified Season Card
+  .season-card {
+    background-color: #f5f5dc; // Beige background
+    border: 2px solid #8b4513; // Brown border
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 1.5rem; // Restore padding
+    margin-bottom: 1.5rem;
+    width: 90%;
+    max-width: 800px;
+    position: relative; // Keep relative positioning for z-index
+    border-radius: 0.5rem;
+    min-height: auto; // Allow height to be determined by content
+
+    h3 {
+      color: #8b4513; // Dark text color
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid #8b4513;
+      padding-bottom: 0.5rem;
+      text-shadow: none; // Remove text shadow from overlay style
+    }
+
+    .season-narrative {
+      text-align: center;
+      p {
+        color: #5a3e2b; // Dark text color
+        font-size: 1.1rem;
+        line-height: 1.5;
+        margin: 0.5rem 0;
+        text-shadow: none; // Remove text shadow from overlay style
+      }
+    }
+  }
+
+  /* Styles for fallback season card (adjust if needed) */
+  .season-card-fallback { // Use a separate class for fallback styling
+    // Keep fallback styles similar to the main restored card
+    background-color: #f0e8d6; 
+    border: 2px dashed #a0522d;
+    // ... other fallback-specific styles if desired
+    h3 {
+      color: #a0522d;
+    }
+    .season-narrative p {
+      color: #6b4f3e;
+    }
+  }
+  
+  // Ensure existing content is above the background/overlay
+  .phase-title,
+  .season-card,
+  .seasonal-continue-card {
+    position: relative; // Establish stacking context
+    z-index: 2; // Make sure it's above the overlay (z-index 1)
+  }
+
+  /* Styles for the Continue Journey card (KEEP image overlay here) */
+  .seasonal-continue-card {
+    max-width: 300px; // Consistent max-width
+    margin: 2rem auto; // Consistent margin
+
+    // Explicitly collapse the header div
+    :deep(.game-card__header) {
+      padding: 0;
+      height: 0;
+      border: none;
+      overflow: hidden;
+    }
+
+    // Remove padding from the body
+    :deep(.game-card__body) {
+      padding: 0;
+      height: 100%;
+      // Hide the default symbol if present
+      .game-card__symbol {
+        display: none;
+      }
+    }
+  }
+
+  // Wrapper positioned absolutely relative to the .game-card
+  .card-image-overlay-wrapper { // Keep these styles for the continue card
     position: absolute; 
     top: 0;
     left: 0;
@@ -216,8 +322,10 @@ const advancePhase = () => {
     display: flex; 
     align-items: center; 
     justify-content: center; 
+    min-height: 0; 
   }
 
+  // Style for the image
   .card-landscape-image {
     position: absolute;
     top: 0;
@@ -229,144 +337,19 @@ const advancePhase = () => {
     z-index: 0; 
   }
 
+  // Overlay for text readability
   .card-text-overlay {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(240, 230, 210, 0.7); /* Corrected: Standard light overlay */
+    background-color: rgba(240, 230, 210, 0.7); 
     z-index: 1; 
   }
 
-  .card-content-over-image {
-    position: relative; 
-    z-index: 2; 
-    color: white; 
-    text-align: center;
-    padding: 1.5rem; 
-    width: 100%;
-    box-sizing: border-box; 
-    display: flex;
-    flex-direction: column;
-    justify-content: center; // Center content vertically
-  }
-
-  // Style for the title over the image
-  .card-title-over-image {
-    color: white; // Ensure white text
-    text-align: center;
-    font-size: 1.8rem;
-    margin-bottom: 1rem; // Increased margin
-    border-bottom: 1px solid rgba(255, 255, 255, 0.5); // Lighter border
-    padding-bottom: 0.5rem;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
-  }
-
-  .season-narrative {
-    text-align: center;
-    // Style for the description text paragraphs
-    .card-landscape-description {
-      font-size: 1rem; // Consistent size
-      margin: 0.5rem 0; // Space between paragraphs
-      line-height: 1.4;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); 
-    }
-  }
-}
-
-/* Styles for fallback season card (unchanged) */
-.season-card:not([v-if="currentSeasonData"]) {
-  background-color: #f5f5dc; /* Beige background for an antiqued parchment look */
-  padding: 1.5rem;
-  border: 2px solid #8b4513; /* Brown border for an old-world feel */
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  margin-bottom: 1.5rem;
-  width: 90%;
-  max-width: 800px;
-  h3 {
-    color: #8b4513;
-    text-align: center;
-    font-size: 1.8rem;
-    margin-bottom: 0.5rem; 
-    border-bottom: 1px solid #8b4513;
-    padding-bottom: 0.5rem;
-  }
-  .season-narrative p {
-    color: #5a3e2b;
-    font-size: 1.1rem;
-    line-height: 1.5;
-    margin: 0.5rem 0;
-    text-align: center;
-  }
-}
-
-/* Styles for the Continue Journey card (already present) */
-.seasonal-continue-card {
-  max-width: 300px; // Consistent max-width
-  margin: 2rem auto; // Consistent margin
-
-  // Explicitly collapse the header div
-  :deep(.game-card__header) {
-    padding: 0;
-    height: 0;
-    border: none;
-    overflow: hidden;
-  }
-
-  // Remove padding from the body
-  :deep(.game-card__body) {
-    padding: 0;
-    height: 100%;
-    // Hide the default symbol if present
-    .game-card__symbol {
-      display: none;
-    }
-  }
-}
-
-// Wrapper positioned absolutely relative to the .game-card
-.card-image-overlay-wrapper {
-  position: absolute; 
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%; 
-  z-index: 1; 
-  border-radius: inherit; 
-  overflow: hidden; 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  min-height: 0; 
-}
-
-// Style for the image
-.card-landscape-image {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  z-index: 0; 
-}
-
-// Overlay for text readability
-.card-text-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(240, 230, 210, 0.7); 
-  z-index: 1; 
-}
-
-// Container for text content over the image
-.card-content-over-image {
+  // Container for text content over the image
+  .card-content-over-image { // Keep these styles for the continue card
     position: relative; 
     z-index: 2; 
     color: white; 
@@ -374,20 +357,21 @@ const advancePhase = () => {
     padding: 1rem; 
     width: 100%;
     box-sizing: border-box; 
-}
+  }
 
-// Style for the title over the image
-.card-title-over-image {
-  font-size: 1.4rem; 
-  font-weight: bold;
-  margin: 0 0 0.5rem 0; 
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
-}
+  // Style for the title over the image
+  .card-title-over-image {
+    font-size: 1.4rem; 
+    font-weight: bold;
+    margin: 0 0 0.5rem 0; 
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+  }
 
-// Style for the description text
-.card-landscape-description {
-  font-size: 1rem; 
-  margin: 0; 
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); 
+  // Style for the description text
+  .card-landscape-description {
+    font-size: 1rem; 
+    margin: 0; 
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); 
+  }
 }
 </style>
