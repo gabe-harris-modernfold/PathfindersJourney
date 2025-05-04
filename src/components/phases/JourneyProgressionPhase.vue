@@ -1,5 +1,11 @@
 <template>
   <div class="journey-progression-phase">
+    <div class="landscape-image-container">
+      <img :src="getLandscapeImagePath() || require('@/assets/images/menhir_path.jpg')" 
+           class="landscape-image" 
+           alt="Phase background" />
+    </div>
+    <div class="landscape-overlay"></div>
     <h2 class="phase-title">JOURNEY PROGRESSION</h2>
     <div class="phase-description">
       <p>Prepare for the next step in your adventure.</p>
@@ -19,9 +25,8 @@
           <!-- Wrapper for image and text overlay -->
           <div class="card-image-overlay-wrapper">
             <img 
-              v-if="getLandscapeImagePath()" 
-              :src="getLandscapeImagePath()" 
-              alt="Landscape image" 
+              :src="require('@/assets/images/journey_progression.jpg')" 
+              alt="Journey progression" 
               class="card-landscape-image"
             />
             <div class="card-text-overlay"></div> 
@@ -67,8 +72,6 @@
           </div>
         </GameCard>
       </div>
-
-      <!-- Removed redundant fallback button -->
     </div>
   </div>
 </template>
@@ -139,19 +142,65 @@ const forceAdvanceToExploration = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  position: relative; /* Added for absolute positioning context */
+  width: 100%;
+  min-height: 500px; /* Consistent height */
+  padding: 1rem; /* Consistent padding */
+  box-sizing: border-box; /* Include padding in width/height */
+  overflow: hidden; /* Prevent potential overflow */
+
+  .landscape-image-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0; /* Behind content */
+  }
+
+  .landscape-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .landscape-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(240, 230, 210, 0.75); /* Standard light overlay */
+    z-index: 1; /* Above image, below content */
+  }
+
+  .phase-title,
+  .phase-description,
+  .next-landscape,
+  .current-exploration {
+    position: relative; /* Establish stacking context */
+    z-index: 2; /* Make sure it's above the overlay (z-index 1) */
+  }
   
   .phase-title {
     text-align: center;
-    margin-bottom: 2rem;
-    font-family: 'Cinzel', serif;
-    color: #4a7c59;
+    margin-bottom: 1.5rem; /* Adjusted margin */
+    font-family: 'Cinzel', serif; /* Standard font */
+    color: #4a2e1a; /* Dark color for contrast */
+    font-size: 1.8rem; /* Consistent size */
+    font-weight: bold; /* Added weight */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Add shadow for readability */
   }
   
   .phase-description {
     text-align: center;
     margin-bottom: 2rem;
     max-width: 720px;
+    color: #5a3e2b; /* Dark color for contrast */
+    p { /* Target paragraph inside description */
+        margin-bottom: 1.5rem; /* Add spacing below this specific paragraph */
+    }
   }
   
   .next-landscape, 
@@ -171,8 +220,8 @@ const forceAdvanceToExploration = () => {
       :deep(.game-card__header) {
         padding: 0;
         height: 0;
-        border: none; // Remove any border that might take space
-        overflow: hidden; // Ensure content doesn't spill if somehow present
+        border: none; /* Remove any border that might take space */
+        overflow: hidden; /* Ensure content doesn't spill if somehow present */
       }
       
       // Remove padding from the body so our absolute wrapper can align perfectly edge-to-edge
@@ -195,13 +244,13 @@ const forceAdvanceToExploration = () => {
     left: 0;
     width: 100%;
     height: 100%; 
-    z-index: 1; // Sit above default card background/body (z-index 0/1) but below our content
-    border-radius: inherit; // Inherit rounding from parent GameCard
+    z-index: 1; /* Sit above default card background/body (z-index 0/1) but below our content */
+    border-radius: inherit; /* Inherit rounding from parent GameCard */
     overflow: hidden; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
-    min-height: 0; // Reset min-height from previous attempts
+    min-height: 0; /* Reset min-height from previous attempts */
   }
 
   // Style for the image (acts as background within the wrapper)
@@ -213,7 +262,7 @@ const forceAdvanceToExploration = () => {
     height: 100%;
     object-fit: cover;
     object-position: center;
-    z-index: 0; // Bottom layer within the wrapper
+    z-index: 0; /* Bottom layer within the wrapper */
   }
 
   // Overlay for text readability
@@ -223,14 +272,14 @@ const forceAdvanceToExploration = () => {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(240, 230, 210, 0.7); 
-    z-index: 1; // Above image within the wrapper
+    background-color: rgba(240, 230, 210, 0.7); /* Standard light overlay */
+    z-index: 1; /* Above image within the wrapper */
   }
 
   // Container for text content over the image
   .card-content-over-image {
-      position: relative; // Position relative to the wrapper flow
-      z-index: 2; // Above overlay within the wrapper
+      position: relative; /* Position relative to the wrapper flow */
+      z-index: 2; /* Above overlay within the wrapper */
       color: white; 
       text-align: center;
       padding: 1rem; 
@@ -267,8 +316,8 @@ const forceAdvanceToExploration = () => {
 
 /* Styles for the Explore Current Area card image overlay effect */
 .explore-continue-card {
-  max-width: 300px; // Consistent max-width
-  margin: 0 auto; // Center the card
+  max-width: 300px; /* Consistent max-width */
+  margin: 0 auto; /* Center the card */
 
   // Explicitly collapse the header div
   :deep(.game-card__header) {
