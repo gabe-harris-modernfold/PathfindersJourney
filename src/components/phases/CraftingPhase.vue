@@ -60,19 +60,32 @@
       </div>
       
       <div class="recipes-panel">
-        <h3>Available Recipes</h3>
-        <div class="recipe-list">
-          <p v-if="!availableRecipes.length">No recipes available with your current resources.</p>
-          <ul v-else>
-            <li v-for="recipe in availableRecipes" :key="recipe.id" class="recipe-item">
-              <div class="recipe-name">{{ recipe.name }}</div>
-              <div class="recipe-description">{{ recipe.description }}</div>
-              <div class="recipe-ingredients">
-                Requires: {{ formatIngredients(recipe.ingredients) }}
-              </div>
-              <button class="craft-button" @click="craftItem(recipe.id)">Craft</button>
-            </li>
-          </ul>
+        <!-- Wrapper for image and text overlay -->
+        <div class="card-image-overlay-wrapper">
+          <img 
+            :src="require('@/assets/images/crafting-recipies.jpg')" 
+            alt="Crafting Recipes Background" 
+            class="card-landscape-image" 
+          />
+          <div class="card-text-overlay"></div> 
+          
+          <!-- Content over the image/overlay -->
+          <div class="card-content-over-image">
+            <h3 class="panel-title-over-image">Available Recipes</h3>
+            <div class="recipe-list">
+              <p v-if="!availableRecipes.length">No recipes available with your current resources.</p>
+              <ul v-else>
+                <li v-for="recipe in availableRecipes" :key="recipe.id" class="recipe-item">
+                  <div class="recipe-name">{{ recipe.name }}</div>
+                  <div class="recipe-description">{{ recipe.description }}</div>
+                  <div class="recipe-ingredients">
+                    Requires: {{ formatIngredients(recipe.ingredients) }}
+                  </div>
+                  <button class="craft-button" @click="craftItem(recipe.id)">Craft</button>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -583,7 +596,7 @@ const advancePhase = () => {
       font-weight: bold;
       margin: 0 0 0.25rem 0;
       text-transform: capitalize;
-      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8); 
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
     }
 
     // Subtitle (Type) styling
@@ -749,5 +762,172 @@ const advancePhase = () => {
 /* Ensure resource card styles don't get overridden */
 .resource-card-wrapper :deep(.game-card__header) {
   display: none !important; /* Use !important to ensure override */
+}
+
+/* Styles for the Recipes Panel image overlay effect */
+.recipes-panel {
+  position: relative; // Needed for absolute positioning of children
+  border-radius: 8px; // Match card styling
+  overflow: hidden; // Keep image/overlay contained
+  min-height: 300px; // Ensure it has some height
+  margin-top: 1rem; // Space above
+  border: 1px solid #8c7851; // Optional border like cards
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15); // Optional shadow like cards
+
+  // Wrapper for image, overlay, and content
+  .card-image-overlay-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    border-radius: inherit;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  // The background image
+  .card-landscape-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+  }
+
+  // Semi-transparent overlay
+  .card-text-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(240, 230, 210, 0.75); // Slightly more opaque for readability?
+    z-index: 1;
+  }
+
+  // Container for text content over the image/overlay
+  .card-content-over-image {
+    position: relative;
+    z-index: 2;
+    color: white;
+    text-align: center;
+    padding: 1rem;
+    width: 100%;
+    height: 100%; // Take full height
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow-y: hidden; // Prevent content itself from scrolling initially
+
+    // Title styling
+    .panel-title-over-image {
+      font-size: 1.4rem;
+      font-weight: bold;
+      margin: 0 0 0.75rem 0;
+      color: white;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+    }
+
+    // Recipe List container adjustments
+    .recipe-list {
+      flex-grow: 1; // Allow list to take remaining space
+      overflow-y: auto; // Make the list scrollable if content overflows
+      max-height: none; // Remove previous max-height if set
+      padding-right: 10px; // Space for scrollbar
+      margin-right: -10px; // Offset scrollbar padding
+      color: white; // Ensure text inside is white
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); // Shadow for readability
+      
+      p { // Style for the 'no recipes' text
+         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+         font-style: italic;
+      }
+
+      ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+      }
+      
+      // Individual recipe item styling adjustments
+      .recipe-item {
+        background-color: rgba(0, 0, 0, 0.3); // Darker background for contrast
+        border-radius: 4px;
+        margin-bottom: 0.75rem;
+        padding: 0.75rem;
+        border-left: 3px solid #a7c7a7; // Lighter border
+        text-align: left;
+        
+        .recipe-name {
+          font-weight: bold;
+          margin-bottom: 0.25rem;
+          color: #ffffff;
+        }
+        
+        .recipe-description {
+          font-size: 0.9rem;
+          color: #f0f0f0; // Lighter gray
+          margin-bottom: 0.5rem;
+        }
+        
+        .recipe-ingredients {
+          font-size: 0.85rem;
+          color: #d3e0d3; // Lighter green tint
+          margin-bottom: 0.5rem;
+        }
+
+        .craft-button {
+          // Keep existing button styles, maybe adjust colors for contrast
+          background-color: #4a7c59; 
+          border-color: #3e684b;
+          color: white;
+          &:hover {
+             background-color: #5e9971;
+          }
+        }
+      }
+    }
+  }
+}
+
+.recipe-list {
+  // Remove original styling if conflicting - KEEPING scroll for now
+  // max-height: 300px; 
+  ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .recipe-item {
+    background-color: rgba(255, 255, 255, 0.6);
+    border-radius: 4px;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    border-left: 3px solid #8b4513;
+    
+    .recipe-name {
+      font-weight: bold;
+      margin-bottom: 0.25rem;
+    }
+    
+    .recipe-description {
+      font-size: 0.9rem;
+      color: #5a3e2b;
+      margin-bottom: 0.5rem;
+    }
+    
+    .recipe-ingredients {
+      font-size: 0.85rem;
+      color: #8b4513;
+      margin-bottom: 0.5rem;
+    }
+  }
 }
 </style>
