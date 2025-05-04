@@ -1,5 +1,13 @@
 <template>
   <div class="crafting-phase">
+    <!-- Background Elements Added -->
+    <div class="landscape-image-container">
+      <img :src="require('@/assets/images/crafting-phase.jpg')" class="landscape-image" alt="Crafting background" />
+    </div>
+    <div class="landscape-overlay"></div>
+    <!-- End Background Elements -->
+
+    <!-- Existing Content (Needs z-index) -->
     <h2 class="phase-title">CRAFTING</h2>
     <div class="phase-description">
       <p>Craft items using your gathered resources.</p>
@@ -268,22 +276,66 @@ const advancePhase = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 1rem;
+  width: 100%;
+  position: relative; 
+  min-height: 600px; 
+  padding: 1rem; 
+  box-sizing: border-box; 
+  overflow: hidden; 
+}
+
+// Added Background Styles
+.landscape-image-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0; 
+}
+
+.landscape-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.landscape-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(240, 230, 210, 0.75); 
+  z-index: 1; 
+}
+// End Added Background Styles
+
+// Ensure content is above overlay
+.phase-title,
+.phase-description,
+.crafting-container,
+.crafting-continue-card {
+  position: relative;
+  z-index: 2;
 }
 
 .phase-title {
-  font-size: 1.8rem;
-  color: #5a3e2b;
-  margin-bottom: 0.5rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  font-family: 'Cinzel', serif; 
+  color: #4a2e1a; 
+  font-size: 1.8rem; 
+  font-weight: bold; 
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); 
 }
 
 .phase-description {
   text-align: center;
-  margin-bottom: 1rem;
-  color: #665e52;
+  margin-bottom: 1.5rem;
+  color: #5a3e2b; 
+  max-width: 720px; 
 }
 
 .crafting-container {
@@ -475,7 +527,7 @@ const advancePhase = () => {
   height: 100%;
   object-fit: cover;
   border-radius: 4px;
-  opacity: 0.9; /* Make image slightly transparent */
+  opacity: 0.9; 
 }
 
 .card-text-overlay {
@@ -501,21 +553,21 @@ const advancePhase = () => {
   font-size: 1.2rem;
   font-weight: bold;
   margin-bottom: 0.25rem;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
 }
 
 .card-subtitle-over-image {
   font-size: 0.9rem;
   margin-bottom: 0.5rem;
   opacity: 0.9;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 .card-resource-description {
   font-size: 0.85rem;
   margin-bottom: 0.5rem;
-  color: #333; /* Set text color to dark grey */
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+  color: #333; 
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 .card-resource-effect {
@@ -530,13 +582,13 @@ const advancePhase = () => {
 }
 
 .resource-card-full-bg {
-  max-width: 220px; /* Match standard card size */
-  margin: 0.5rem; /* Add some spacing */
-
+  max-width: 220px; 
+  margin: 0.5rem; 
+  
   // Hide default GameCard parts
   :deep(.game-card__header) { padding: 0; height: 0; border: none; overflow: hidden; }
   :deep(.game-card__body) { padding: 0; height: 100%; 
-    .game-card__symbol { display: none; } /* Hide the default symbol */
+    .game-card__symbol { display: none; } 
   }
 
   // Container for image, overlay, and content
@@ -547,7 +599,7 @@ const advancePhase = () => {
     width: 100%;
     height: 100%;
     z-index: 1;
-    border-radius: inherit; /* Ensure overlay matches card rounding */
+    border-radius: inherit; 
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -561,8 +613,8 @@ const advancePhase = () => {
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Cover the card area */
-    z-index: 0; /* Behind overlay and text */
+    object-fit: cover; 
+    z-index: 0; 
   }
 
   // Semi-transparent overlay
@@ -572,23 +624,23 @@ const advancePhase = () => {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(240, 230, 210, 0.7); /* Standard light overlay */
-    z-index: 1; /* Above image, below text */
+    background-color: rgba(240, 230, 210, 0.7); 
+    z-index: 1; 
   }
 
   // Container for text content over the image/overlay
   .card-content-over-image {
     position: relative;
-    z-index: 2; /* Above overlay */
-    color: white; /* Text color */
+    z-index: 2; 
+    color: white; 
     text-align: center;
-    padding: 0.75rem; /* Padding for content */
+    padding: 0.75rem; 
     width: 100%;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Center content vertically */
-    height: 100%; /* Ensure it takes full height */
+    justify-content: center; 
+    height: 100%; 
 
     // Title styling
     .card-title-over-image {
@@ -613,13 +665,13 @@ const advancePhase = () => {
       font-size: 0.85rem;
       margin: 0 0 0.5rem 0;
       line-height: 1.3;
-      flex-grow: 1; /* Allow description to take space if needed */
+      flex-grow: 1; 
       text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
     }
     
     // Action text styling
     .resource-action-over-image {
-      margin-top: auto; /* Push to bottom */
+      margin-top: auto; 
       font-size: 0.75rem;
       opacity: 0.8;
       font-style: italic;
@@ -631,7 +683,7 @@ const advancePhase = () => {
 }
 
 .recipe-list {
-  max-height: 300px; /* Limit height and make scrollable */
+  max-height: 300px; 
   ul {
     list-style-type: none;
     padding: 0;
@@ -667,13 +719,15 @@ const advancePhase = () => {
 /* Override GameCard header specifically for resource cards in this wrapper if needed */
 /* This might be redundant if the above :deep styles work correctly */
 .resource-card-wrapper :deep(.game-card__header) {
-  display: none !important; /* Use !important to ensure override */
+  display: none !important; 
 }
 
 /* Styles for the Continue Journey card image overlay effect */
 .crafting-continue-card {
-  max-width: 300px; /* Consistent max-width */
-  margin: 1rem auto; /* Center the card and add margin */
+  max-width: 300px; 
+  margin: 1rem auto; 
+  position: relative; 
+  z-index: 2; 
 
   // Explicitly collapse the header div
   :deep(.game-card__header) {
@@ -728,7 +782,7 @@ const advancePhase = () => {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(240, 230, 210, 0.7); /* Standard light overlay */
+    background-color: rgba(240, 230, 210, 0.7); 
     z-index: 1; 
   }
 
@@ -761,18 +815,18 @@ const advancePhase = () => {
 
 /* Ensure resource card styles don't get overridden */
 .resource-card-wrapper :deep(.game-card__header) {
-  display: none !important; /* Use !important to ensure override */
+  display: none !important; 
 }
 
 /* Styles for the Recipes Panel image overlay effect */
 .recipes-panel {
-  position: relative; // Needed for absolute positioning of children
-  border-radius: 8px; // Match card styling
-  overflow: hidden; // Keep image/overlay contained
-  min-height: 300px; // Ensure it has some height
-  margin-top: 1rem; // Space above
-  border: 1px solid #8c7851; // Optional border like cards
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15); // Optional shadow like cards
+  position: relative; 
+  border-radius: 8px; 
+  overflow: hidden; 
+  min-height: 300px; 
+  margin-top: 1rem; 
+  border: 1px solid #8c7851; 
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15); 
 
   // Wrapper for image, overlay, and content
   .card-image-overlay-wrapper {
@@ -807,7 +861,7 @@ const advancePhase = () => {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(240, 230, 210, 0.75); // Slightly more opaque for readability?
+    background-color: rgba(240, 230, 210, 0.75); 
     z-index: 1;
   }
 
@@ -819,11 +873,11 @@ const advancePhase = () => {
     text-align: center;
     padding: 1rem;
     width: 100%;
-    height: 100%; // Take full height
+    height: 100%; 
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    overflow-y: hidden; // Prevent content itself from scrolling initially
+    overflow-y: hidden; 
 
     // Title styling
     .panel-title-over-image {
@@ -836,15 +890,15 @@ const advancePhase = () => {
 
     // Recipe List container adjustments
     .recipe-list {
-      flex-grow: 1; // Allow list to take remaining space
-      overflow-y: auto; // Make the list scrollable if content overflows
-      max-height: none; // Remove previous max-height if set
-      padding-right: 10px; // Space for scrollbar
-      margin-right: -10px; // Offset scrollbar padding
-      color: white; // Ensure text inside is white
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); // Shadow for readability
+      flex-grow: 1; 
+      overflow-y: auto; 
+      max-height: none; 
+      padding-right: 10px; 
+      margin-right: -10px; 
+      color: white; 
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); 
       
-      p { // Style for the 'no recipes' text
+      p { 
          text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
          font-style: italic;
       }
@@ -857,11 +911,11 @@ const advancePhase = () => {
       
       // Individual recipe item styling adjustments
       .recipe-item {
-        background-color: rgba(0, 0, 0, 0.3); // Darker background for contrast
+        background-color: rgba(0, 0, 0, 0.3); 
         border-radius: 4px;
         margin-bottom: 0.75rem;
         padding: 0.75rem;
-        border-left: 3px solid #a7c7a7; // Lighter border
+        border-left: 3px solid #a7c7a7; 
         text-align: left;
         
         .recipe-name {
@@ -872,13 +926,13 @@ const advancePhase = () => {
         
         .recipe-description {
           font-size: 0.9rem;
-          color: #f0f0f0; // Lighter gray
+          color: #f0f0f0; 
           margin-bottom: 0.5rem;
         }
         
         .recipe-ingredients {
           font-size: 0.85rem;
-          color: #d3e0d3; // Lighter green tint
+          color: #d3e0d3; 
           margin-bottom: 0.5rem;
         }
 
