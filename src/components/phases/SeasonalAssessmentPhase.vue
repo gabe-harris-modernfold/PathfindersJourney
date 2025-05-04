@@ -230,7 +230,7 @@ const advancePhase = () => {
 
   // Modified Season Card
   .season-card {
-    background-color: #f5f5dc; // Beige background
+    background-color: rgba(245, 245, 220, 0.75); // Increased transparency (75% opacity)
     border: 2px solid #8b4513; // Brown border
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     padding: 1.5rem; // Restore padding
@@ -266,7 +266,7 @@ const advancePhase = () => {
   /* Styles for fallback season card (adjust if needed) */
   .season-card-fallback { // Use a separate class for fallback styling
     // Keep fallback styles similar to the main restored card
-    background-color: #f0e8d6; 
+    background-color: rgba(240, 232, 214, 0.75); // Increased transparency (75% opacity)
     border: 2px dashed #a0522d;
     // ... other fallback-specific styles if desired
     h3 {
