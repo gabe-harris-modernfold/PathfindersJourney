@@ -11,14 +11,32 @@
     </div>
     
     <GameCard 
-      title="Continue Exploration" 
+      title="Continue Exploration"
       :cardType="CardType.ACTION"
       @click="completeExploration"
+      class="exploration-action-card"
     >
-      <div style="font-size: 1.1rem; padding: 10px;">
-        Complete exploration and move to next phase
+      <template #header>
+        <!-- Intentionally empty -->
+      </template>
+      
+      <div class="card-image-overlay-wrapper">
+        <img 
+          :src="require('@/assets/images/continue-journey.jpg')" 
+          alt="Continue Journey" 
+          class="card-landscape-image"
+        />
+        <div class="card-text-overlay"></div> 
+        
+        <div class="card-content-over-image">
+           <h3 class="card-title-over-image">Continue Exploration</h3>
+          <p class="card-landscape-description">
+            Complete exploration and move to next phase
+          </p>
+        </div>
       </div>
     </GameCard>
+
   </div>
 </template>
 
@@ -163,5 +181,87 @@ const debugJumpToNextLandscape = () => {
 :deep(.game-card) { 
   position: relative;
   z-index: 2;
+}
+
+.exploration-action-card {
+  max-width: 300px; /* Consistent max-width */
+  margin: 2rem auto; /* Consistent margin */
+
+  /* Explicitly collapse the header div */
+  :deep(.game-card__header) {
+    padding: 0;
+    height: 0;
+    border: none;
+    overflow: hidden;
+  }
+
+  /* Remove padding from the body */
+  :deep(.game-card__body) {
+    padding: 0;
+    height: 100%;
+    /* Hide the default symbol if present */
+    .game-card__symbol {
+      display: none;
+    }
+  }
+}
+
+.card-image-overlay-wrapper {
+  position: absolute; 
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%; 
+  z-index: 1; 
+  border-radius: inherit; 
+  overflow: hidden; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  min-height: 0; 
+}
+
+.card-landscape-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  z-index: 0; 
+}
+
+.card-text-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(240, 230, 210, 0.7); 
+  z-index: 1; 
+}
+
+.card-content-over-image {
+    position: relative; 
+    z-index: 2; 
+    color: white; 
+    text-align: center;
+    padding: 1rem; 
+    width: 100%;
+    box-sizing: border-box; 
+}
+
+.card-title-over-image {
+  font-size: 1.4rem; 
+  font-weight: bold;
+  margin: 0 0 0.5rem 0; 
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.card-landscape-description {
+  font-size: 1rem; 
+  margin: 0; 
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); 
 }
 </style>
