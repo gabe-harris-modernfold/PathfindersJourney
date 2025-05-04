@@ -49,16 +49,35 @@
     </div>
     
     <div class="resource-actions">
+      <!-- Modified Gather Resources Card -->
       <GameCard 
         title="Gather Resources" 
         :cardType="CardType.ACTION"
         :disabled="cannotGatherResources"
         @click="gatherResources"
+        class="resource-gather-card" 
       >
-        <div style="font-size: 1.1rem; padding: 10px;">
-          Gather resources from the current landscape
-          <div v-if="cannotGatherResources" class="disabled-reason">
-            {{ gatherResourcesDisabledReason }}
+        <!-- Use header slot with empty content to override default header -->
+        <template #header>
+          <!-- Intentionally empty -->
+        </template>
+        
+        <!-- Wrapper for image and text overlay -->
+        <div class="card-image-overlay-wrapper">
+          <img 
+            :src="require('@/assets/images/traveling-pack.jpg')" 
+            alt="Gather Resources" 
+            class="card-landscape-image"
+          />
+          <div class="card-text-overlay"></div> 
+            
+          <!-- Manually render content inside -->
+          <div class="card-content-over-image">
+            <h3 class="card-title-over-image">Gather Resources</h3>
+            <p class="card-landscape-description">
+              Gather resources from the current landscape
+              <span v-if="cannotGatherResources">(Your resource capacity is full)</span>
+            </p>
           </div>
         </div>
       </GameCard>
@@ -286,7 +305,7 @@ const cannotGatherResources = computed(() => {
   console.log('Player resource capacity:', playerStore.resourceCapacity);
   
   // Always enable for testing
-  return false;
+  return playerStore.resourceCount >= playerStore.resourceCapacity;
 });
 
 // Get gather resources disabled reason
@@ -436,16 +455,125 @@ const cancelDiscard = () => {
 }
 
 .resource-card-full-bg {
-  padding: 0;
-  background: none;
-  border: 1px solid rgba(138, 69, 19, 0.5);
-  min-height: 200px; /* Ensure height */
-  display: flex;
-  flex-direction: column;
-}
+  max-width: 250px; 
+  position: relative; 
+  border-radius: 0.5rem; 
+  overflow: hidden; 
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); 
 
-.resource-card-full-bg :deep(.game-card__header) {
-  display: none !important; /* Hide default header */
+  :deep(.game-card__header) {
+    padding: 0;
+    height: 0;
+    border: none;
+    overflow: hidden;
+  }
+
+  :deep(.game-card__body) {
+    padding: 0;
+    height: 100%;
+    display: flex; 
+    align-items: stretch; 
+    .game-card__symbol {
+      display: none;
+    }
+  }
+
+  .card-image-overlay-wrapper {
+    position: absolute; 
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%; 
+    z-index: 1; 
+    border-radius: inherit; 
+    overflow: hidden; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+  }
+
+  .card-resource-image { 
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    z-index: 0; 
+  }
+
+  .card-text-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(240, 230, 210, 0.7); 
+    z-index: 1; 
+  }
+
+  .card-content-over-image {
+    position: relative; 
+    z-index: 2; 
+    color: white; 
+    text-align: center;
+    padding: 1rem; 
+    width: 100%;
+    height: 100%; 
+    box-sizing: border-box; 
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; 
+  }
+
+  .card-title-over-image {
+    font-size: 1.2rem; 
+    font-weight: bold;
+    margin: 0 0 0.25rem 0; 
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+    line-height: 1.2;
+  }
+  
+  .card-subtitle-over-image {
+    font-size: 0.8rem;
+    font-weight: normal;
+    margin: 0 0 0.5rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.9;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); 
+  }
+
+  .card-resource-description {
+    font-size: 0.9rem; 
+    margin: 0; 
+    flex-grow: 1; 
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); 
+    line-height: 1.3;
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+  }
+  
+  .resource-action-over-image {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    opacity: 0.8;
+    small {
+      text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.6); 
+      font-style: italic;
+    }
+  }
+  
+  &:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+  }
+  
+  &[is-selected="true"] {
+     border: 2px solid #ffcc00; 
+     box-shadow: 0 0 10px #ffcc00;
+  }
 }
 
 .resource-actions {
@@ -457,19 +585,16 @@ const cancelDiscard = () => {
   width: 100%;
   
   .game-card {
-    flex: 0 1 300px;  /* Allow cards to grow but start at 300px */
+    flex: 0 1 300px;  
     max-width: 400px;
   }
 }
 
-/* Copied styles for card image overlay effect - Made specific to .resource-continue-card */
+/* Styles for the Gather Resources card image overlay effect */
+.resource-gather-card {
+  max-width: 300px; 
+  margin-bottom: 1rem; 
 
-// Target the specific GameCard instance for continue action
-.resource-continue-card {
-  max-width: 300px; // Consistent max-width
-  margin: 0; // Reset margin if controlled by parent flex
-
-  // Explicitly collapse the header div
   :deep(.game-card__header) {
     padding: 0;
     height: 0;
@@ -477,17 +602,14 @@ const cancelDiscard = () => {
     overflow: hidden;
   }
 
-  // Remove padding from the body
   :deep(.game-card__body) {
     padding: 0;
     height: 100%;
-    // Hide the default symbol if present
     .game-card__symbol {
       display: none;
     }
   }
 
-  // Wrapper positioned absolutely relative to the .game-card
   .card-image-overlay-wrapper {
     position: absolute; 
     top: 0;
@@ -503,7 +625,6 @@ const cancelDiscard = () => {
     min-height: 0; 
   }
 
-  // Style for the image
   .card-landscape-image {
     position: absolute;
     top: 0;
@@ -515,7 +636,6 @@ const cancelDiscard = () => {
     z-index: 0; 
   }
 
-  // Overlay for text readability
   .card-text-overlay {
     position: absolute;
     top: 0;
@@ -526,7 +646,6 @@ const cancelDiscard = () => {
     z-index: 1; 
   }
 
-  // Container for text content over the image
   .card-content-over-image {
     position: relative; 
     z-index: 2; 
@@ -537,7 +656,6 @@ const cancelDiscard = () => {
     box-sizing: border-box; 
   }
 
-  // Style for the title over the image
   .card-title-over-image {
     font-size: 1.4rem; 
     font-weight: bold;
@@ -545,7 +663,86 @@ const cancelDiscard = () => {
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
   }
 
-  // Style for the description text
+  .card-landscape-description {
+    font-size: 1rem; 
+    margin: 0; 
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); 
+  }
+}
+
+/* Continue Journey Card Styles */
+.resource-continue-card {
+  max-width: 300px; 
+  margin: 0; 
+
+  :deep(.game-card__header) {
+    padding: 0;
+    height: 0;
+    border: none;
+    overflow: hidden;
+  }
+
+  :deep(.game-card__body) {
+    padding: 0;
+    height: 100%;
+    .game-card__symbol {
+      display: none;
+    }
+  }
+
+  .card-image-overlay-wrapper {
+    position: absolute; 
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%; 
+    z-index: 1; 
+    border-radius: inherit; 
+    overflow: hidden; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    min-height: 0; 
+  }
+
+  .card-landscape-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    z-index: 0; 
+  }
+
+  .card-text-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(240, 230, 210, 0.7); 
+    z-index: 1; 
+  }
+
+  .card-content-over-image {
+    position: relative; 
+    z-index: 2; 
+    color: white; 
+    text-align: center;
+    padding: 1rem; 
+    width: 100%;
+    box-sizing: border-box; 
+  }
+
+  .card-title-over-image {
+    font-size: 1.4rem; 
+    font-weight: bold;
+    margin: 0 0 0.5rem 0; 
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+  }
+
   .card-landscape-description {
     font-size: 1rem; 
     margin: 0; 

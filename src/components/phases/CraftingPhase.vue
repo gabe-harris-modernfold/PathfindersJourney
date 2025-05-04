@@ -47,7 +47,7 @@
           </GameCard>
         </div>
         <!-- Resource discard confirmation modal -->
-        <div v-if="resourceToDiscard.value" class="discard-confirmation">
+        <div v-if="resourceToDiscard" class="discard-confirmation">
           <div class="discard-modal">
             <h4>Discard Resource</h4>
             <p>Are you sure you want to discard {{ discardResourceName }}?</p>
@@ -234,8 +234,8 @@ const selectResourceToDiscard = (resourceId: string) => {
 const confirmDiscard = () => {
   if (resourceToDiscard.value) {
     playerStore.removeResource(resourceToDiscard.value);
+    logStore.addToGameLog(`You discarded ${discardResourceName.value}.`, true, 'resource');
     resourceToDiscard.value = ''; // Reset selection to empty string
-    logStore.addToGameLog(`You discarded ${getResourceName(resourceToDiscard.value)}.`, true, 'resource');
   }
 };
 
@@ -517,15 +517,142 @@ const advancePhase = () => {
 }
 
 .resource-card-full-bg {
-  padding: 0;
-  background: none;
-  border: 1px solid rgba(138, 69, 19, 0.5);
-  min-height: 200px;
-  display: flex;
-  flex-direction: column;
+  max-width: 220px; /* Match standard card size */
+  margin: 0.5rem; /* Add some spacing */
+
+  // Hide default GameCard parts
+  :deep(.game-card__header) { padding: 0; height: 0; border: none; overflow: hidden; }
+  :deep(.game-card__body) { padding: 0; height: 100%; 
+    .game-card__symbol { display: none; } /* Hide the default symbol */
+  }
+
+  // Container for image, overlay, and content
+  .card-image-overlay-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    border-radius: inherit; /* Ensure overlay matches card rounding */
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  // The actual background image for the resource
+  .card-resource-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Cover the card area */
+    z-index: 0; /* Behind overlay and text */
+  }
+
+  // Semi-transparent overlay
+  .card-text-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(240, 230, 210, 0.7); /* Standard light overlay */
+    z-index: 1; /* Above image, below text */
+  }
+
+  // Container for text content over the image/overlay
+  .card-content-over-image {
+    position: relative;
+    z-index: 2; /* Above overlay */
+    color: white; /* Text color */
+    text-align: center;
+    padding: 0.75rem; /* Padding for content */
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center content vertically */
+    height: 100%; /* Ensure it takes full height */
+
+    // Title styling
+    .card-title-over-image {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin: 0 0 0.25rem 0;
+      text-transform: capitalize;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8); 
+    }
+
+    // Subtitle (Type) styling
+    .card-subtitle-over-image {
+      font-size: 0.8rem;
+      margin: 0 0 0.5rem 0;
+      opacity: 0.9;
+      font-weight: normal;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+    }
+
+    // Description styling
+    .card-resource-description {
+      font-size: 0.85rem;
+      margin: 0 0 0.5rem 0;
+      line-height: 1.3;
+      flex-grow: 1; /* Allow description to take space if needed */
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+    }
+    
+    // Action text styling
+    .resource-action-over-image {
+      margin-top: auto; /* Push to bottom */
+      font-size: 0.75rem;
+      opacity: 0.8;
+      font-style: italic;
+      small {
+        text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.6);
+      }
+    }
+  }
 }
 
-.resource-card :deep(.game-card__header),
+.recipe-list {
+  max-height: 300px; /* Limit height and make scrollable */
+  ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .recipe-item {
+    background-color: rgba(255, 255, 255, 0.6);
+    border-radius: 4px;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    border-left: 3px solid #8b4513;
+    
+    .recipe-name {
+      font-weight: bold;
+      margin-bottom: 0.25rem;
+    }
+    
+    .recipe-description {
+      font-size: 0.9rem;
+      color: #5a3e2b;
+      margin-bottom: 0.5rem;
+    }
+    
+    .recipe-ingredients {
+      font-size: 0.85rem;
+      color: #8b4513;
+      margin-bottom: 0.5rem;
+    }
+  }
+}
+
+/* Override GameCard header specifically for resource cards in this wrapper if needed */
+/* This might be redundant if the above :deep styles work correctly */
 .resource-card-wrapper :deep(.game-card__header) {
   display: none !important; /* Use !important to ensure override */
 }

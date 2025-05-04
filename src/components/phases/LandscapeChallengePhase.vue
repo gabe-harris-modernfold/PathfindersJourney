@@ -13,24 +13,67 @@
     </div>
     
     <div v-if="!rollResult" class="challenge-actions">
+      <!-- Modified Roll D8 Card -->
       <GameCard 
         title="Roll D8 and Resolve Challenge" 
         :cardType="CardType.ACTION"
         @click="rollForChallenge"
+        class="challenge-roll-card" 
       >
-        <div style="font-size: 0.85rem; padding: 5px;">
-          {{ getChallengeDescription() }}<br><br>
-          Test your skills against the challenge (Difficulty: {{ challengeDifficulty }})
+        <!-- Use header slot with empty content to override default header -->
+        <template #header>
+          <!-- Intentionally empty -->
+        </template>
+        
+        <!-- Wrapper for image and text overlay -->
+        <div class="card-image-overlay-wrapper">
+          <img 
+            :src="require('@/assets/images/resolve-challenge.jpg')" 
+            alt="Resolve Challenge" 
+            class="card-landscape-image"
+          />
+          <div class="card-text-overlay"></div> 
+          
+          <!-- Manually render content inside -->
+          <div class="card-content-over-image">
+            <h3 class="card-title-over-image">Roll D8 and Resolve Challenge</h3>
+            <p class="card-landscape-description">
+              <!-- Preserve dynamic description -->
+              {{ getChallengeDescription() }}<br><br>
+              Test your skills against the challenge (Difficulty: {{ challengeDifficulty }})
+            </p>
+          </div>
         </div>
       </GameCard>
       
+      <!-- Modified Avoid Challenge Card -->
       <GameCard 
         title="Avoid Challenge" 
         :cardType="CardType.ACTION"
         @click="avoidChallenge"
+        class="challenge-avoid-card" 
       >
-        <div style="font-size: 1rem; padding: 5px;">
-          Cost: 2 Resources
+        <!-- Use header slot with empty content to override default header -->
+        <template #header>
+          <!-- Intentionally empty -->
+        </template>
+        
+        <!-- Wrapper for image and text overlay -->
+        <div class="card-image-overlay-wrapper">
+          <img 
+            :src="require('@/assets/images/avoid-challenge.jpg')" 
+            alt="Avoid Challenge" 
+            class="card-landscape-image"
+          />
+          <div class="card-text-overlay"></div> 
+          
+          <!-- Manually render content inside -->
+          <div class="card-content-over-image">
+            <h3 class="card-title-over-image">Avoid Challenge</h3>
+            <p class="card-landscape-description">
+              Cost: 2 Resources
+            </p>
+          </div>
         </div>
       </GameCard>
     </div>
@@ -244,4 +287,183 @@ const avoidChallenge = () => {
 .result-description {
   margin-top: 1rem;
 }
+
+/* Styles for the Roll D8 card image overlay effect */
+.challenge-roll-card {
+  max-width: 300px; 
+  margin: 0 1rem 1rem 1rem; 
+
+  // Explicitly collapse the header div
+  :deep(.game-card__header) {
+    padding: 0;
+    height: 0;
+    border: none;
+    overflow: hidden;
+  }
+
+  // Remove padding from the body
+  :deep(.game-card__body) {
+    padding: 0;
+    height: 100%; 
+    // Hide the default symbol if present
+    .game-card__symbol {
+      display: none;
+    }
+  }
+
+  // Wrapper positioned absolutely relative to the .game-card
+  .card-image-overlay-wrapper {
+    position: absolute; 
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%; 
+    z-index: 1; 
+    border-radius: inherit; 
+    overflow: hidden; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    min-height: 0; 
+  }
+
+  // Style for the image
+  .card-landscape-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    z-index: 0; 
+  }
+
+  // Overlay for text readability
+  .card-text-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(240, 230, 210, 0.7); 
+    z-index: 1; 
+  }
+
+  // Container for text content over the image
+  .card-content-over-image {
+    position: relative; 
+    z-index: 2; 
+    color: white; 
+    text-align: center;
+    padding: 1rem; 
+    width: 100%;
+    box-sizing: border-box; 
+  }
+
+  // Style for the title over the image
+  .card-title-over-image {
+    font-size: 1.4rem; 
+    font-weight: bold;
+    margin: 0 0 0.5rem 0; 
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+  }
+
+  // Style for the description text
+  .card-landscape-description {
+    font-size: 0.9rem; 
+    margin: 0; 
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); 
+  }
+}
+
+/* Styles for the Avoid Challenge card image overlay effect */
+.challenge-avoid-card {
+  max-width: 300px; 
+  margin: 0 1rem 1rem 1rem; 
+
+  // Explicitly collapse the header div
+  :deep(.game-card__header) {
+    padding: 0;
+    height: 0;
+    border: none;
+    overflow: hidden;
+  }
+
+  // Remove padding from the body
+  :deep(.game-card__body) {
+    padding: 0;
+    height: 100%; 
+    // Hide the default symbol if present
+    .game-card__symbol {
+      display: none;
+    }
+  }
+
+  // Wrapper positioned absolutely relative to the .game-card
+  .card-image-overlay-wrapper {
+    position: absolute; 
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%; 
+    z-index: 1; 
+    border-radius: inherit; 
+    overflow: hidden; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    min-height: 0; 
+  }
+
+  // Style for the image
+  .card-landscape-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    z-index: 0; 
+  }
+
+  // Overlay for text readability
+  .card-text-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(240, 230, 210, 0.7); 
+    z-index: 1; 
+  }
+
+  // Container for text content over the image
+  .card-content-over-image {
+    position: relative; 
+    z-index: 2; 
+    color: white; 
+    text-align: center;
+    padding: 1rem; 
+    width: 100%;
+    box-sizing: border-box; 
+  }
+
+  // Style for the title over the image
+  .card-title-over-image {
+    font-size: 1.4rem; 
+    font-weight: bold;
+    margin: 0 0 0.5rem 0; 
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+  }
+
+  // Style for the description text
+  .card-landscape-description {
+    font-size: 1rem; 
+    margin: 0; 
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); 
+  }
+}
+
 </style>
