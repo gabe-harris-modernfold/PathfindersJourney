@@ -43,36 +43,15 @@
       </div>
     </div>
 
-    <!-- Modified GameCard -->
-    <GameCard 
-      title="Continue Journey" 
-      :cardType="CardType.ACTION"
-      @click="advancePhase"
-      class="seasonal-continue-card" 
-    >
-      <!-- Use header slot with empty content to override default header -->
-      <template #header>
-        <!-- Intentionally empty -->
-      </template>
-      
-      <!-- Wrapper for image and text overlay -->
-      <div class="card-image-overlay-wrapper">
-        <img 
-          :src="require('@/assets/images/continue-journey.jpg')" 
-          alt="Continue Journey" 
-          class="card-landscape-image"
-        />
-        <div class="card-text-overlay"></div> 
-        
-        <!-- Manually render content inside -->
-        <div class="card-content-over-image">
-           <h3 class="card-title-over-image">Continue Journey</h3>
-          <p class="card-landscape-description">
-            Proceed to the next phase of your adventure
-          </p>
-        </div>
+    <!-- Custom button-style card with background image -->
+    <div class="continue-button" @click="advancePhase">
+      <div class="continue-button-image"></div>
+      <div class="continue-button-overlay"></div>
+      <div class="continue-button-content">
+        <h3>Continue Journey</h3>
+        <p>Proceed to the next phase of your adventure</p>
       </div>
-    </GameCard>
+    </div>
   </div>
 </template>
 
@@ -285,93 +264,84 @@ const advancePhase = () => {
     z-index: 2; // Make sure it's above the overlay (z-index 1)
   }
 
-  /* Styles for the Continue Journey card (KEEP image overlay here) */
-  .seasonal-continue-card {
-    max-width: 300px; // Consistent max-width
-    margin: 2rem auto; // Consistent margin
-
-    // Explicitly collapse the header div
-    :deep(.game-card__header) {
-      padding: 0;
-      height: 0;
-      border: none;
-      overflow: hidden;
-    }
-
-    // Remove padding from the body
-    :deep(.game-card__body) {
-      padding: 0;
-      height: 100%;
-      // Hide the default symbol if present
-      .game-card__symbol {
-        display: none;
+  /* Custom button-style card for Continue Journey */
+  .continue-button {
+    max-width: 250px;
+    min-height: 350px;
+    margin: 1.5rem auto;
+    border: 2px solid #8c7851;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+    overflow: hidden; // Keep the image within the rounded corners
+    
+    /* Simple highlight on hover without movement */
+    &:hover {
+      border-color: #a08c61;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+      
+      .continue-button-overlay {
+        background-color: rgba(240, 230, 210, 0.6); // Slightly more transparent on hover
       }
     }
+    
+    /* Active state for when clicked */
+    &:active {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
   }
-
-  // Wrapper positioned absolutely relative to the .game-card
-  .card-image-overlay-wrapper { // Keep these styles for the continue card
-    position: absolute; 
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%; 
-    z-index: 1; 
-    border-radius: inherit; 
-    overflow: hidden; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    min-height: 0; 
-  }
-
-  // Style for the image
-  .card-landscape-image {
+  
+  .continue-button-image {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    object-position: center;
-    z-index: 0; 
+    background-image: url('@/assets/images/continue-journey.jpg');
+    background-size: cover;
+    background-position: center;
+    z-index: 1;
   }
-
-  // Overlay for text readability
-  .card-text-overlay {
+  
+  .continue-button-overlay {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(240, 230, 210, 0.7); 
-    z-index: 1; 
+    background-color: rgba(240, 230, 210, 0.7); // Semi-transparent overlay
+    z-index: 2;
+    transition: background-color 0.2s ease; // Smooth transition for hover effect
   }
-
-  // Container for text content over the image
-  .card-content-over-image { // Keep these styles for the continue card
-    position: relative; 
-    z-index: 2; 
-    color: white; 
+  
+  .continue-button-content {
+    position: relative;
+    z-index: 3;
+    padding: 1rem;
     text-align: center;
-    padding: 1rem; 
-    width: 100%;
-    box-sizing: border-box; 
-  }
-
-  // Style for the title over the image
-  .card-title-over-image {
-    font-size: 1.4rem; 
-    font-weight: bold;
-    margin: 0 0 0.5rem 0; 
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
-  }
-
-  // Style for the description text
-  .card-landscape-description {
-    font-size: 1rem; 
-    margin: 0; 
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    box-sizing: border-box;
+    
+    h3 {
+      margin: 0 0 0.5rem 0;
+      color: #4a2e1a;
+      font-size: 1.4rem;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    }
+    
+    p {
+      margin: 0;
+      color: #5a3e2b;
+      font-size: 1rem;
+      text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+    }
   }
 }
 </style>
